@@ -13,24 +13,19 @@ MainComponent::MainComponent()
     else
     {
         // Specify the number of input and output channels that we want to open
-        setAudioChannels (2, 0);
+        setAudioChannels (numInputChannels, numOutputChannels);
     }
-
+    
     addAndMakeVisible(createMidiButton);
     createMidiButton.setButtonText("Create MIDI note");
     createMidiButton.onClick = [this] {
         constexpr unsigned int offset { 12 }; // For some reason, JUCE's Midi Messages are off by one octave.
         int noteVal = noteInput.getTextValue().getValue();
-        setNoteNum(noteVal + offset, velocitySlider.getValue());
+        setNoteNum((noteVal + offset), velocitySlider.getValue());
     };
 
     addAndMakeVisible(velocitySlider);
-    velocitySlider.setRange(0, 127, 1);
-    velocitySlider.onValueChange = [this]
-    {
-        auto midiMessage = juce::MidiMessage::controllerEvent(midiChannels, 7, (int)velocitySlider.getValue());
-        addToOutputList(midiMessage);
-    };
+    velocitySlider.setRange(0, 1, 0.01);
 
     addAndMakeVisible(noteInput);
     noteInput.setMultiLine(false);
@@ -79,7 +74,37 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
 
     // Right now we are not producing any data, in which case we need to clear the buffer
     // (to prevent the output of random noise)
-    bufferToFill.clearActiveBufferRegion();
+    auto* device = deviceManager.getCurrentAudioDevice();
+    auto activeInputChannels = device->getActiveInputChannels();
+    auto activeOutputChannels = device->getActiveOutputChannels();
+    auto maxInputChannels = activeInputChannels.getHighestBit();
+    auto maxOutputChannels = activeOutputChannels.getHighestBit();
+
+
+    for (auto channel = 0; channel < maxOutputChannels; ++channel)
+    {
+        if ((!activeOutputChannels[channel]) || maxInputChannels == 0)
+        {
+            bufferToFill.buffer->clear(channel, bufferToFill.startSample, bufferToFill.numSamples);
+        }
+        else
+        {
+            auto actualInputChannel = channel % maxInputChannels;
+
+            if (!activeInputChannels[channel])
+            {
+                bufferToFill.buffer->clear(channel, bufferToFill.startSample, bufferToFill.numSamples);
+            }
+            else
+            {
+                auto* inBuffer = bufferToFill.buffer->getReadPointer(actualInputChannel, bufferToFill.startSample);
+                auto* outBuffer = bufferToFill.buffer->getWritePointer(channel, bufferToFill.startSample);
+
+                for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
+                    outBuffer[sample] = inBuffer[sample]*velocitySlider.getValue();
+            }
+        }
+    }
 }
 
 void MainComponent::releaseResources()
@@ -118,11 +143,23 @@ void MainComponent::resized()
 }
 
 void MainComponent::setNoteNum(const unsigned int& noteNum, const juce::uint8& velocity) {
+    // Creates MIDI message based on inputed note number and velocity,
+    // and sends it to the output list.
+
     auto midiMessage{ juce::MidiMessage::noteOn(midiChannels, noteNum, velocity) };
     addToOutputList(midiMessage);
 }
 
 void MainComponent::addToOutputList(const juce::MidiMessage& midiMessage) {
+    // Displays midi messages to the output list.
+    std::cout << "hello" << std::endl;
     midiOutputBox.moveCaretToEnd();
     midiOutputBox.insertTextAtCaret(midiMessage.getDescription() + juce::newLine);
+}
+
+void MainComponent::addToOutputList(juce::String msg) {
+    // Displays general messages (debugging) to the output list.
+
+    midiOutputBox.moveCaretToEnd();
+    midiOutputBox.insertTextAtCaret(msg);
 }

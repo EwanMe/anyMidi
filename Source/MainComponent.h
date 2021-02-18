@@ -25,7 +25,9 @@ public:
 
 private:
     //==============================================================================
-    // Your private member variables go here...
+    static constexpr unsigned int numInputChannels{ 2 };
+    static constexpr unsigned int numOutputChannels{ 2 };
+
     const int midiChannels = 10;
     juce::TextButton createMidiButton;
     juce::Slider velocitySlider;
@@ -34,6 +36,6 @@ private:
 
     void setNoteNum(const unsigned int& noteNum, const juce::uint8& velocity);
     void addToOutputList(const juce::MidiMessage& midiMessage);
-
+    void addToOutputList(juce::String msg);
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
