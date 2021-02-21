@@ -31,8 +31,11 @@ private:
     const int midiChannels = 10;
     juce::TextButton createMidiButton;
     juce::Slider velocitySlider;
+    juce::Slider gainSlider;
     juce::TextEditor noteInput;
     juce::TextEditor midiOutputBox;
+
+    juce::AudioDeviceSelectorComponent audioSetupComp;
 
     void setNoteNum(const unsigned int& noteNum, const juce::uint8& velocity);
     void addToOutputList(const juce::MidiMessage& midiMessage);

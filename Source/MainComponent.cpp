@@ -1,7 +1,16 @@
 #include "MainComponent.h"
 
 //==============================================================================
-MainComponent::MainComponent()
+MainComponent::MainComponent() : audioSetupComp (
+    deviceManager,
+    0,      // min input ch
+    256,    // max input ch
+    0,      // min output ch
+    256,    // max output ch
+    true,  // can select midi inputs?
+    true,  // can select midi output device?
+    false,  // treat channels as stereo pairs
+    false)  // hide advanced options?
 {
     // Some platforms require permissions to open input channels so request that here
     if (juce::RuntimePermissions::isRequired (juce::RuntimePermissions::recordAudio)
@@ -16,6 +25,8 @@ MainComponent::MainComponent()
         setAudioChannels (numInputChannels, numOutputChannels);
     }
     
+    addAndMakeVisible(audioSetupComp);
+
     addAndMakeVisible(createMidiButton);
     createMidiButton.setButtonText("Create MIDI note");
     createMidiButton.onClick = [this] {
@@ -25,7 +36,10 @@ MainComponent::MainComponent()
     };
 
     addAndMakeVisible(velocitySlider);
-    velocitySlider.setRange(0, 1, 0.01);
+    velocitySlider.setRange(0, 127, 1);
+
+    addAndMakeVisible(gainSlider);
+    gainSlider.setRange(0, 1, 0.01);
 
     addAndMakeVisible(noteInput);
     noteInput.setMultiLine(false);
@@ -45,7 +59,7 @@ MainComponent::MainComponent()
 
     // Make sure you set the size of the component after
     // you add any child components.
-    setSize(800, 600);
+    setSize(1000, 600);
 }
 
 MainComponent::~MainComponent()
@@ -101,7 +115,7 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
                 auto* outBuffer = bufferToFill.buffer->getWritePointer(channel, bufferToFill.startSample);
 
                 for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
-                    outBuffer[sample] = inBuffer[sample]*velocitySlider.getValue();
+                    outBuffer[sample] = inBuffer[sample]*gainSlider.getValue();
             }
         }
     }
@@ -130,16 +144,19 @@ void MainComponent::resized()
     // This is called when the MainContentComponent is resized.
     // If you add any child components, this is where you should
     // update their positions.
+    auto rect = getLocalBounds();
+    
     auto halfWidth = getWidth() / 2;
+    auto halfHeight = getHeight() / 2;
 
-    auto buttonsBounds = getLocalBounds().withWidth(halfWidth).reduced(10);
+    audioSetupComp.setBounds(rect.withWidth(halfWidth));
+    
+    createMidiButton.setBounds(rect.getCentreX(), 10, halfWidth/2 - 10, 20);
+    noteInput.setBounds(rect.getCentreX(), 40, halfWidth/2 - 10, 20);
+    velocitySlider.setBounds(rect.getCentreX(), 70, halfWidth/2 - 10, 20);
+    gainSlider.setBounds(rect.getCentreX(), 100, halfWidth / 2 - 10, 20);
 
-    createMidiButton.setBounds(buttonsBounds.getX(), 10, buttonsBounds.getWidth(), 20);
-    velocitySlider.setBounds(buttonsBounds.getX(), 220, buttonsBounds.getWidth(), 20);
-
-    noteInput.setBounds(buttonsBounds.getX(), 40, buttonsBounds.getWidth(), 20);
-
-    midiOutputBox.setBounds(getLocalBounds().withWidth(halfWidth).withX(halfWidth).reduced(10));
+    midiOutputBox.setBounds(halfWidth, halfHeight, halfWidth - 10, halfHeight - 10);
 }
 
 void MainComponent::setNoteNum(const unsigned int& noteNum, const juce::uint8& velocity) {
@@ -152,7 +169,7 @@ void MainComponent::setNoteNum(const unsigned int& noteNum, const juce::uint8& v
 
 void MainComponent::addToOutputList(const juce::MidiMessage& midiMessage) {
     // Displays midi messages to the output list.
-    std::cout << "hello" << std::endl;
+    
     midiOutputBox.moveCaretToEnd();
     midiOutputBox.insertTextAtCaret(midiMessage.getDescription() + juce::newLine);
 }
