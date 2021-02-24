@@ -17,7 +17,7 @@ MainComponent::MainComponent() :
         false,  // treat channels as stereo pairs
         false)  // hide advanced options?
 {
-    // Some platforms require permissions to open input channels so request that here
+    // Some platforms require permissions to open input channels so request that here.
     if (juce::RuntimePermissions::isRequired (juce::RuntimePermissions::recordAudio)
         && ! juce::RuntimePermissions::isGranted (juce::RuntimePermissions::recordAudio))
     {
@@ -27,8 +27,10 @@ MainComponent::MainComponent() :
     else
     {
         juce::File deviceSettingsFile = juce::File::getCurrentWorkingDirectory().getChildFile("audio_device_settings.xml");
+        
         if (deviceSettingsFile.existsAsFile())
         {
+            // Loads settings from file if it exists.
             const auto storedSettings = juce::parseXML(deviceSettingsFile);
             setAudioChannels(numInputChannels, numOutputChannels, storedSettings.get());
         }
@@ -38,8 +40,10 @@ MainComponent::MainComponent() :
         }
     }
     
+    // Audio device manager.
     addAndMakeVisible(audioSetupComp);
 
+    // Create midi button.
     addAndMakeVisible(createMidiButton);
     createMidiButton.setButtonText("Create MIDI note");
     createMidiButton.onClick = [this] {
@@ -48,18 +52,22 @@ MainComponent::MainComponent() :
         setNoteNum((noteVal + offset), velocitySlider.getValue());
     };
 
+    // Velocity slider.
     addAndMakeVisible(velocitySlider);
     velocitySlider.setRange(0, 127, 1);
 
+    // Gain slider.
     addAndMakeVisible(gainSlider);
     gainSlider.setRange(0, 1, 0.01);
     gainSlider.setValue(0.8);
 
+    // Midi note input field.
     addAndMakeVisible(noteInput);
     noteInput.setMultiLine(false);
     noteInput.setCaretVisible(true);
     noteInput.setReadOnly(false);
 
+    // Output box, used for debugging.
     addAndMakeVisible(midiOutputBox);
     midiOutputBox.setMultiLine(true);
     midiOutputBox.setReturnKeyStartsNewLine(true);
@@ -71,8 +79,7 @@ MainComponent::MainComponent() :
     midiOutputBox.setColour(juce::TextEditor::outlineColourId, juce::Colour(0x1c000000));
     midiOutputBox.setColour(juce::TextEditor::shadowColourId, juce::Colour(0x16000000));
 
-    // Make sure you set the size of the component after
-    // you add any child components.
+    // Timer used for FFT spectrum analysis.
     startTimerHz(60);
 
     
@@ -125,6 +132,8 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
         for (unsigned int i = 0; i < bufferToFill.numSamples; ++i)
         {
             pushNextSampleIntoFifo(channelData[i]);
+            
+            // Throughput for debugging purposes. Just sends singnal through, scaled bu the gain slider.
             outBuffer_1[i] = channelData[i] * gainSlider.getValue();
             outBuffer_2[i] = channelData[i] * gainSlider.getValue();
         }
@@ -143,6 +152,7 @@ void MainComponent::timerCallback()
 {
     if (nextFFTBlockReady)
     {
+        // Draws the spectrogram image.
         drawNextLineOfSpectrogram();
         nextFFTBlockReady = false;
         repaint();
@@ -156,6 +166,7 @@ void MainComponent::pushNextSampleIntoFifo(float sample)
     {
         if (!nextFFTBlockReady)
         {
+            // Copies the data from the fifo into fftData.
             std::fill(fftData.begin(), fftData.end(), 0.0f);
             std::copy(fifo.begin(), fifo.end(), fftData.begin());
             nextFFTBlockReady = true;
@@ -173,9 +184,8 @@ void MainComponent::paint (juce::Graphics& g)
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 
+    // Draws spectrogram underneath GUI. It works for now.
     g.drawImage(spectrogramImage, getLocalBounds().toFloat());
-    // You can add your drawing code here!
-
 }
 
 void MainComponent::resized()
@@ -183,6 +193,7 @@ void MainComponent::resized()
     // This is called when the MainContentComponent is resized.
     // If you add any child components, this is where you should
     // update their positions.
+
     auto rect = getLocalBounds();
     
     auto halfWidth = getWidth() / 2;
