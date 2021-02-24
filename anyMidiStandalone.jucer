@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="xHuwhM" name="anyMidiStandalone" projectType="guiapp" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" companyName="Hallvard Jensen"
-              displaySplashScreen="1" cppLanguageStandard="17">
+              displaySplashScreen="1" cppLanguageStandard="17" headerPath="D:\dev\anyMidiStandalone\Source\ASIO\">
   <MAINGROUP id="V3BKVY" name="anyMidiStandalone">
     <GROUP id="{19E908DE-ABB1-AB26-675F-DD9CF27A73FB}" name="Source">
       <FILE id="AjTRXO" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
@@ -11,7 +11,7 @@
             file="Source/MainComponent.cpp"/>
     </GROUP>
   </MAINGROUP>
-  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_ASIO="1"/>
   <EXPORTFORMATS>
     <VS2019 targetFolder="Builds/VisualStudio2019">
       <CONFIGURATIONS>
