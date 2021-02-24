@@ -35,10 +35,12 @@ public:
 
 private:
     //==============================================================================
+    //====== Channels =====
     static constexpr unsigned int numInputChannels{ 1 };
     static constexpr unsigned int numOutputChannels{ 2 };
-
     const int midiChannels = 10;
+
+    // ====== Layout ======
     juce::TextButton createMidiButton;
     juce::Slider velocitySlider;
     juce::Slider gainSlider;
@@ -51,8 +53,9 @@ private:
     void addToOutputList(const juce::MidiMessage& midiMessage);
     void addToOutputList(juce::String msg);
 
-    // FFT stuff 
+    // ====== FFT ======
     juce::dsp::FFT forwardFFT;
+    juce::dsp::WindowingFunction<float> window;
     juce::Image spectrogramImage;
 
     std::array<float, fftSize> fifo;
