@@ -1,16 +1,21 @@
 #include "MainComponent.h"
+#include <fstream>
 
 //==============================================================================
-MainComponent::MainComponent() : audioSetupComp (
-    deviceManager,
-    0,      // min input ch
-    256,    // max input ch
-    0,      // min output ch
-    256,    // max output ch
-    true,  // can select midi inputs?
-    true,  // can select midi output device?
-    false,  // treat channels as stereo pairs
-    false)  // hide advanced options?
+MainComponent::MainComponent() : 
+    forwardFFT(fftOrder),
+    // When initialising the windowing function, consider using fftSize + 1, ref. https://artandlogic.com/2019/11/making-spectrograms-in-juce/amp/
+    spectrogramImage(juce::Image::RGB, 512, 512, true),
+    audioSetupComp (
+        deviceManager,
+        0,      // min input ch
+        256,    // max input ch
+        0,      // min output ch
+        256,    // max output ch
+        true,  // can select midi inputs?
+        true,  // can select midi output device?
+        false,  // treat channels as stereo pairs
+        false)  // hide advanced options?
 {
     // Some platforms require permissions to open input channels so request that here
     if (juce::RuntimePermissions::isRequired (juce::RuntimePermissions::recordAudio)
@@ -21,8 +26,16 @@ MainComponent::MainComponent() : audioSetupComp (
     }
     else
     {
-        // Specify the number of input and output channels that we want to open
-        setAudioChannels (numInputChannels, numOutputChannels);
+        juce::File deviceSettingsFile = juce::File::getCurrentWorkingDirectory().getChildFile("audio_device_settings.xml");
+        if (deviceSettingsFile.existsAsFile())
+        {
+            const auto storedSettings = juce::parseXML(deviceSettingsFile);
+            setAudioChannels(numInputChannels, numOutputChannels, storedSettings.get());
+        }
+        else
+        {
+            setAudioChannels(numInputChannels, numOutputChannels);
+        }
     }
     
     addAndMakeVisible(audioSetupComp);
@@ -40,6 +53,7 @@ MainComponent::MainComponent() : audioSetupComp (
 
     addAndMakeVisible(gainSlider);
     gainSlider.setRange(0, 1, 0.01);
+    gainSlider.setValue(0.8);
 
     addAndMakeVisible(noteInput);
     noteInput.setMultiLine(false);
@@ -59,11 +73,25 @@ MainComponent::MainComponent() : audioSetupComp (
 
     // Make sure you set the size of the component after
     // you add any child components.
+    startTimerHz(60);
+
+    
+
     setSize(1000, 600);
 }
 
 MainComponent::~MainComponent()
-{
+{   
+    auto audioDeviceSettings = audioSetupComp.deviceManager.createStateXml();
+
+    if (audioDeviceSettings != nullptr)
+    {
+        // Writes user settings to XML file for storage.
+        juce::File settingsFileName = juce::File::getCurrentWorkingDirectory().getChildFile("audio_device_settings.xml");
+        settingsFileName.replaceWithText(audioDeviceSettings->toString());
+    }
+
+    
     // This shuts down the audio device and clears the audio source.
     shutdownAudio();
 }
@@ -88,35 +116,17 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
 
     // Right now we are not producing any data, in which case we need to clear the buffer
     // (to prevent the output of random noise)
-    auto* device = deviceManager.getCurrentAudioDevice();
-    auto activeInputChannels = device->getActiveInputChannels();
-    auto activeOutputChannels = device->getActiveOutputChannels();
-    auto maxInputChannels = activeInputChannels.getHighestBit();
-    auto maxOutputChannels = activeOutputChannels.getHighestBit();
-
-
-    for (auto channel = 0; channel < maxOutputChannels; ++channel)
+    if (bufferToFill.buffer->getNumChannels() > 0)
     {
-        if ((!activeOutputChannels[channel]) || maxInputChannels == 0)
-        {
-            bufferToFill.buffer->clear(channel, bufferToFill.startSample, bufferToFill.numSamples);
-        }
-        else
-        {
-            auto actualInputChannel = channel % maxInputChannels;
+        auto* channelData = bufferToFill.buffer->getReadPointer(0, bufferToFill.startSample);
+        auto* outBuffer_1 = bufferToFill.buffer->getWritePointer(0, bufferToFill.startSample);
+        auto* outBuffer_2 = bufferToFill.buffer->getWritePointer(1, bufferToFill.startSample);
 
-            if (!activeInputChannels[channel])
-            {
-                bufferToFill.buffer->clear(channel, bufferToFill.startSample, bufferToFill.numSamples);
-            }
-            else
-            {
-                auto* inBuffer = bufferToFill.buffer->getReadPointer(actualInputChannel, bufferToFill.startSample);
-                auto* outBuffer = bufferToFill.buffer->getWritePointer(channel, bufferToFill.startSample);
-
-                for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
-                    outBuffer[sample] = inBuffer[sample]*gainSlider.getValue();
-            }
+        for (unsigned int i = 0; i < bufferToFill.numSamples; ++i)
+        {
+            pushNextSampleIntoFifo(channelData[i]);
+            outBuffer_1[i] = channelData[i] * gainSlider.getValue();
+            outBuffer_2[i] = channelData[i] * gainSlider.getValue();
         }
     }
 }
@@ -129,12 +139,41 @@ void MainComponent::releaseResources()
     // For more details, see the help for AudioProcessor::releaseResources()
 }
 
+void MainComponent::timerCallback()
+{
+    if (nextFFTBlockReady)
+    {
+        drawNextLineOfSpectrogram();
+        nextFFTBlockReady = false;
+        repaint();
+    }
+}
+
+void MainComponent::pushNextSampleIntoFifo(float sample)
+{
+    // When fifo contains enough data, flag is set to say next frame should be rendered.
+    if (fifoIndex == fftSize)
+    {
+        if (!nextFFTBlockReady)
+        {
+            std::fill(fftData.begin(), fftData.end(), 0.0f);
+            std::copy(fifo.begin(), fifo.end(), fftData.begin());
+            nextFFTBlockReady = true;
+        }
+
+        fifoIndex = 0;
+    }
+
+    fifo[fifoIndex++] = sample;
+}
+
 //==============================================================================
 void MainComponent::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 
+    g.drawImage(spectrogramImage, getLocalBounds().toFloat());
     // You can add your drawing code here!
 
 }
@@ -159,7 +198,31 @@ void MainComponent::resized()
     midiOutputBox.setBounds(halfWidth, halfHeight, halfWidth - 10, halfHeight - 10);
 }
 
-void MainComponent::setNoteNum(const unsigned int& noteNum, const juce::uint8& velocity) {
+void MainComponent::drawNextLineOfSpectrogram()
+{
+    auto rightHandEdge = spectrogramImage.getWidth() - 1;
+    auto imageHeight = spectrogramImage.getHeight();
+
+    spectrogramImage.moveImageSection(0, 0, 1, 0, rightHandEdge, imageHeight);
+
+    forwardFFT.performRealOnlyForwardTransform(fftData.data());
+
+    addToOutputList(std::to_string(*fftData.data()) + '\n');
+
+    auto maxLevel = juce::FloatVectorOperations::findMinAndMax(fftData.data(), fftSize / 2);
+
+    for (auto y = 1; y < imageHeight; ++y)
+    {
+        auto skewedProportionY = 1.0f - std::exp(std::log((float)y / (float)imageHeight) * 0.2f);
+        auto fftDataIndex = (size_t)juce::jlimit(0, fftSize / 2, (int)(skewedProportionY * fftSize / 2));
+        auto level = juce::jmap(fftData[fftDataIndex], 0.0f, juce::jmax(maxLevel.getEnd(), 1e-5f), 0.0f, 1.0f);
+
+        spectrogramImage.setPixelAt(rightHandEdge, y, juce::Colour::fromHSV(level, 1.0f, level, 1.0f));
+    }
+}
+
+void MainComponent::setNoteNum(const unsigned int& noteNum, const juce::uint8& velocity)
+{
     // Creates MIDI message based on inputed note number and velocity,
     // and sends it to the output list.
 
@@ -167,14 +230,17 @@ void MainComponent::setNoteNum(const unsigned int& noteNum, const juce::uint8& v
     addToOutputList(midiMessage);
 }
 
-void MainComponent::addToOutputList(const juce::MidiMessage& midiMessage) {
+void MainComponent::addToOutputList(const juce::MidiMessage& midiMessage)
+{
     // Displays midi messages to the output list.
     
     midiOutputBox.moveCaretToEnd();
     midiOutputBox.insertTextAtCaret(midiMessage.getDescription() + juce::newLine);
+    DBG(midiMessage.getDescription());
 }
 
-void MainComponent::addToOutputList(juce::String msg) {
+void MainComponent::addToOutputList(juce::String msg)
+{
     // Displays general messages (debugging) to the output list.
 
     midiOutputBox.moveCaretToEnd();
