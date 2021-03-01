@@ -29,8 +29,7 @@ public:
     enum
     {
         fftOrder = 11,
-        fftSize = 1 << fftOrder,
-        scopeSize = 512
+        fftSize = 1 << fftOrder
     };
 
 private:
