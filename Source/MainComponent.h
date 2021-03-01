@@ -62,5 +62,8 @@ private:
     int fifoIndex = 0;
     bool nextFFTBlockReady = false;
 
+    // ====== Analysis ======
+    void getFFTNote();
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

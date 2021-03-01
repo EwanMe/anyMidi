@@ -69,7 +69,7 @@ MainComponent::MainComponent() :
     noteInput.setReadOnly(false);
 
     // Output box, used for debugging.
-    //addAndMakeVisible(midiOutputBox);
+    addAndMakeVisible(midiOutputBox);
     midiOutputBox.setMultiLine(true);
     midiOutputBox.setReturnKeyStartsNewLine(true);
     midiOutputBox.setReadOnly(true);
@@ -221,13 +221,13 @@ void MainComponent::drawNextLineOfSpectrogram()
 
     addToOutputList(std::to_string(*fftData) + '\n');
 
-    auto maxLevel = juce::FloatVectorOperations::findMinAndMax(fftData, fftSize / 2);
+    auto fftRange = juce::FloatVectorOperations::findMinAndMax(fftData, fftSize / 2);
 
     for (auto y = 1; y < imageHeight; ++y)
     {
         auto skewedProportionY = 1.0f - std::exp(std::log((float)y / (float)imageHeight) * 0.2f);
         auto fftDataIndex = (size_t)juce::jlimit(0, fftSize / 2, (int)(skewedProportionY * fftSize / 2));
-        auto level = juce::jmap(fftData[fftDataIndex], 0.0f, juce::jmax(maxLevel.getEnd(), 1e-5f), 0.0f, 1.0f);
+        auto level = juce::jmap(fftData[fftDataIndex], 0.0f, juce::jmax(fftRange.getEnd(), 1e-5f), 0.0f, 1.0f);
 
         spectrogramImage.setPixelAt(rightHandEdge, y, juce::Colour::fromHSV(level, 1.0f, level, 1.0f));
     }
@@ -257,4 +257,8 @@ void MainComponent::addToOutputList(juce::String msg)
 
     midiOutputBox.moveCaretToEnd();
     midiOutputBox.insertTextAtCaret(msg);
+}
+
+void MainComponent::getFFTNote() {
+    
 }
