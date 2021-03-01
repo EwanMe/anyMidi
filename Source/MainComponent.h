@@ -58,8 +58,8 @@ private:
     juce::dsp::WindowingFunction<float> window;
     juce::Image spectrogramImage;
 
-    std::array<float, fftSize> fifo;
-    std::array<float, fftSize * 2> fftData;
+    float fifo[fftSize];
+    float fftData[2 * fftSize];
     int fifoIndex = 0;
     bool nextFFTBlockReady = false;
 

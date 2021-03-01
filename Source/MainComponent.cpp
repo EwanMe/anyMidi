@@ -5,6 +5,7 @@
 MainComponent::MainComponent() : 
     forwardFFT(fftOrder),
     // When initialising the windowing function, consider using fftSize + 1, ref. https://artandlogic.com/2019/11/making-spectrograms-in-juce/amp/
+    window(fftSize + 1, juce::dsp::WindowingFunction<float>::hann),
     spectrogramImage(juce::Image::RGB, 512, 512, true),
     audioSetupComp (
         deviceManager,
@@ -68,7 +69,7 @@ MainComponent::MainComponent() :
     noteInput.setReadOnly(false);
 
     // Output box, used for debugging.
-    addAndMakeVisible(midiOutputBox);
+    //addAndMakeVisible(midiOutputBox);
     midiOutputBox.setMultiLine(true);
     midiOutputBox.setReturnKeyStartsNewLine(true);
     midiOutputBox.setReadOnly(true);
@@ -167,8 +168,8 @@ void MainComponent::pushNextSampleIntoFifo(float sample)
         if (!nextFFTBlockReady)
         {
             // Copies the data from the fifo into fftData.
-            std::fill(fftData.begin(), fftData.end(), 0.0f);
-            std::copy(fifo.begin(), fifo.end(), fftData.begin());
+            juce::zeromem(fftData, sizeof(fftData));
+            memcpy(fftData, fifo, sizeof(fifo));
             nextFFTBlockReady = true;
         }
 
@@ -213,14 +214,14 @@ void MainComponent::drawNextLineOfSpectrogram()
 {
     auto rightHandEdge = spectrogramImage.getWidth() - 1;
     auto imageHeight = spectrogramImage.getHeight();
-
     spectrogramImage.moveImageSection(0, 0, 1, 0, rightHandEdge, imageHeight);
 
-    forwardFFT.performRealOnlyForwardTransform(fftData.data());
+    window.multiplyWithWindowingTable(fftData, fftSize);
+    forwardFFT.performRealOnlyForwardTransform(fftData);
 
-    addToOutputList(std::to_string(*fftData.data()) + '\n');
+    addToOutputList(std::to_string(*fftData) + '\n');
 
-    auto maxLevel = juce::FloatVectorOperations::findMinAndMax(fftData.data(), fftSize / 2);
+    auto maxLevel = juce::FloatVectorOperations::findMinAndMax(fftData, fftSize / 2);
 
     for (auto y = 1; y < imageHeight; ++y)
     {
