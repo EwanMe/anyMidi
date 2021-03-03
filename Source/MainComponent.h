@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "ForwardFFT.h"
 
 //==============================================================================
 /*
@@ -19,18 +20,11 @@ public:
     void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
     void timerCallback() override;
-    void pushNextSampleIntoFifo(float sample);
 
     //==============================================================================
     void paint (juce::Graphics& g) override;
     void resized() override;
     void drawNextLineOfSpectrogram();
-
-    enum
-    {
-        fftOrder = 11,
-        fftSize = 1 << fftOrder
-    };
 
 private:
     //==============================================================================
@@ -41,6 +35,8 @@ private:
 
     // ====== Layout ======
     juce::TextButton createMidiButton;
+    juce::TextButton printFFT;
+
     juce::Slider velocitySlider;
     juce::Slider gainSlider;
     juce::TextEditor noteInput;
@@ -52,18 +48,10 @@ private:
     void addToOutputList(const juce::MidiMessage& midiMessage);
     void addToOutputList(juce::String msg);
 
-    // ====== FFT ======
-    juce::dsp::FFT forwardFFT;
-    juce::dsp::WindowingFunction<float> window;
     juce::Image spectrogramImage;
 
-    float fifo[fftSize];
-    float fftData[2 * fftSize];
-    int fifoIndex = 0;
-    bool nextFFTBlockReady = false;
+    ForwardFFT fft;
 
-    // ====== Analysis ======
-    void getFFTNote();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
