@@ -2,10 +2,8 @@
 #include <fstream>
 
 //==============================================================================
-MainComponent::MainComponent() : 
-    forwardFFT(fftOrder),
-    // When initialising the windowing function, consider using fftSize + 1, ref. https://artandlogic.com/2019/11/making-spectrograms-in-juce/amp/
-    window(fftSize + 1, juce::dsp::WindowingFunction<float>::hann),
+MainComponent::MainComponent() :
+    fft{48000},
     spectrogramImage(juce::Image::RGB, 512, 512, true),
     audioSetupComp (
         deviceManager,
@@ -44,29 +42,10 @@ MainComponent::MainComponent() :
     // Audio device manager.
     addAndMakeVisible(audioSetupComp);
 
-    // Create midi button.
-    addAndMakeVisible(createMidiButton);
-    createMidiButton.setButtonText("Create MIDI note");
-    createMidiButton.onClick = [this] {
-        constexpr unsigned int offset { 12 }; // For some reason, JUCE's Midi Messages are off by one octave.
-        int noteVal = noteInput.getTextValue().getValue();
-        setNoteNum((noteVal + offset), velocitySlider.getValue());
-    };
-
-    // Velocity slider.
-    addAndMakeVisible(velocitySlider);
-    velocitySlider.setRange(0, 127, 1);
-
     // Gain slider.
     addAndMakeVisible(gainSlider);
     gainSlider.setRange(0, 1, 0.01);
     gainSlider.setValue(0.8);
-
-    // Midi note input field.
-    addAndMakeVisible(noteInput);
-    noteInput.setMultiLine(false);
-    noteInput.setCaretVisible(true);
-    noteInput.setReadOnly(false);
 
     // Output box, used for debugging.
     addAndMakeVisible(midiOutputBox);
@@ -80,10 +59,15 @@ MainComponent::MainComponent() :
     midiOutputBox.setColour(juce::TextEditor::outlineColourId, juce::Colour(0x1c000000));
     midiOutputBox.setColour(juce::TextEditor::shadowColourId, juce::Colour(0x16000000));
 
+    addAndMakeVisible(clearOutput);
+    clearOutput.setButtonText("Clear output");
+    clearOutput.onClick = [this]
+    {
+        midiOutputBox.clear();
+    };
+
     // Timer used for FFT spectrum analysis.
     startTimerHz(60);
-
-    
 
     setSize(1000, 600);
 }
@@ -132,7 +116,7 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
 
         for (unsigned int i = 0; i < bufferToFill.numSamples; ++i)
         {
-            pushNextSampleIntoFifo(channelData[i]);
+            fft.pushNextSampleIntoFifo(channelData[i]);
             
             // Throughput for debugging purposes. Just sends singnal through, scaled bu the gain slider.
             outBuffer_1[i] = channelData[i] * gainSlider.getValue();
@@ -151,32 +135,14 @@ void MainComponent::releaseResources()
 
 void MainComponent::timerCallback()
 {
-    if (nextFFTBlockReady)
+    if (fft.nextFFTBlockReady)
     {
         // Draws the spectrogram image.
         drawNextLineOfSpectrogram();
-        nextFFTBlockReady = false;
+        calcNote();
+        fft.nextFFTBlockReady = false;
         repaint();
     }
-}
-
-void MainComponent::pushNextSampleIntoFifo(float sample)
-{
-    // When fifo contains enough data, flag is set to say next frame should be rendered.
-    if (fifoIndex == fftSize)
-    {
-        if (!nextFFTBlockReady)
-        {
-            // Copies the data from the fifo into fftData.
-            juce::zeromem(fftData, sizeof(fftData));
-            memcpy(fftData, fifo, sizeof(fifo));
-            nextFFTBlockReady = true;
-        }
-
-        fifoIndex = 0;
-    }
-
-    fifo[fifoIndex++] = sample;
 }
 
 //==============================================================================
@@ -201,10 +167,9 @@ void MainComponent::resized()
     auto halfHeight = getHeight() / 2;
 
     audioSetupComp.setBounds(rect.withWidth(halfWidth));
-    
-    createMidiButton.setBounds(rect.getCentreX(), 10, halfWidth/2 - 10, 20);
-    noteInput.setBounds(rect.getCentreX(), 40, halfWidth/2 - 10, 20);
-    velocitySlider.setBounds(rect.getCentreX(), 70, halfWidth/2 - 10, 20);
+
+    clearOutput.setBounds(rect.getCentreX(), 160, halfWidth / 2 - 10, 20);
+
     gainSlider.setBounds(rect.getCentreX(), 100, halfWidth / 2 - 10, 20);
 
     midiOutputBox.setBounds(halfWidth, halfHeight, halfWidth - 10, halfHeight - 10);
@@ -216,49 +181,50 @@ void MainComponent::drawNextLineOfSpectrogram()
     auto imageHeight = spectrogramImage.getHeight();
     spectrogramImage.moveImageSection(0, 0, 1, 0, rightHandEdge, imageHeight);
 
-    window.multiplyWithWindowingTable(fftData, fftSize);
-    forwardFFT.performRealOnlyForwardTransform(fftData);
-
-    addToOutputList(std::to_string(*fftData) + '\n');
-
-    auto fftRange = juce::FloatVectorOperations::findMinAndMax(fftData, fftSize / 2);
+    auto fftData = fft.getFFTData();
+    int fftSize = fft.getFFTSize();
+        
+    auto fftRange = juce::FloatVectorOperations::findMinAndMax(fftData->data(), fftSize / 2);
 
     for (auto y = 1; y < imageHeight; ++y)
     {
-        auto skewedProportionY = 1.0f - std::exp(std::log((float)y / (float)imageHeight) * 0.2f);
-        auto fftDataIndex = (size_t)juce::jlimit(0, fftSize / 2, (int)(skewedProportionY * fftSize / 2));
-        auto level = juce::jmap(fftData[fftDataIndex], 0.0f, juce::jmax(fftRange.getEnd(), 1e-5f), 0.0f, 1.0f);
+        float skewedProportionY = 1.0f - std::exp(std::log((float)y / (float)imageHeight) * 0.2f);
+        size_t fftDataIndex = (size_t)juce::jlimit(0, fftSize / 2, (int)(skewedProportionY * fftSize / 2 ));
+        float level = juce::jmap(fftData->at(fftDataIndex), 0.0f, juce::jmax(fftRange.getEnd(), 1e-5f), 0.0f, 1.0f);
 
         spectrogramImage.setPixelAt(rightHandEdge, y, juce::Colour::fromHSV(level, 1.0f, level, 1.0f));
     }
 }
 
-void MainComponent::setNoteNum(const unsigned int& noteNum, const juce::uint8& velocity)
+void MainComponent::calcNote()
 {
-    // Creates MIDI message based on inputed note number and velocity,
-    // and sends it to the output list.
-
-    auto midiMessage{ juce::MidiMessage::noteOn(midiChannels, noteNum, velocity) };
-    addToOutputList(midiMessage);
+    // Getting fundamental frequency from FFT and calculating midi note number.
+    double fundFreq = std::floor(fft.calcFundamentalFreq());
+    unsigned int fundNote = static_cast<unsigned int>(std::floor(log2(fundFreq / 440.0) / log2(2) * 12 + 69));
+    
+    // Ensures that notes are within midi range.
+    if (fundNote <= 128)
+    {
+        createMidiMsg(fundNote, 127);
+    }
 }
 
-void MainComponent::addToOutputList(const juce::MidiMessage& midiMessage)
+
+void MainComponent::createMidiMsg(const unsigned int& noteNum, const juce::uint8& velocity)
 {
-    // Displays midi messages to the output list.
-    
+    auto midiMessage{ juce::MidiMessage::noteOn(midiChannels, noteNum, velocity) };
+    log(midiMessage);
+}
+
+void MainComponent::log(const juce::MidiMessage& midiMessage)
+{
     midiOutputBox.moveCaretToEnd();
     midiOutputBox.insertTextAtCaret(midiMessage.getDescription() + juce::newLine);
     DBG(midiMessage.getDescription());
 }
 
-void MainComponent::addToOutputList(juce::String msg)
+void MainComponent::log(juce::String msg)
 {
-    // Displays general messages (debugging) to the output list.
-
     midiOutputBox.moveCaretToEnd();
     midiOutputBox.insertTextAtCaret(msg);
-}
-
-void MainComponent::getFFTNote() {
-    
 }

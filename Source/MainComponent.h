@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "ForwardFFT.h"
 
 //==============================================================================
 /*
@@ -19,51 +20,45 @@ public:
     void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
     void timerCallback() override;
-    void pushNextSampleIntoFifo(float sample);
 
     //==============================================================================
     void paint (juce::Graphics& g) override;
     void resized() override;
     void drawNextLineOfSpectrogram();
 
-    enum
-    {
-        fftOrder = 11,
-        fftSize = 1 << fftOrder
-    };
-
 private:
     //==============================================================================
     //====== Channels =====
+
     static constexpr unsigned int numInputChannels{ 1 };
     static constexpr unsigned int numOutputChannels{ 2 };
     const int midiChannels = 10;
 
     // ====== Layout ======
-    juce::TextButton createMidiButton;
-    juce::Slider velocitySlider;
+
+    juce::TextButton clearOutput;
+
     juce::Slider gainSlider;
-    juce::TextEditor noteInput;
     juce::TextEditor midiOutputBox;
 
     juce::AudioDeviceSelectorComponent audioSetupComp;
 
-    void setNoteNum(const unsigned int& noteNum, const juce::uint8& velocity);
-    void addToOutputList(const juce::MidiMessage& midiMessage);
-    void addToOutputList(juce::String msg);
+    // Determines values for Midi message based on FFT analysis.
+    void calcNote();
 
-    // ====== FFT ======
-    juce::dsp::FFT forwardFFT;
-    juce::dsp::WindowingFunction<float> window;
+    // Creates MIDI message based on inputed note number and velocity,
+    // and sends it to the output list.
+    void createMidiMsg(const unsigned int& noteNum, const juce::uint8& velocity);
+
+    // Logging function for debugging purposes.
+    void log(const juce::MidiMessage& midiMessage);
+    void log(juce::String msg);
+
     juce::Image spectrogramImage;
 
-    float fifo[fftSize];
-    float fftData[2 * fftSize];
-    int fifoIndex = 0;
-    bool nextFFTBlockReady = false;
+    ForwardFFT fft;
 
-    // ====== Analysis ======
-    void getFFTNote();
+    bool toPrint{ false };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
