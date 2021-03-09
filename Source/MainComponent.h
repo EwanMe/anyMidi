@@ -29,25 +29,30 @@ public:
 private:
     //==============================================================================
     //====== Channels =====
+
     static constexpr unsigned int numInputChannels{ 1 };
     static constexpr unsigned int numOutputChannels{ 2 };
     const int midiChannels = 10;
 
     // ====== Layout ======
-    juce::TextButton createMidiButton;
-    juce::TextButton clearOutput;
-    juce::TextButton printFFT;
 
-    juce::Slider velocitySlider;
+    juce::TextButton clearOutput;
+
     juce::Slider gainSlider;
-    juce::TextEditor noteInput;
     juce::TextEditor midiOutputBox;
 
     juce::AudioDeviceSelectorComponent audioSetupComp;
 
-    void setNoteNum(const unsigned int& noteNum, const juce::uint8& velocity);
-    void addToOutputList(const juce::MidiMessage& midiMessage);
-    void addToOutputList(juce::String msg);
+    // Determines values for Midi message based on FFT analysis.
+    void calcNote();
+
+    // Creates MIDI message based on inputed note number and velocity,
+    // and sends it to the output list.
+    void createMidiMsg(const unsigned int& noteNum, const juce::uint8& velocity);
+
+    // Logging function for debugging purposes.
+    void log(const juce::MidiMessage& midiMessage);
+    void log(juce::String msg);
 
     juce::Image spectrogramImage;
 

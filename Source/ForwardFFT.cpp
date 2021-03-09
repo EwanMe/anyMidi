@@ -21,6 +21,8 @@ ForwardFFT::ForwardFFT(const double sampleRate)
 
 std::shared_ptr<std::array<float, ForwardFFT::fftSize * 2>> ForwardFFT::getFFTData() const
 {
+    // Returns pointer to prevent copying of large arrays
+    // and it's shared because it will be accessed by multiple functions.
     return std::make_shared<std::array<float, ForwardFFT::fftSize * 2>>(fftData);
 }
 
@@ -53,23 +55,22 @@ void ForwardFFT::pushNextSampleIntoFifo(float sample)
     fifo[fifoIndex++] = sample;
 }
 
-float ForwardFFT::calcFundamentalFreq()
+double ForwardFFT::calcFundamentalFreq() const
 {
-    float max{ 0 };
-    auto bin{ 0 };
-    unsigned int targetIndex{ 0 };
+    double max{ 0 };
+    unsigned int targetBin{ 0 }; // Location of fund. freq. will be stored here.
     auto data = getFFTData();
 
-    for (unsigned int i = 1; i < getFFTSize(); ++i)
+    // Finds fft bin with most energy.
+    for (unsigned int i = 0; i < getFFTSize(); ++i)
     {
-
         if (max < data->at(i))
         {
             max = data->at(i);
-            targetIndex = i;
+            targetBin = i;
         }
     }
 
-    auto fundFreq = (float)targetIndex * sampleRate / fftSize;
-    return fundFreq;
+    // Calculates frequency from bin number.
+    return (double)targetBin * sampleRate / fftSize;
 }

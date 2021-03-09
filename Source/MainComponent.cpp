@@ -42,29 +42,10 @@ MainComponent::MainComponent() :
     // Audio device manager.
     addAndMakeVisible(audioSetupComp);
 
-    // Create midi button.
-    addAndMakeVisible(createMidiButton);
-    createMidiButton.setButtonText("Create MIDI note");
-    createMidiButton.onClick = [this] {
-        constexpr unsigned int offset { 12 }; // For some reason, JUCE's Midi Messages are off by one octave.
-        int noteVal = noteInput.getTextValue().getValue();
-        setNoteNum((noteVal + offset), velocitySlider.getValue());
-    };
-
-    // Velocity slider.
-    addAndMakeVisible(velocitySlider);
-    velocitySlider.setRange(0, 127, 1);
-
     // Gain slider.
     addAndMakeVisible(gainSlider);
     gainSlider.setRange(0, 1, 0.01);
     gainSlider.setValue(0.8);
-
-    // Midi note input field.
-    addAndMakeVisible(noteInput);
-    noteInput.setMultiLine(false);
-    noteInput.setCaretVisible(true);
-    noteInput.setReadOnly(false);
 
     // Output box, used for debugging.
     addAndMakeVisible(midiOutputBox);
@@ -77,13 +58,6 @@ MainComponent::MainComponent() :
     midiOutputBox.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0x32ffffff));
     midiOutputBox.setColour(juce::TextEditor::outlineColourId, juce::Colour(0x1c000000));
     midiOutputBox.setColour(juce::TextEditor::shadowColourId, juce::Colour(0x16000000));
-
-    addAndMakeVisible(printFFT);
-    printFFT.setButtonText("Print FFT");
-    printFFT.onClick = [this]
-    {
-        toPrint = true;
-    };
 
     addAndMakeVisible(clearOutput);
     clearOutput.setButtonText("Clear output");
@@ -165,6 +139,7 @@ void MainComponent::timerCallback()
     {
         // Draws the spectrogram image.
         drawNextLineOfSpectrogram();
+        calcNote();
         fft.nextFFTBlockReady = false;
         repaint();
     }
@@ -192,13 +167,9 @@ void MainComponent::resized()
     auto halfHeight = getHeight() / 2;
 
     audioSetupComp.setBounds(rect.withWidth(halfWidth));
-    
-    createMidiButton.setBounds(rect.getCentreX(), 10, halfWidth/2 - 10, 20);
-    printFFT.setBounds(rect.getCentreX(), 130, halfWidth / 2 - 10, 20);
+
     clearOutput.setBounds(rect.getCentreX(), 160, halfWidth / 2 - 10, 20);
 
-    noteInput.setBounds(rect.getCentreX(), 40, halfWidth/2 - 10, 20);
-    velocitySlider.setBounds(rect.getCentreX(), 70, halfWidth/2 - 10, 20);
     gainSlider.setBounds(rect.getCentreX(), 100, halfWidth / 2 - 10, 20);
 
     midiOutputBox.setBounds(halfWidth, halfHeight, halfWidth - 10, halfHeight - 10);
@@ -211,10 +182,7 @@ void MainComponent::drawNextLineOfSpectrogram()
     spectrogramImage.moveImageSection(0, 0, 1, 0, rightHandEdge, imageHeight);
 
     auto fftData = fft.getFFTData();
-    auto fftSize = fft.getFFTSize();
-
-    addToOutputList(std::to_string(fft.calcFundamentalFreq()) + '\n');
-    //setNoteNum(static_cast<unsigned int>(std::floor(fft.calcFundamentalFreq())), 127);
+    int fftSize = fft.getFFTSize();
         
     auto fftRange = juce::FloatVectorOperations::findMinAndMax(fftData->data(), fftSize / 2);
 
@@ -228,28 +196,35 @@ void MainComponent::drawNextLineOfSpectrogram()
     }
 }
 
-void MainComponent::setNoteNum(const unsigned int& noteNum, const juce::uint8& velocity)
+void MainComponent::calcNote()
 {
-    // Creates MIDI message based on inputed note number and velocity,
-    // and sends it to the output list.
-
-    auto midiMessage{ juce::MidiMessage::noteOn(midiChannels, noteNum, velocity) };
-    addToOutputList(midiMessage);
+    // Getting fundamental frequency from FFT and calculating midi note number.
+    double fundFreq = std::floor(fft.calcFundamentalFreq());
+    unsigned int fundNote = static_cast<unsigned int>(std::floor(log2(fundFreq / 440.0) / log2(2) * 12 + 69));
+    
+    // Ensures that notes are within midi range.
+    if (fundNote <= 128)
+    {
+        createMidiMsg(fundNote, 127);
+    }
 }
 
-void MainComponent::addToOutputList(const juce::MidiMessage& midiMessage)
+
+void MainComponent::createMidiMsg(const unsigned int& noteNum, const juce::uint8& velocity)
 {
-    // Displays midi messages to the output list.
-    
+    auto midiMessage{ juce::MidiMessage::noteOn(midiChannels, noteNum, velocity) };
+    log(midiMessage);
+}
+
+void MainComponent::log(const juce::MidiMessage& midiMessage)
+{
     midiOutputBox.moveCaretToEnd();
     midiOutputBox.insertTextAtCaret(midiMessage.getDescription() + juce::newLine);
     DBG(midiMessage.getDescription());
 }
 
-void MainComponent::addToOutputList(juce::String msg)
+void MainComponent::log(juce::String msg)
 {
-    // Displays general messages (debugging) to the output list.
-
     midiOutputBox.moveCaretToEnd();
     midiOutputBox.insertTextAtCaret(msg);
 }
