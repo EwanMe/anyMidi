@@ -35,6 +35,7 @@ private:
 
     // ====== Layout ======
     juce::TextButton createMidiButton;
+    juce::TextButton clearOutput;
     juce::TextButton printFFT;
 
     juce::Slider velocitySlider;
@@ -52,6 +53,7 @@ private:
 
     ForwardFFT fft;
 
+    bool toPrint{ false };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

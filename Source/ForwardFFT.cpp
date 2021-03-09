@@ -10,17 +10,18 @@
 
 #include "ForwardFFT.h"
 
-ForwardFFT::ForwardFFT()
-    : forwardFFT(fftOrder),
+ForwardFFT::ForwardFFT(const double sampleRate)
+    : forwardFFT{ fftOrder },
+    sampleRate{ sampleRate },
     // When initialising the windowing function, consider using fftSize + 1, ref. https://artandlogic.com/2019/11/making-spectrograms-in-juce/amp/
-    window(fftSize + 1, juce::dsp::WindowingFunction<float>::blackman)
+    window{ fftSize + 1, juce::dsp::WindowingFunction<float>::blackman }
 {
 
 }
 
-std::array<float, ForwardFFT::fftSize*2> ForwardFFT::getFFTData() const
+std::shared_ptr<std::array<float, ForwardFFT::fftSize * 2>> ForwardFFT::getFFTData() const
 {
-    return fftData;
+    return std::make_shared<std::array<float, ForwardFFT::fftSize * 2>>(fftData);
 }
 
 
@@ -50,4 +51,25 @@ void ForwardFFT::pushNextSampleIntoFifo(float sample)
     }
 
     fifo[fifoIndex++] = sample;
+}
+
+float ForwardFFT::calcFundamentalFreq()
+{
+    float max{ 0 };
+    auto bin{ 0 };
+    unsigned int targetIndex{ 0 };
+    auto data = getFFTData();
+
+    for (unsigned int i = 1; i < getFFTSize(); ++i)
+    {
+
+        if (max < data->at(i))
+        {
+            max = data->at(i);
+            targetIndex = i;
+        }
+    }
+
+    auto fundFreq = (float)targetIndex * sampleRate / fftSize;
+    return fundFreq;
 }

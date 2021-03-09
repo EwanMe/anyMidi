@@ -15,15 +15,16 @@
 
 class ForwardFFT {
 private:
-    static constexpr unsigned int fftOrder{ 10 };
+    static constexpr unsigned int fftOrder{ 11 };
     static constexpr unsigned int fftSize = 1 << fftOrder;
 
 public:
-    ForwardFFT();
+    ForwardFFT(const double sampleRate);
 
     void pushNextSampleIntoFifo(float sample);
-    std::array<float, fftSize*2> getFFTData() const;
+    std::shared_ptr<std::array<float, ForwardFFT::fftSize * 2>> getFFTData() const;
     int getFFTSize() const;
+    float calcFundamentalFreq();
 
     bool nextFFTBlockReady = false;
     
@@ -34,4 +35,5 @@ private:
     std::array<float, fftSize> fifo;
     std::array<float, fftSize * 2> fftData;
     int fifoIndex = 0;
+    double sampleRate;   
 };

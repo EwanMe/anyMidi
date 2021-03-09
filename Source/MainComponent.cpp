@@ -3,6 +3,7 @@
 
 //==============================================================================
 MainComponent::MainComponent() :
+    fft{48000},
     spectrogramImage(juce::Image::RGB, 512, 512, true),
     audioSetupComp (
         deviceManager,
@@ -79,18 +80,20 @@ MainComponent::MainComponent() :
 
     addAndMakeVisible(printFFT);
     printFFT.setButtonText("Print FFT");
-    printFFT.onClick = [this] {
-        auto data = fft.getFFTData();
-        for (auto i = data.data(); i < data.data() + data.size() ; ++i)
-        {
-            addToOutputList(*i);
-        }
+    printFFT.onClick = [this]
+    {
+        toPrint = true;
+    };
+
+    addAndMakeVisible(clearOutput);
+    clearOutput.setButtonText("Clear output");
+    clearOutput.onClick = [this]
+    {
+        midiOutputBox.clear();
     };
 
     // Timer used for FFT spectrum analysis.
     startTimerHz(60);
-
-    
 
     setSize(1000, 600);
 }
@@ -191,7 +194,8 @@ void MainComponent::resized()
     audioSetupComp.setBounds(rect.withWidth(halfWidth));
     
     createMidiButton.setBounds(rect.getCentreX(), 10, halfWidth/2 - 10, 20);
-    printFFT.setBounds(rect.getCentreX(), halfWidth / 2 - 10, halfWidth / 2 - 10, 20);
+    printFFT.setBounds(rect.getCentreX(), 130, halfWidth / 2 - 10, 20);
+    clearOutput.setBounds(rect.getCentreX(), 160, halfWidth / 2 - 10, 20);
 
     noteInput.setBounds(rect.getCentreX(), 40, halfWidth/2 - 10, 20);
     velocitySlider.setBounds(rect.getCentreX(), 70, halfWidth/2 - 10, 20);
@@ -208,14 +212,17 @@ void MainComponent::drawNextLineOfSpectrogram()
 
     auto fftData = fft.getFFTData();
     auto fftSize = fft.getFFTSize();
-    
-    auto fftRange = juce::FloatVectorOperations::findMinAndMax(fftData.data(), fftSize / 2);
+
+    addToOutputList(std::to_string(fft.calcFundamentalFreq()) + '\n');
+    //setNoteNum(static_cast<unsigned int>(std::floor(fft.calcFundamentalFreq())), 127);
+        
+    auto fftRange = juce::FloatVectorOperations::findMinAndMax(fftData->data(), fftSize / 2);
 
     for (auto y = 1; y < imageHeight; ++y)
     {
         float skewedProportionY = 1.0f - std::exp(std::log((float)y / (float)imageHeight) * 0.2f);
         size_t fftDataIndex = (size_t)juce::jlimit(0, fftSize / 2, (int)(skewedProportionY * fftSize / 2 ));
-        float level = juce::jmap(fftData[fftDataIndex], 0.0f, juce::jmax(fftRange.getEnd(), 1e-5f), 0.0f, 1.0f);
+        float level = juce::jmap(fftData->at(fftDataIndex), 0.0f, juce::jmax(fftRange.getEnd(), 1e-5f), 0.0f, 1.0f);
 
         spectrogramImage.setPixelAt(rightHandEdge, y, juce::Colour::fromHSV(level, 1.0f, level, 1.0f));
     }
