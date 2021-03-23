@@ -15,7 +15,7 @@
 
 class ForwardFFT {
 private:
-    static constexpr unsigned int fftOrder{ 11 };
+    static constexpr unsigned int fftOrder{ 10 };
     static constexpr unsigned int fftSize = 1 << fftOrder;
 
 public:
@@ -24,8 +24,7 @@ public:
     void pushNextSampleIntoFifo(float sample);
 
     // Returns pointer to the FFT data array.
-    std::shared_ptr<std::array<float, ForwardFFT::fftSize * 2>>
-        getFFTData() const;
+    std::array<float, ForwardFFT::fftSize * 2> getFFTData() const;
     int getFFTSize() const;
 
     // Calculates the fundamental frequency of the current FFT data array.

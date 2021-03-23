@@ -19,11 +19,11 @@ ForwardFFT::ForwardFFT(const double sampleRate)
 
 }
 
-std::shared_ptr<std::array<float, ForwardFFT::fftSize * 2>> ForwardFFT::getFFTData() const
+std::array<float, ForwardFFT::fftSize * 2> ForwardFFT::getFFTData() const
 {
     // Returns pointer to prevent copying of large arrays
     // and it's shared because it will be accessed by multiple functions.
-    return std::make_shared<std::array<float, ForwardFFT::fftSize * 2>>(fftData);
+    return fftData;
 }
 
 
@@ -64,9 +64,9 @@ double ForwardFFT::calcFundamentalFreq() const
     // Finds fft bin with most energy.
     for (unsigned int i = 0; i < getFFTSize(); ++i)
     {
-        if (max < data->at(i))
+        if (max < data[i])
         {
-            max = data->at(i);
+            max = data[i];
             targetBin = i;
         }
     }
