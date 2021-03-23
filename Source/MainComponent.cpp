@@ -11,8 +11,8 @@ MainComponent::MainComponent() :
         256,    // max input ch
         0,      // min output ch
         256,    // max output ch
-        true,  // can select midi inputs?
-        true,  // can select midi output device?
+        true,   // can select midi inputs?
+        true,   // can select midi output device?
         false,  // treat channels as stereo pairs
         false)  // hide advanced options?
 {
@@ -67,9 +67,17 @@ MainComponent::MainComponent() :
     };
 
     // Timer used for FFT spectrum analysis.
-    startTimerHz(60);
+    startTimerHz(120);
 
     setSize(1000, 600);
+
+    // Generates a list of frequencies corresponding to the 128 Midi notes
+    // based on the global tuning.
+    // Thanks to http://subsynth.sourceforge.net/midinote2freq.html for this snippet.
+    for (int i = 0; i < 128; ++i)
+    {
+        noteFrequencies[i] = (tuning / 32.0) * std::pow(2, (i - 9.0) / 12.0);
+    }
 }
 
 MainComponent::~MainComponent()
@@ -102,12 +110,6 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 
 void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
 {
-    // Your audio-processing code goes here!
-
-    // For more details, see the help for AudioProcessor::getNextAudioBlock()
-
-    // Right now we are not producing any data, in which case we need to clear the buffer
-    // (to prevent the output of random noise)
     if (bufferToFill.buffer->getNumChannels() > 0)
     {
         auto* channelData = bufferToFill.buffer->getReadPointer(0, bufferToFill.startSample);
@@ -118,7 +120,7 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
         {
             fft.pushNextSampleIntoFifo(channelData[i]);
             
-            // Throughput for debugging purposes. Just sends singnal through, scaled bu the gain slider.
+            // Throughput for debugging purposes. Just sends singnal through, scaled by the gain slider.
             outBuffer_1[i] = channelData[i] * gainSlider.getValue();
             outBuffer_2[i] = channelData[i] * gainSlider.getValue();
         }
@@ -157,10 +159,6 @@ void MainComponent::paint (juce::Graphics& g)
 
 void MainComponent::resized()
 {
-    // This is called when the MainContentComponent is resized.
-    // If you add any child components, this is where you should
-    // update their positions.
-
     auto rect = getLocalBounds();
     
     auto halfWidth = getWidth() / 2;
@@ -184,13 +182,13 @@ void MainComponent::drawNextLineOfSpectrogram()
     auto fftData = fft.getFFTData();
     int fftSize = fft.getFFTSize();
         
-    auto fftRange = juce::FloatVectorOperations::findMinAndMax(fftData->data(), fftSize / 2);
+    auto fftRange = juce::FloatVectorOperations::findMinAndMax(fftData.data(), fftSize / 2);
 
     for (auto y = 1; y < imageHeight; ++y)
     {
         float skewedProportionY = 1.0f - std::exp(std::log((float)y / (float)imageHeight) * 0.2f);
         size_t fftDataIndex = (size_t)juce::jlimit(0, fftSize / 2, (int)(skewedProportionY * fftSize / 2 ));
-        float level = juce::jmap(fftData->at(fftDataIndex), 0.0f, juce::jmax(fftRange.getEnd(), 1e-5f), 0.0f, 1.0f);
+        float level = juce::jmap(fftData[fftDataIndex], 0.0f, juce::jmax(fftRange.getEnd(), 1e-5f), 0.0f, 1.0f);
 
         spectrogramImage.setPixelAt(rightHandEdge, y, juce::Colour::fromHSV(level, 1.0f, level, 1.0f));
     }
@@ -198,14 +196,14 @@ void MainComponent::drawNextLineOfSpectrogram()
 
 void MainComponent::calcNote()
 {
+    auto fund = fft.calcFundamentalFreq();
     // Getting fundamental frequency from FFT and calculating midi note number.
-    double fundFreq = std::floor(fft.calcFundamentalFreq());
-    unsigned int fundNote = static_cast<unsigned int>(std::floor(log2(fundFreq / 440.0) / log2(2) * 12 + 69));
+    unsigned int note = findNearestNote(fund);
     
     // Ensures that notes are within midi range.
-    if (fundNote <= 128)
+    if (note <= 128)
     {
-        createMidiMsg(fundNote, 127);
+        createMidiMsg(note, 127);
     }
 }
 
@@ -220,11 +218,56 @@ void MainComponent::log(const juce::MidiMessage& midiMessage)
 {
     midiOutputBox.moveCaretToEnd();
     midiOutputBox.insertTextAtCaret(midiMessage.getDescription() + juce::newLine);
-    DBG(midiMessage.getDescription());
 }
 
-void MainComponent::log(juce::String msg)
+template<typename T>
+void MainComponent::log(T msg)
 {
     midiOutputBox.moveCaretToEnd();
-    midiOutputBox.insertTextAtCaret(msg);
+    midiOutputBox.insertTextAtCaret(std::to_string(msg) + juce::newLine);
+}
+
+int MainComponent::findNearestNote(double target)
+{
+    unsigned int begin = 0;
+    unsigned int end = noteFrequencies.size();
+    
+    // When frequency is below or above highest midi note.
+    if (target <= noteFrequencies[begin])
+    {
+        return begin;
+    }
+    if (target >= noteFrequencies[end - 1])
+    {
+        return end - 1;
+    }
+
+    // This is a variation of binary search.
+    unsigned int mid;
+    while (end - begin > 1)
+    {
+        mid = begin + (end - begin) / 2;
+
+        if (target == noteFrequencies[mid])
+        {
+            return mid;
+        }
+        if (target < noteFrequencies[mid])
+        {
+            end = mid;
+        }
+        else
+        {
+            begin = mid;
+        }
+    }
+
+    if (target - noteFrequencies[begin] < target - noteFrequencies[end])
+    {
+        return begin;
+    }
+    else
+    {
+        return end;
+    }
 }

@@ -3,11 +3,7 @@
 #include <JuceHeader.h>
 #include "ForwardFFT.h"
 
-//==============================================================================
-/*
-    This component lives inside our window, and this is where you should put all
-    your controls and content.
-*/
+
 class MainComponent  : public juce::AudioAppComponent, private juce::Timer
 {
 public:
@@ -32,7 +28,10 @@ private:
 
     static constexpr unsigned int numInputChannels{ 1 };
     static constexpr unsigned int numOutputChannels{ 2 };
-    const int midiChannels = 10;
+    const int midiChannels{ 10 };
+
+    unsigned int tuning{ 440 };
+    std::array<double, 128> noteFrequencies;
 
     // ====== Layout ======
 
@@ -45,6 +44,7 @@ private:
 
     // Determines values for Midi message based on FFT analysis.
     void calcNote();
+    int findNearestNote(double target);
 
     // Creates MIDI message based on inputed note number and velocity,
     // and sends it to the output list.
@@ -52,7 +52,9 @@ private:
 
     // Logging function for debugging purposes.
     void log(const juce::MidiMessage& midiMessage);
-    void log(juce::String msg);
+    
+    template<typename T>
+    void log(T msg);
 
     juce::Image spectrogramImage;
 
