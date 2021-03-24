@@ -1,11 +1,11 @@
 #include "MainComponent.h"
-#include <fstream>
 
 //==============================================================================
 MainComponent::MainComponent() :
-    fft{48000},
-    spectrogramImage(juce::Image::RGB, 512, 512, true),
-    audioSetupComp (
+    startTime{ juce::Time::getMillisecondCounterHiRes() * 0.001 },
+    fft{ 48000 },
+    spectrogramImage{ juce::Image::RGB, 512, 512, true },
+    audioSetupComp{
         deviceManager,
         0,      // min input ch
         256,    // max input ch
@@ -14,7 +14,7 @@ MainComponent::MainComponent() :
         true,   // can select midi inputs?
         true,   // can select midi output device?
         false,  // treat channels as stereo pairs
-        false)  // hide advanced options?
+        false } // hide advanced options?
 {
     // Some platforms require permissions to open input channels so request that here.
     if (juce::RuntimePermissions::isRequired (juce::RuntimePermissions::recordAudio)
@@ -48,22 +48,22 @@ MainComponent::MainComponent() :
     gainSlider.setValue(0.8);
 
     // Output box, used for debugging.
-    addAndMakeVisible(midiOutputBox);
-    midiOutputBox.setMultiLine(true);
-    midiOutputBox.setReturnKeyStartsNewLine(true);
-    midiOutputBox.setReadOnly(true);
-    midiOutputBox.setScrollbarsShown(true);
-    midiOutputBox.setCaretVisible(false);
-    midiOutputBox.setPopupMenuEnabled(true);
-    midiOutputBox.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0x32ffffff));
-    midiOutputBox.setColour(juce::TextEditor::outlineColourId, juce::Colour(0x1c000000));
-    midiOutputBox.setColour(juce::TextEditor::shadowColourId, juce::Colour(0x16000000));
+    addAndMakeVisible(outputBox);
+    outputBox.setMultiLine(true);
+    outputBox.setReturnKeyStartsNewLine(true);
+    outputBox.setReadOnly(true);
+    outputBox.setScrollbarsShown(true);
+    outputBox.setCaretVisible(false);
+    outputBox.setPopupMenuEnabled(true);
+    outputBox.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0x32ffffff));
+    outputBox.setColour(juce::TextEditor::outlineColourId, juce::Colour(0x1c000000));
+    outputBox.setColour(juce::TextEditor::shadowColourId, juce::Colour(0x16000000));
 
     addAndMakeVisible(clearOutput);
     clearOutput.setButtonText("Clear output");
     clearOutput.onClick = [this]
     {
-        midiOutputBox.clear();
+        outputBox.clear();
     };
 
     // Timer used for FFT spectrum analysis.
@@ -166,11 +166,11 @@ void MainComponent::resized()
 
     audioSetupComp.setBounds(rect.withWidth(halfWidth));
 
-    clearOutput.setBounds(rect.getCentreX(), 160, halfWidth / 2 - 10, 20);
+    clearOutput.setBounds(rect.getCentreX(), 15, halfWidth / 2 - 10, 20);
 
-    gainSlider.setBounds(rect.getCentreX(), 100, halfWidth / 2 - 10, 20);
+    gainSlider.setBounds(rect.getCentreX(), 45, halfWidth / 2 - 10, 20);
 
-    midiOutputBox.setBounds(halfWidth, halfHeight, halfWidth - 10, halfHeight - 10);
+    outputBox.setBounds(halfWidth, 85, halfWidth - 10, halfHeight + 40);
 }
 
 void MainComponent::drawNextLineOfSpectrogram()
@@ -196,14 +196,17 @@ void MainComponent::drawNextLineOfSpectrogram()
 
 void MainComponent::calcNote()
 {
+    // Getting fundamental frequency from FFT and calculating midi note number with velocity.
     auto fund = fft.calcFundamentalFreq();
-    // Getting fundamental frequency from FFT and calculating midi note number.
-    unsigned int note = findNearestNote(fund);
+    log(fund.first);
+    log(fund.second);
+    unsigned int note = findNearestNote(fund.first);
+    unsigned int velocity = (int)(fund.second * 127.0);
     
     // Ensures that notes are within midi range.
     if (note <= 128)
     {
-        createMidiMsg(note, 127);
+        createMidiMsg(note, velocity);
     }
 }
 
@@ -211,20 +214,21 @@ void MainComponent::calcNote()
 void MainComponent::createMidiMsg(const unsigned int& noteNum, const juce::uint8& velocity)
 {
     auto midiMessage{ juce::MidiMessage::noteOn(midiChannels, noteNum, velocity) };
-    log(midiMessage);
+    midiMessage.setTimeStamp(juce::Time::getMillisecondCounter() * 0.001 - startTime);
+    //log(midiMessage);
 }
 
 void MainComponent::log(const juce::MidiMessage& midiMessage)
 {
-    midiOutputBox.moveCaretToEnd();
-    midiOutputBox.insertTextAtCaret(midiMessage.getDescription() + juce::newLine);
+    outputBox.moveCaretToEnd();
+    outputBox.insertTextAtCaret(midiMessage.getDescription() + juce::newLine);
 }
 
 template<typename T>
 void MainComponent::log(T msg)
 {
-    midiOutputBox.moveCaretToEnd();
-    midiOutputBox.insertTextAtCaret(std::to_string(msg) + juce::newLine);
+    outputBox.moveCaretToEnd();
+    outputBox.insertTextAtCaret(std::to_string(msg) + juce::newLine);
 }
 
 int MainComponent::findNearestNote(double target)
@@ -270,4 +274,10 @@ int MainComponent::findNearestNote(double target)
     {
         return end;
     }
+}
+
+void MainComponent::addMessageToBuffer(const juce::MidiMessage& message)
+{
+    auto timestamp = message.getTimeStamp();
+    auto sampleNumber = (int) (timestamp )
 }

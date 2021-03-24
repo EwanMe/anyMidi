@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <fstream>
 #include "ForwardFFT.h"
 
 
@@ -24,31 +25,44 @@ public:
 
 private:
     //==============================================================================
-    //====== Channels =====
-
-    static constexpr unsigned int numInputChannels{ 1 };
-    static constexpr unsigned int numOutputChannels{ 2 };
-    const int midiChannels{ 10 };
-
-    unsigned int tuning{ 440 };
-    std::array<double, 128> noteFrequencies;
-
-    // ====== Layout ======
-
-    juce::TextButton clearOutput;
-
-    juce::Slider gainSlider;
-    juce::TextEditor midiOutputBox;
+    //======= AUDIO ===========
 
     juce::AudioDeviceSelectorComponent audioSetupComp;
 
+    static constexpr unsigned int numInputChannels{ 1 };
+    static constexpr unsigned int numOutputChannels{ 2 };
+    
+    // Forward FFT object.
+    ForwardFFT fft;
+
+    // Lookup array to determine Midi notes from frequencies.
+    std::array<double, 128> noteFrequencies;
+    unsigned int tuning{ 440 };
+
     // Determines values for Midi message based on FFT analysis.
     void calcNote();
-    int findNearestNote(double target);
 
-    // Creates MIDI message based on inputed note number and velocity,
-    // and sends it to the output list.
+    // Finds closest Midi note in array of frequencies.
+    int findNearestNote(double target);
+    
+    //======= AUDIO-END =======
+    
+    //======= MIDI ============
+
+    juce::MidiBuffer midiBuffer;
+    const int midiChannels{ 10 };
+    int previoudSampleNum{ 0 };
+
+    // Audio app start time. Used to determine Midi message timestamp.
+    const double startTime;
+
+    // Creates MIDI message based on inputed note number and velocity, and sends it to the output list.
     void createMidiMsg(const unsigned int& noteNum, const juce::uint8& velocity);
+
+    void addMessageToBuffer(const juce::MidiMessage& message);
+    
+    //======= MIDI-END ========
+
 
     // Logging function for debugging purposes.
     void log(const juce::MidiMessage& midiMessage);
@@ -56,11 +70,16 @@ private:
     template<typename T>
     void log(T msg);
 
+
+    // ====== LAYOUT ==========
+
+    juce::TextButton clearOutput;
+    juce::Slider gainSlider;
+    juce::TextEditor outputBox;
     juce::Image spectrogramImage;
 
-    ForwardFFT fft;
+    // ====== LAYOUT-END ======
 
-    bool toPrint{ false };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
