@@ -39,9 +39,11 @@ void ForwardFFT::pushNextSampleIntoFifo(float sample)
     {
         if (!nextFFTBlockReady)
         {
-            // Copies the data from the fifo into fftData.
+            // Initializes fftData with zeroes.
             std::fill(fftData.begin(), fftData.end(), 0.0f);
+            // Copies the data from the fifo into fftData.
             std::copy(fifo.begin(), fifo.end(), fftData.begin());
+            // Sets flag.
             nextFFTBlockReady = true;
 
             // Perform windowing and forward FFT.
@@ -55,7 +57,7 @@ void ForwardFFT::pushNextSampleIntoFifo(float sample)
     fifo[fifoIndex++] = sample;
 }
 
-double ForwardFFT::calcFundamentalFreq() const
+std::pair<double, double> ForwardFFT::calcFundamentalFreq() const
 {
     double max{ 0 };
     unsigned int targetBin{ 0 }; // Location of fund. freq. will be stored here.
@@ -71,6 +73,7 @@ double ForwardFFT::calcFundamentalFreq() const
         }
     }
 
-    // Calculates frequency from bin number.
-    return (double)targetBin * sampleRate / fftSize;
+    // Calculates frequency from bin number and accesses amplitude at bin number.
+    auto fundamental = std::make_pair((double)targetBin * sampleRate / fftSize, (double)data[targetBin]);
+    return fundamental;
 }

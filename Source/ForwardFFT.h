@@ -28,7 +28,7 @@ public:
     int getFFTSize() const;
 
     // Calculates the fundamental frequency of the current FFT data array.
-    double calcFundamentalFreq() const;
+    std::pair<double, double> calcFundamentalFreq() const;
 
     bool nextFFTBlockReady = false;
     
