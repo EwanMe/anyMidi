@@ -215,31 +215,47 @@ void MainComponent::calcNote()
 {
     // Getting fundamental frequency from FFT and calculating midi note number with velocity.
     auto fund = fft.calcFundamentalFreq();
-    
-    // Threshold for amplitude
-    if (fund.second > 0.5)
+    unsigned int note = findNearestNote(fund.first);
+    unsigned int velocity = (int)(fund.second * 127.0);
+
+    if (!midiNoteCurrentlyOn)
     {
-        unsigned int note = findNearestNote(fund.first);
-        unsigned int velocity = (int)(fund.second * 127.0);
-    
-        // Ensures that notes are within midi range.
-        if (note <= 128)
+        if (fund.second > threshold)
         {
-            createMidiMsg(note, velocity);
+            // Ensures that notes are within midi range.
+            if (note <= 128)
+            {
+                createMidiMsg(note, velocity, true);
+                currentNote = note;
+                midiNoteCurrentlyOn = true;
+            }
+        }
+    }
+    else
+    {
+        if (fund.second < releaseThreshold)
+        {
+            createMidiMsg(currentNote, velocity, false);
+            midiNoteCurrentlyOn = false;
         }
     }
 }
 
 
-void MainComponent::createMidiMsg(const unsigned int& noteNum, const juce::uint8& velocity)
+void MainComponent::createMidiMsg(const unsigned int& noteNum, const juce::uint8& velocity, const bool noteOn)
 {
-    auto midiMessage{ juce::MidiMessage::noteOn(midiChannels, noteNum, velocity) };
+    juce::MidiMessage midiMessage;
+    if (noteOn)
+    {
+        midiMessage = juce::MidiMessage::noteOn(midiChannels, noteNum, velocity);
+    }
+    else
+    {
+        midiMessage = juce::MidiMessage::noteOff(midiChannels, noteNum);
+    }
+
     midiMessage.setTimeStamp(juce::Time::getMillisecondCounter() * 0.001 - startTime);
     addMessageToBuffer(midiMessage);
-
-    auto midiOff{ juce::MidiMessage::noteOff(midiChannels, noteNum) };
-    midiOff.setTimeStamp(midiMessage.getTimeStamp() + 0.1);
-    addMessageToBuffer(midiOff);
     
     //log(midiMessage);
 }
@@ -308,6 +324,6 @@ void MainComponent::addMessageToBuffer(const juce::MidiMessage& message)
     int sampleRate = deviceManager.getAudioDeviceSetup().sampleRate;
     int sampleNumber = (int)(timestamp * sampleRate);
 
-    currentMidiBufferSize++;
+    DBG(message.getDescription());
     midiBuffer.addEvent(message, sampleNumber);
 }

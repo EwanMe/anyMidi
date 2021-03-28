@@ -53,13 +53,17 @@ private:
     juce::MidiOutput* midiOut;
     const int midiChannels{ 10 };
     int previoudSampleNum{ 0 };
-    int currentMidiBufferSize{ 0 };
+
+    bool midiNoteCurrentlyOn{ false };
+    unsigned int currentNote{ 0 };
+    double threshold{ 0.8 };
+    double releaseThreshold{ 0.1 };
 
     // Audio app start time. Used to determine Midi message timestamp.
     const double startTime;
 
     // Creates MIDI message based on input note number and velocity.
-    void createMidiMsg(const unsigned int& noteNum, const juce::uint8& velocity);
+    void createMidiMsg(const unsigned int& noteNum, const juce::uint8& velocity, const bool noteOn);
 
     // Adds Midi message into buffer to be retrieved upon callback.
     void addMessageToBuffer(const juce::MidiMessage& message);
