@@ -4,6 +4,7 @@
 MainComponent::MainComponent() :
     startTime{ juce::Time::getMillisecondCounterHiRes() * 0.001 },
     fft{ 48000 },
+    midiOut{ nullptr },
     spectrogramImage{ juce::Image::RGB, 512, 512, true },
     audioSetupComp{
         deviceManager,
@@ -11,7 +12,7 @@ MainComponent::MainComponent() :
         256,    // max input ch
         0,      // min output ch
         256,    // max output ch
-        true,   // can select midi inputs?
+        false,  // can select midi inputs?
         true,   // can select midi output device?
         false,  // treat channels as stereo pairs
         false } // hide advanced options?
@@ -91,6 +92,8 @@ MainComponent::~MainComponent()
         settingsFileName.replaceWithText(audioDeviceSettings->toString());
     }
 
+    //delete midiOut;
+
     
     // This shuts down the audio device and clears the audio source.
     shutdownAudio();
@@ -125,6 +128,27 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
             outBuffer_2[i] = channelData[i] * gainSlider.getValue();
         }
     }
+
+    if (fft.nextFFTBlockReady)
+    {
+        // Draws the spectrogram image.
+        // drawNextLineOfSpectrogram();
+        calcNote();
+        fft.nextFFTBlockReady = false;
+        // repaint();
+    }
+
+    midiOut = deviceManager.getDefaultMidiOutput();
+    if (midiOut)
+    {
+        midiOut->startBackgroundThread();
+    }
+
+    if (midiOut != nullptr)
+    {
+        midiOut->sendBlockOfMessages(midiBuffer, juce::Time::getMillisecondCounter(), deviceManager.getAudioDeviceSetup().sampleRate);
+        midiBuffer.clear();
+    }
 }
 
 void MainComponent::releaseResources()
@@ -137,14 +161,7 @@ void MainComponent::releaseResources()
 
 void MainComponent::timerCallback()
 {
-    if (fft.nextFFTBlockReady)
-    {
-        // Draws the spectrogram image.
-        drawNextLineOfSpectrogram();
-        calcNote();
-        fft.nextFFTBlockReady = false;
-        repaint();
-    }
+    
 }
 
 //==============================================================================
@@ -198,15 +215,18 @@ void MainComponent::calcNote()
 {
     // Getting fundamental frequency from FFT and calculating midi note number with velocity.
     auto fund = fft.calcFundamentalFreq();
-    log(fund.first);
-    log(fund.second);
-    unsigned int note = findNearestNote(fund.first);
-    unsigned int velocity = (int)(fund.second * 127.0);
     
-    // Ensures that notes are within midi range.
-    if (note <= 128)
+    // Threshold for amplitude
+    if (fund.second > 0.5)
     {
-        createMidiMsg(note, velocity);
+        unsigned int note = findNearestNote(fund.first);
+        unsigned int velocity = (int)(fund.second * 127.0);
+    
+        // Ensures that notes are within midi range.
+        if (note <= 128)
+        {
+            createMidiMsg(note, velocity);
+        }
     }
 }
 
@@ -215,6 +235,12 @@ void MainComponent::createMidiMsg(const unsigned int& noteNum, const juce::uint8
 {
     auto midiMessage{ juce::MidiMessage::noteOn(midiChannels, noteNum, velocity) };
     midiMessage.setTimeStamp(juce::Time::getMillisecondCounter() * 0.001 - startTime);
+    addMessageToBuffer(midiMessage);
+
+    auto midiOff{ juce::MidiMessage::noteOff(midiChannels, noteNum) };
+    midiOff.setTimeStamp(midiMessage.getTimeStamp() + 0.1);
+    addMessageToBuffer(midiOff);
+    
     //log(midiMessage);
 }
 
@@ -246,7 +272,7 @@ int MainComponent::findNearestNote(double target)
         return end - 1;
     }
 
-    // This is a variation of binary search.
+    // Variation of binary search.
     unsigned int mid;
     while (end - begin > 1)
     {
@@ -278,6 +304,10 @@ int MainComponent::findNearestNote(double target)
 
 void MainComponent::addMessageToBuffer(const juce::MidiMessage& message)
 {
-    auto timestamp = message.getTimeStamp();
-    auto sampleNumber = (int) (timestamp )
+    double timestamp = message.getTimeStamp();
+    int sampleRate = deviceManager.getAudioDeviceSetup().sampleRate;
+    int sampleNumber = (int)(timestamp * sampleRate);
+
+    currentMidiBufferSize++;
+    midiBuffer.addEvent(message, sampleNumber);
 }
