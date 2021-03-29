@@ -14,15 +14,13 @@ ForwardFFT::ForwardFFT(const double sampleRate)
     : forwardFFT{ fftOrder },
     sampleRate{ sampleRate },
     // When initialising the windowing function, consider using fftSize + 1, ref. https://artandlogic.com/2019/11/making-spectrograms-in-juce/amp/
-    window{ fftSize + 1, juce::dsp::WindowingFunction<float>::blackman }
+    window{ fftSize + 1, juce::dsp::WindowingFunction<float>::hann }
 {
 
 }
 
 std::array<float, ForwardFFT::fftSize * 2> ForwardFFT::getFFTData() const
 {
-    // Returns pointer to prevent copying of large arrays
-    // and it's shared because it will be accessed by multiple functions.
     return fftData;
 }
 
@@ -49,6 +47,9 @@ void ForwardFFT::pushNextSampleIntoFifo(float sample)
             // Perform windowing and forward FFT.
             window.multiplyWithWindowingTable(fftData.data(), fftSize);
             forwardFFT.performFrequencyOnlyForwardTransform(fftData.data());
+            
+            // Amplitude compensation for window function.
+            juce::FloatVectorOperations::multiply(fftData.data(), windowCompensation, fftSize);
         }
 
         fifoIndex = 0;
@@ -74,6 +75,6 @@ std::pair<double, double> ForwardFFT::calcFundamentalFreq() const
     }
 
     // Calculates frequency from bin number and accesses amplitude at bin number.
-    auto fundamental = std::make_pair((double)targetBin * sampleRate / fftSize, (double)data[targetBin]);
+    auto fundamental = std::make_pair((double)targetBin * sampleRate / fftSize, (double)(data[targetBin] / fftSize));
     return fundamental;
 }
