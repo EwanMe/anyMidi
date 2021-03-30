@@ -2,9 +2,11 @@
 
 <JUCERPROJECT id="xHuwhM" name="anyMidiStandalone" projectType="guiapp" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" companyName="Hallvard Jensen"
-              displaySplashScreen="1" cppLanguageStandard="17" headerPath="D:\dev\anyMidiStandalone\Source\ASIO\">
+              displaySplashScreen="1" cppLanguageStandard="17" headerPath="D:\dev\anyMidiStandalone\Source\ASIO\&#10;C:\dev\anyMidi\Source\ASIO\">
   <MAINGROUP id="V3BKVY" name="anyMidiStandalone">
     <GROUP id="{19E908DE-ABB1-AB26-675F-DD9CF27A73FB}" name="Source">
+      <FILE id="aAyN8P" name="ForwardFFT.h" compile="0" resource="0" file="Source/ForwardFFT.h"/>
+      <FILE id="HN2Pen" name="ForwardFFT.cpp" compile="1" resource="0" file="Source/ForwardFFT.cpp"/>
       <FILE id="AjTRXO" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
       <FILE id="htpC8Q" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
       <FILE id="rspl5o" name="MainComponent.cpp" compile="1" resource="0"
