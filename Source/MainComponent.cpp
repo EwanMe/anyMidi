@@ -46,7 +46,7 @@ MainComponent::MainComponent() :
     // Gain slider.
     addAndMakeVisible(gainSlider);
     gainSlider.setRange(0, 1, 0.01);
-    gainSlider.setValue(0.8);
+    gainSlider.setValue(0.0);
 
     // Output box, used for debugging.
     addAndMakeVisible(outputBox);
@@ -67,8 +67,8 @@ MainComponent::MainComponent() :
         outputBox.clear();
     };
 
-    // Timer used for FFT spectrum analysis.
-    startTimerHz(120);
+    // Timer used for messages.
+    startTimer(500);
 
     setSize(1000, 600);
 
@@ -92,8 +92,7 @@ MainComponent::~MainComponent()
         settingsFileName.replaceWithText(audioDeviceSettings->toString());
     }
 
-    //delete midiOut;
-
+    midiOut->sendMessageNow(juce::MidiMessage::allNotesOff(midiChannel));
     
     // This shuts down the audio device and clears the audio source.
     shutdownAudio();
@@ -102,13 +101,8 @@ MainComponent::~MainComponent()
 //==============================================================================
 void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
 {
-    // This function will be called when the audio device is started, or when
-    // its settings (i.e. sample rate, block size, etc) are changed.
-
-    // You can use this function to initialise any resources you might need,
-    // but be careful - it will be called on the audio thread, not the GUI thread.
-
-    // For more details, see the help for AudioProcessor::prepareToPlay()
+    // Initializing highpass filter.
+    filter.setCoefficients(juce::IIRCoefficients::makeHighPass(sampleRate, 50.0, 1.0));
 }
 
 void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
@@ -119,6 +113,8 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
         auto* outBuffer_1 = bufferToFill.buffer->getWritePointer(0, bufferToFill.startSample);
         auto* outBuffer_2 = bufferToFill.buffer->getWritePointer(1, bufferToFill.startSample);
 
+        // float* input = new float { 0.0 };
+        // filter.processSamples(input, bufferToFill.numSamples);
         for (unsigned int i = 0; i < bufferToFill.numSamples; ++i)
         {
             fft.pushNextSampleIntoFifo(channelData[i]);
@@ -146,7 +142,7 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
 
     if (midiOut != nullptr)
     {
-        midiOut->sendBlockOfMessages(midiBuffer, juce::Time::getMillisecondCounter(), deviceManager.getAudioDeviceSetup().sampleRate);
+        midiOut->sendBlockOfMessagesNow(midiBuffer);
         midiBuffer.clear();
     }
 }
@@ -161,7 +157,17 @@ void MainComponent::releaseResources()
 
 void MainComponent::timerCallback()
 {
-    
+    /*if (messagesPending.test_and_set())
+    {
+        drawNextLineOfSpectrogram();
+
+        for (auto m : midiBuffer)
+        {
+            log(m.getMessage());
+        }
+
+        messagesPending.clear();
+    }*/
 }
 
 //==============================================================================
@@ -215,30 +221,77 @@ void MainComponent::calcNote()
 {
     // Getting fundamental frequency from FFT and calculating midi note number with velocity.
     auto fund = fft.calcFundamentalFreq();
+    double amp = fund.second;
     unsigned int note = findNearestNote(fund.first);
-    unsigned int velocity = (int)(fund.second * 127.0);
+    int velocity = (int)(amp * 127.0);
 
-    if (!midiNoteCurrentlyOn)
+    std::vector<bool> noteValues;
+    if (determineNote(note, amp, noteValues))
     {
-        if (fund.second > threshold)
+        for (bool value : noteValues)
         {
-            // Ensures that notes are within midi range.
-            if (note <= 128)
+            if (value == true)
             {
-                createMidiMsg(note, velocity, true);
-                currentNote = note;
-                midiNoteCurrentlyOn = true;
+                createMidiMsg(note, velocity, value);
+            }
+            else
+            {
+                midiOut->sendMessageNow(juce::MidiMessage::allNotesOff(midiChannel));
             }
         }
     }
-    else
+}
+
+bool MainComponent::determineNote(const unsigned int& note, const double& amp, std::vector<bool>& noteValues)
+{
+    // Ensures that notes are within midi range.
+    if (note >= 0 && note < 128)
     {
-        if (fund.second < releaseThreshold)
+        if (!midiNoteCurrentlyOn && amp > threshold)
         {
-            createMidiMsg(currentNote, velocity, false);
-            midiNoteCurrentlyOn = false;
+            noteValues.push_back(true); // Note on
+            midiNoteCurrentlyOn = true;
+            lastNote = note;
+            lastAmp = amp;
+            return true;
+        }
+        if (midiNoteCurrentlyOn)
+        {
+            if (note != lastNote)
+            {
+                if (amp > threshold)
+                {
+                    noteValues.push_back(false); // Note off
+                    noteValues.push_back(true); // Note on
+                    midiNoteCurrentlyOn = true;
+                    lastNote = note;
+                    lastAmp = amp;
+                    return true;
+                }
+                return false;
+            }
+            if (amp > lastAmp * 2)
+            {
+                if (amp > threshold)
+                {
+                    noteValues.push_back(false); // Note off
+                    noteValues.push_back(true); // Note on
+                    midiNoteCurrentlyOn = true;
+                    lastNote = note;
+                    lastAmp = amp;
+                    return true;
+                }
+                return false;
+            }
+            if (amp < releaseThreshold)
+            {
+                noteValues.push_back(false); // Note off
+                midiNoteCurrentlyOn = false;
+                return true;
+            }
         }
     }
+    return false;
 }
 
 
@@ -247,17 +300,16 @@ void MainComponent::createMidiMsg(const unsigned int& noteNum, const juce::uint8
     juce::MidiMessage midiMessage;
     if (noteOn)
     {
-        midiMessage = juce::MidiMessage::noteOn(midiChannels, noteNum, velocity);
+        midiMessage = juce::MidiMessage::noteOn(midiChannel, noteNum, velocity);
     }
     else
     {
-        midiMessage = juce::MidiMessage::noteOff(midiChannels, noteNum);
+        midiMessage = juce::MidiMessage::noteOff(midiChannel, noteNum);
     }
 
     midiMessage.setTimeStamp(juce::Time::getMillisecondCounter() * 0.001 - startTime);
     addMessageToBuffer(midiMessage);
-    
-    //log(midiMessage);
+    DBG(midiMessage.getDescription());
 }
 
 void MainComponent::log(const juce::MidiMessage& midiMessage)
@@ -324,6 +376,5 @@ void MainComponent::addMessageToBuffer(const juce::MidiMessage& message)
     int sampleRate = deviceManager.getAudioDeviceSetup().sampleRate;
     int sampleNumber = (int)(timestamp * sampleRate);
 
-    DBG(message.getDescription());
     midiBuffer.addEvent(message, sampleNumber);
 }

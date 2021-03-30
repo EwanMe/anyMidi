@@ -28,6 +28,7 @@ private:
     //======= AUDIO ===========
 
     juce::AudioDeviceSelectorComponent audioSetupComp;
+    juce::IIRFilter filter;
 
     static constexpr unsigned int numInputChannels{ 1 };
     static constexpr unsigned int numOutputChannels{ 2 };
@@ -37,7 +38,7 @@ private:
 
     // Lookup array to determine Midi notes from frequencies.
     std::array<double, 128> noteFrequencies;
-    unsigned int tuning{ 440 };
+    static constexpr unsigned int tuning{ 440 };
 
     // Determines values for Midi message based on FFT analysis.
     void calcNote();
@@ -51,16 +52,21 @@ private:
 
     juce::MidiBuffer midiBuffer;
     juce::MidiOutput* midiOut;
-    const int midiChannels{ 10 };
+    static constexpr int midiChannel{ 10 };
     int previoudSampleNum{ 0 };
 
     bool midiNoteCurrentlyOn{ false };
-    unsigned int currentNote{ 0 };
-    double threshold{ 0.8 };
-    double releaseThreshold{ 0.1 };
+    int lastNote{ -1 };
+    double lastAmp{ 0.0 };
+    static constexpr double threshold{ 0.03 };
+    static constexpr double releaseThreshold{ 0.001 };
 
     // Audio app start time. Used to determine Midi message timestamp.
     const double startTime;
+
+    // Determines if there is need for new midi note and alters the noteOn input
+    // such that it states wheter note on or note off message is to be created.
+    bool determineNote(const unsigned int& note, const double& amp, std::vector<bool>& noteValues);
 
     // Creates MIDI message based on input note number and velocity.
     void createMidiMsg(const unsigned int& noteNum, const juce::uint8& velocity, const bool noteOn);
@@ -69,7 +75,6 @@ private:
     void addMessageToBuffer(const juce::MidiMessage& message);
     
     //======= MIDI-END ========
-
 
     // Logging function for debugging purposes.
     void log(const juce::MidiMessage& midiMessage);
