@@ -35,7 +35,7 @@ public:
 private:
     juce::dsp::FFT forwardFFT;
     juce::dsp::WindowingFunction<float> window;
-    static constexpr float windowCompensation{ 2.0 };
+    static constexpr float windowCompensation{ 2.2 };
 
     int fifoIndex = 0;
     std::array<float, fftSize> fifo;
