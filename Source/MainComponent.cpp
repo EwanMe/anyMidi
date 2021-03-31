@@ -129,6 +129,7 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
     {
         // Draws the spectrogram image.
         // drawNextLineOfSpectrogram();
+        
         calcNote();
         fft.nextFFTBlockReady = false;
         // repaint();
@@ -226,7 +227,7 @@ void MainComponent::calcNote()
     int velocity = (int)(amp * 127.0);
 
     std::vector<bool> noteValues;
-    if (determineNote(note, amp, noteValues))
+    if (determineNoteValue(note, amp, noteValues))
     {
         for (bool value : noteValues)
         {
@@ -236,19 +237,23 @@ void MainComponent::calcNote()
             }
             else
             {
+                // Problems with turning correct midi note off led to just turning
+                // everything off. This works for monophonic playing.
                 midiOut->sendMessageNow(juce::MidiMessage::allNotesOff(midiChannel));
             }
         }
     }
 }
 
-bool MainComponent::determineNote(const unsigned int& note, const double& amp, std::vector<bool>& noteValues)
+bool MainComponent::determineNoteValue(const unsigned int& note, const double& amp, std::vector<bool>& noteValues)
 {
     // Ensures that notes are within midi range.
     if (note >= 0 && note < 128)
     {
         if (!midiNoteCurrentlyOn && amp > threshold)
         {
+            // When there's no note currently playing, and the note
+            // surpasses the threshold.
             noteValues.push_back(true); // Note on
             midiNoteCurrentlyOn = true;
             lastNote = note;
@@ -257,10 +262,14 @@ bool MainComponent::determineNote(const unsigned int& note, const double& amp, s
         }
         if (midiNoteCurrentlyOn)
         {
+            // When another note is currently playing.
             if (note != lastNote)
             {
+                // When new note is differetn from the last note.
                 if (amp > threshold)
                 {
+                    // When new, different note surpasses threshold.
+                    // Last note is turned off before new note is turned on.
                     noteValues.push_back(false); // Note off
                     noteValues.push_back(true); // Note on
                     midiNoteCurrentlyOn = true;
@@ -272,6 +281,8 @@ bool MainComponent::determineNote(const unsigned int& note, const double& amp, s
             }
             if (amp > lastAmp * 2)
             {
+                // When new note is the same as last note,
+                // it has to be sufficiently louder to retrigger.
                 if (amp > threshold)
                 {
                     noteValues.push_back(false); // Note off
@@ -285,6 +296,8 @@ bool MainComponent::determineNote(const unsigned int& note, const double& amp, s
             }
             if (amp < releaseThreshold)
             {
+                // When new note is not different, nor louder than last
+                // it's probably a releasing note and we check if it has rung out.
                 noteValues.push_back(false); // Note off
                 midiNoteCurrentlyOn = false;
                 return true;
