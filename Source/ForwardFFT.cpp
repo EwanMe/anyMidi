@@ -79,3 +79,45 @@ std::pair<double, double> ForwardFFT::calcFundamentalFreq() const
     auto fundamental = std::make_pair((double)targetBin * sampleRate / fftSize, (double)(data[targetBin] / fftSize));
     return fundamental;
 }
+
+std::vector<std::pair<double, int>> ForwardFFT::calculateHarmonics(std::array<double, 128>& notes, const unsigned int& numPartials)
+{
+    // Thanks to https://stackoverflow.com/questions/14902876/indices-of-the-k-largest-elements-in-an-unsorted-length-n-array/38391603#38391603
+    // for inspiration for this algorithm.
+
+    // Stores bin index and value for the n loudest partials.
+    std::priority_queue<std::pair<double, int>, std::vector<std::pair<double, int>>, std::greater<std::pair<double, int>>> queue;
+    
+    auto data = getFFTData();
+
+    // Puts the loudest bins into the priority queue, storing the amplitude and the index.
+    for (int i = 0; i < getFFTSize(); ++i)
+    {
+        if (queue.size() < numPartials)
+        {
+            queue.push(std::pair<double, int>{data[i], i});
+        }
+        else if (queue.top().first < data[i])
+        {
+            queue.pop();
+            queue.push(std::pair<double, int>{data[i], i});
+        }
+    }
+
+    // Transforms the priority queue into a sorted vector.
+    std::vector<std::pair<double, int>> harmonics(queue.size());
+    for (int i = 0; i < queue.size(); ++i)
+    {
+        harmonics[queue.size() - i - 1] = queue.top();
+        queue.pop();
+    }
+    
+    return harmonics;
+}
+
+/* ---
+* Finne de n sterkeste bins i en fft.
+* Kalkulere amplituder til overtoner utfra liste med gitte frekvenser
+* Sjekke hvilken tone som spilles utfra vektet vurdering av overtoner, sterkeste frekvens bestemmer tone-oktav, men ikke nødvendigvis tone.
+* Generer MIDI-note utfra kalkulert tone og summen av alle ampitudeverdier i overtonespekter.
+--- */

@@ -31,6 +31,9 @@ namespace anyMIDI {
         // Calculates the fundamental frequency of the current FFT data array.
         std::pair<double, double> calcFundamentalFreq() const;
 
+        // Finds the bins with largest amplitudes.
+        std::vector<std::pair<double, int>> calculateHarmonics(std::array<double, 128>& notes, const unsigned int& numPartials);
+
         bool nextFFTBlockReady = false;
 
     private:
