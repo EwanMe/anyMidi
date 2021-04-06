@@ -28,7 +28,8 @@ private:
     //======= AUDIO ===========
 
     juce::AudioDeviceSelectorComponent audioSetupComp;
-    juce::IIRFilter filter;
+    juce::IIRFilter filter_1;
+    juce::IIRFilter filter_2;
 
     static constexpr unsigned int numInputChannels{ 1 };
     static constexpr unsigned int numOutputChannels{ 2 };
@@ -58,7 +59,7 @@ private:
     bool midiNoteCurrentlyOn{ false };
     int lastNote{ -1 };
     double lastAmp{ 0.0 };
-    static constexpr double threshold{ 0.03 };
+    static constexpr double threshold{ 0.01 };
     static constexpr double releaseThreshold{ 0.001 };
 
     // Audio app start time. Used to determine Midi message timestamp.

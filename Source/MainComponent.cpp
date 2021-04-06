@@ -102,7 +102,11 @@ MainComponent::~MainComponent()
 void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
 {
     // Initializing highpass filter.
-    filter.setCoefficients(juce::IIRCoefficients::makeHighPass(sampleRate, 50.0, 1.0));
+    filter_1.setCoefficients(juce::IIRCoefficients::makeHighPass(sampleRate, 50.0, 1.0));
+    filter_1.reset();
+
+    filter_2.setCoefficients(juce::IIRCoefficients::makeHighPass(sampleRate, 50.0, 1.0));
+    filter_2.reset();
 }
 
 void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
@@ -112,12 +116,12 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
         auto* channelData = bufferToFill.buffer->getReadPointer(0, bufferToFill.startSample);
         auto* outBuffer_1 = bufferToFill.buffer->getWritePointer(0, bufferToFill.startSample);
         auto* outBuffer_2 = bufferToFill.buffer->getWritePointer(1, bufferToFill.startSample);
-
-        // float* input = new float { 0.0 };
-        // filter.processSamples(input, bufferToFill.numSamples);
+        
+        filter_1.processSamples(outBuffer_1, bufferToFill.buffer->getNumSamples());
+        filter_2.processSamples(outBuffer_2, bufferToFill.buffer->getNumSamples());
         for (unsigned int i = 0; i < bufferToFill.numSamples; ++i)
         {
-            fft.pushNextSampleIntoFifo(channelData[i]);
+            fft.pushNextSampleIntoFifo(outBuffer_1[i]);
             
             // Throughput for debugging purposes. Just sends singnal through, scaled by the gain slider.
             outBuffer_1[i] = channelData[i] * gainSlider.getValue();
@@ -224,7 +228,7 @@ void MainComponent::calcNote()
     auto fund = fft.calcFundamentalFreq();
     double amp = fund.second;
     unsigned int note = findNearestNote(fund.first);
-    int velocity = (int)(amp * 127.0);
+    int velocity = (int)std::round(amp * 127.0);
 
     std::vector<bool> noteValues;
     if (determineNoteValue(note, amp, noteValues))
@@ -311,13 +315,14 @@ bool MainComponent::determineNoteValue(const unsigned int& note, const double& a
 void MainComponent::createMidiMsg(const unsigned int& noteNum, const juce::uint8& velocity, const bool noteOn)
 {
     juce::MidiMessage midiMessage;
+    unsigned int scaledNoteNum = noteNum + 12; // Juce is one octave off for some reason.
     if (noteOn)
     {
-        midiMessage = juce::MidiMessage::noteOn(midiChannel, noteNum, velocity);
+        midiMessage = juce::MidiMessage::noteOn(midiChannel, scaledNoteNum, velocity);
     }
     else
     {
-        midiMessage = juce::MidiMessage::noteOff(midiChannel, noteNum);
+        midiMessage = juce::MidiMessage::noteOff(midiChannel, scaledNoteNum);
     }
 
     midiMessage.setTimeStamp(juce::Time::getMillisecondCounter() * 0.001 - startTime);
