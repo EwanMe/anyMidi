@@ -35,7 +35,7 @@ private:
     static constexpr unsigned int numOutputChannels{ 2 };
     
     // Forward FFT object.
-    ForwardFFT fft;
+    anyMIDI::ForwardFFT fft;
 
     // Lookup array to determine Midi notes from frequencies.
     std::array<double, 128> noteFrequencies;

@@ -12,34 +12,37 @@
 
 #include <JuceHeader.h>
 
+namespace anyMIDI {
 
-class ForwardFFT {
-private:
-    static constexpr unsigned int fftOrder{ 10 };
-    static constexpr unsigned int fftSize = 1 << fftOrder;
+    class ForwardFFT {
+    private:
+        static constexpr unsigned int fftOrder{ 10 };
+        static constexpr unsigned int fftSize = 1 << fftOrder;
 
-public:
-    ForwardFFT(const double sampleRate);
+    public:
+        ForwardFFT(const double sampleRate);
 
-    void pushNextSampleIntoFifo(float sample);
+        void pushNextSampleIntoFifo(float sample);
 
-    // Returns pointer to the FFT data array.
-    std::array<float, ForwardFFT::fftSize * 2> getFFTData() const;
-    int getFFTSize() const;
+        // Returns pointer to the FFT data array.
+        std::array<float, ForwardFFT::fftSize * 2> getFFTData() const;
+        int getFFTSize() const;
 
-    // Calculates the fundamental frequency of the current FFT data array.
-    std::pair<double, double> calcFundamentalFreq() const;
+        // Calculates the fundamental frequency of the current FFT data array.
+        std::pair<double, double> calcFundamentalFreq() const;
 
-    bool nextFFTBlockReady = false;
-    
-private:
-    juce::dsp::FFT forwardFFT;
-    juce::dsp::WindowingFunction<float> window;
-    static constexpr float windowCompensation{ 2.2 };
+        bool nextFFTBlockReady = false;
 
-    int fifoIndex = 0;
-    std::array<float, fftSize> fifo;
-    std::array<float, fftSize * 2> fftData;
-    
-    const double sampleRate;   
-};
+    private:
+        juce::dsp::FFT forwardFFT;
+
+        int fifoIndex = 0;
+        std::array<float, fftSize> fifo;
+        std::array<float, fftSize * 2> fftData;
+
+        juce::dsp::WindowingFunction<float> window;
+        static constexpr float windowCompensation{ 2.2 };
+        
+        const double sampleRate;
+    };
+} // namespace anyMIDI

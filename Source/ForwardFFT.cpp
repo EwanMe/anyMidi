@@ -9,6 +9,7 @@
 */
 
 #include "ForwardFFT.h"
+using namespace anyMIDI;
 
 ForwardFFT::ForwardFFT(const double sampleRate)
     : forwardFFT{ fftOrder },
