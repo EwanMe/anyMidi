@@ -2,9 +2,8 @@
 
 //==============================================================================
 MainComponent::MainComponent() :
-    startTime{ juce::Time::getMillisecondCounterHiRes() * 0.001 },
     fft{ 48000 },
-    midiOut{ nullptr },
+    midiProc{ 48000, juce::Time::getMillisecondCounterHiRes() * 0.001 },
     spectrogramImage{ juce::Image::RGB, 512, 512, true },
     audioSetupComp{
         deviceManager,
@@ -83,17 +82,6 @@ MainComponent::MainComponent() :
 
 MainComponent::~MainComponent()
 {   
-    auto audioDeviceSettings = audioSetupComp.deviceManager.createStateXml();
-
-    if (audioDeviceSettings != nullptr)
-    {
-        // Writes user settings to XML file for storage.
-        juce::File settingsFileName = juce::File::getCurrentWorkingDirectory().getChildFile("audio_device_settings.xml");
-        settingsFileName.replaceWithText(audioDeviceSettings->toString());
-    }
-
-    midiOut->sendMessageNow(juce::MidiMessage::allNotesOff(midiChannel));
-    
     // This shuts down the audio device and clears the audio source.
     shutdownAudio();
 }
@@ -101,6 +89,8 @@ MainComponent::~MainComponent()
 //==============================================================================
 void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
 {
+    midiProc.setMidiOutput(deviceManager.getDefaultMidiOutput());
+
     // Initializing highpass filter.
     filter_1.setCoefficients(juce::IIRCoefficients::makeHighPass(sampleRate, 50.0, 1.0));
     filter_1.reset();
@@ -139,25 +129,21 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
         // repaint();
     }
 
-    midiOut = deviceManager.getDefaultMidiOutput();
-    if (midiOut)
-    {
-        midiOut->startBackgroundThread();
-    }
-
-    if (midiOut != nullptr)
-    {
-        midiOut->sendBlockOfMessagesNow(midiBuffer);
-        midiBuffer.clear();
-    }
+    midiProc.pushBufferToOutput();
 }
 
 void MainComponent::releaseResources()
 {
-    // This will be called when the audio device stops, or when it is being
-    // restarted due to a setting change.
+    auto audioDeviceSettings = audioSetupComp.deviceManager.createStateXml();
 
-    // For more details, see the help for AudioProcessor::releaseResources()
+    if (audioDeviceSettings != nullptr)
+    {
+        // Writes user settings to XML file for storage.
+        juce::File settingsFileName = juce::File::getCurrentWorkingDirectory().getChildFile("audio_device_settings.xml");
+        settingsFileName.replaceWithText(audioDeviceSettings->toString());
+    }
+
+    midiProc.turnOffAllMessages();
 }
 
 void MainComponent::timerCallback()
@@ -231,103 +217,22 @@ void MainComponent::calcNote()
     int velocity = (int)std::round(amp * 127.0);
 
     std::vector<bool> noteValues;
-    if (determineNoteValue(note, amp, noteValues))
+    if (midiProc.determineNoteValue(note, amp, noteValues))
     {
         for (bool value : noteValues)
         {
             if (value == true)
             {
-                createMidiMsg(note, velocity, value);
+                midiProc.createMidiMsg(note, velocity, value);
             }
             else
             {
                 // Problems with turning correct midi note off led to just turning
                 // everything off. This works for monophonic playing.
-                midiOut->sendMessageNow(juce::MidiMessage::allNotesOff(midiChannel));
+                midiProc.turnOffAllMessages();
             }
         }
     }
-}
-
-bool MainComponent::determineNoteValue(const unsigned int& note, const double& amp, std::vector<bool>& noteValues)
-{
-    // Ensures that notes are within midi range.
-    if (note >= 0 && note < 128)
-    {
-        if (!midiNoteCurrentlyOn && amp > threshold)
-        {
-            // When there's no note currently playing, and the note
-            // surpasses the threshold.
-            noteValues.push_back(true); // Note on
-            midiNoteCurrentlyOn = true;
-            lastNote = note;
-            lastAmp = amp;
-            return true;
-        }
-        if (midiNoteCurrentlyOn)
-        {
-            // When another note is currently playing.
-            if (note != lastNote)
-            {
-                // When new note is differetn from the last note.
-                if (amp > threshold)
-                {
-                    // When new, different note surpasses threshold.
-                    // Last note is turned off before new note is turned on.
-                    noteValues.push_back(false); // Note off
-                    noteValues.push_back(true); // Note on
-                    midiNoteCurrentlyOn = true;
-                    lastNote = note;
-                    lastAmp = amp;
-                    return true;
-                }
-                return false;
-            }
-            if (amp > lastAmp * 2)
-            {
-                // When new note is the same as last note,
-                // it has to be sufficiently louder to retrigger.
-                if (amp > threshold)
-                {
-                    noteValues.push_back(false); // Note off
-                    noteValues.push_back(true); // Note on
-                    midiNoteCurrentlyOn = true;
-                    lastNote = note;
-                    lastAmp = amp;
-                    return true;
-                }
-                return false;
-            }
-            if (amp < releaseThreshold)
-            {
-                // When new note is not different, nor louder than last
-                // it's probably a releasing note and we check if it has rung out.
-                noteValues.push_back(false); // Note off
-                midiNoteCurrentlyOn = false;
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-
-void MainComponent::createMidiMsg(const unsigned int& noteNum, const juce::uint8& velocity, const bool noteOn)
-{
-    juce::MidiMessage midiMessage;
-    unsigned int scaledNoteNum = noteNum + 12; // Juce is one octave off for some reason.
-    if (noteOn)
-    {
-        midiMessage = juce::MidiMessage::noteOn(midiChannel, scaledNoteNum, velocity);
-    }
-    else
-    {
-        midiMessage = juce::MidiMessage::noteOff(midiChannel, scaledNoteNum);
-    }
-
-    midiMessage.setTimeStamp(juce::Time::getMillisecondCounter() * 0.001 - startTime);
-    addMessageToBuffer(midiMessage);
-    DBG(midiMessage.getDescription());
 }
 
 void MainComponent::log(const juce::MidiMessage& midiMessage)
@@ -386,13 +291,4 @@ int MainComponent::findNearestNote(double target)
     {
         return end;
     }
-}
-
-void MainComponent::addMessageToBuffer(const juce::MidiMessage& message)
-{
-    double timestamp = message.getTimeStamp();
-    int sampleRate = deviceManager.getAudioDeviceSetup().sampleRate;
-    int sampleNumber = (int)(timestamp * sampleRate);
-
-    midiBuffer.addEvent(message, sampleNumber);
 }

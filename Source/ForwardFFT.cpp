@@ -9,7 +9,7 @@
 */
 
 #include "ForwardFFT.h"
-using namespace anyMIDI;
+using namespace anyMidi;
 
 ForwardFFT::ForwardFFT(const double sampleRate)
     : forwardFFT{ fftOrder },
@@ -140,7 +140,7 @@ std::vector<std::pair<double, double>> ForwardFFT::calculateHarmonics(const unsi
         }
     }
 
-    // Transforms the priority queue into a sorted vector based on frequency.
+    // Transforms the priority queue into a vector.
     int k = queue.size();
     std::vector<std::pair<double, double>> harmonics;
     for (int i = 0; i < k; ++i)
@@ -150,6 +150,7 @@ std::vector<std::pair<double, double>> ForwardFFT::calculateHarmonics(const unsi
         queue.pop();
     }
 
+    // Sorts harmonics based on lowest frequency.
     std::sort(harmonics.begin(), harmonics.end(),
         [](std::pair<double, double> a, std::pair<double, double> b)
         {

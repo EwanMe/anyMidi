@@ -12,7 +12,7 @@
 
 #include <JuceHeader.h>
 
-namespace anyMIDI {
+namespace anyMidi {
 
     class ForwardFFT {
     private:
@@ -32,6 +32,7 @@ namespace anyMIDI {
         std::pair<double, double> calcFundamentalFreq() const;
 
         // Fetches the number of harmonics specified, where the FFT bins are mapped to the provided note frequencies.
+        // Returns pairs of {frequency, amplitude} for each harmonic.
         std::vector<std::pair<double, double>> getHarmonics(const unsigned int& numPartials, const std::vector<double>& noteFreq);
 
         // Takes in vector of frequencies corresponding to musical notes, and maps the bins in the FFT to these frequencies.
@@ -54,4 +55,4 @@ namespace anyMIDI {
         
         const double sampleRate;
     };
-} // namespace anyMIDI
+} // namespace anyMidi
