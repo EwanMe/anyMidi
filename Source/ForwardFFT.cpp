@@ -76,19 +76,55 @@ std::pair<double, double> ForwardFFT::calcFundamentalFreq() const
     }
 
     // Calculates frequency from bin number and accesses amplitude at bin number.
-    auto fundamental = std::make_pair((double)targetBin * sampleRate / fftSize, (double)(data[targetBin] / fftSize));
+    auto fundamental = std::make_pair((double)targetBin * sampleRate / (fftSize * 2), (double)(data[targetBin] / fftSize));
     return fundamental;
 }
 
-std::vector<std::pair<double, int>> ForwardFFT::calculateHarmonics(std::array<double, 128>& notes, const unsigned int& numPartials)
+std::vector<std::pair<double, double>> ForwardFFT::getHarmonics(const unsigned int& numPartials, const std::vector<double>& noteFreq)
+{
+    auto correctedBins = mapBinsToFrequencies(noteFreq);
+    return calculateHarmonics(numPartials, correctedBins);
+}
+
+std::array<double, ForwardFFT::fftSize> ForwardFFT::mapBinsToFrequencies(const std::vector<double>& noteFreq)
+{
+    auto data = getFFTData();
+    std::array<double, fftSize> correctedBins{};
+
+    unsigned int f = 0;
+    // Iterates through each frequency in input vector.
+    for (unsigned int i = 0; i < noteFreq.size(); ++i)
+    {
+        // Maps all bins in vicinity of current frequency to this frequency.
+        for (f; f < getFFTSize(); ++f)
+        {
+            // Calcuates the actual frequency value.
+            double freq = (double)f * sampleRate / (fftSize * 2);
+
+            // Amplitude of bin is added to current note frequency when
+            // bin has lower freq than note, since freqs closer to below note should have
+            // been handled in last iteration or by the base case.
+            if (freq <= noteFreq[i])
+            {
+                correctedBins[i] += data[f];
+            }
+            // Bin is above current freq, but closer to current note than above note.
+            else if (std::abs(freq - noteFreq[i]) < std::abs(noteFreq[i + 1] - freq))
+            {
+                correctedBins[i] += data[f];
+            }
+        }
+    }
+    return correctedBins;
+}
+
+std::vector<std::pair<double, double>> ForwardFFT::calculateHarmonics(const unsigned int& numPartials, std::array<double, ForwardFFT::fftSize> data)
 {
     // Thanks to https://stackoverflow.com/questions/14902876/indices-of-the-k-largest-elements-in-an-unsorted-length-n-array/38391603#38391603
     // for inspiration for this algorithm.
 
     // Stores bin index and value for the n loudest partials.
     std::priority_queue<std::pair<double, int>, std::vector<std::pair<double, int>>, std::greater<std::pair<double, int>>> queue;
-    
-    auto data = getFFTData();
 
     // Puts the loudest bins into the priority queue, storing the amplitude and the index.
     for (int i = 0; i < getFFTSize(); ++i)
@@ -104,14 +140,23 @@ std::vector<std::pair<double, int>> ForwardFFT::calculateHarmonics(std::array<do
         }
     }
 
-    // Transforms the priority queue into a sorted vector.
-    std::vector<std::pair<double, int>> harmonics(queue.size());
-    for (int i = 0; i < queue.size(); ++i)
+    // Transforms the priority queue into a sorted vector based on frequency.
+    int k = queue.size();
+    std::vector<std::pair<double, double>> harmonics;
+    for (int i = 0; i < k; ++i)
     {
-        harmonics[queue.size() - i - 1] = queue.top();
+        // Creates pair of {frequenzy, amplitude}.
+        harmonics.push_back(std::make_pair((double)queue.top().second * sampleRate / (double)(fftSize * 2), queue.top().first / fftSize));
         queue.pop();
     }
-    
+
+    std::sort(harmonics.begin(), harmonics.end(),
+        [](std::pair<double, double> a, std::pair<double, double> b)
+        {
+            return a.first < b.first;
+        }
+    );
+
     return harmonics;
 }
 

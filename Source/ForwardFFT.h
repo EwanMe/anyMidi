@@ -25,14 +25,20 @@ namespace anyMIDI {
         void pushNextSampleIntoFifo(float sample);
 
         // Returns pointer to the FFT data array.
-        std::array<float, ForwardFFT::fftSize * 2> getFFTData() const;
+        std::array<float, fftSize * 2> getFFTData() const;
         int getFFTSize() const;
 
         // Calculates the fundamental frequency of the current FFT data array.
         std::pair<double, double> calcFundamentalFreq() const;
 
+        // Fetches the number of harmonics specified, where the FFT bins are mapped to the provided note frequencies.
+        std::vector<std::pair<double, double>> getHarmonics(const unsigned int& numPartials, const std::vector<double>& noteFreq);
+
+        // Takes in vector of frequencies corresponding to musical notes, and maps the bins in the FFT to these frequencies.
+        std::array<double, fftSize> mapBinsToFrequencies(const std::vector<double>& noteFreq);
+
         // Finds the bins with largest amplitudes.
-        std::vector<std::pair<double, int>> calculateHarmonics(std::array<double, 128>& notes, const unsigned int& numPartials);
+        std::vector<std::pair<double, double>> calculateHarmonics(const unsigned int& numPartials, std::array<double, ForwardFFT::fftSize> data);
 
         bool nextFFTBlockReady = false;
 
