@@ -74,9 +74,9 @@ MainComponent::MainComponent() :
     // Generates a list of frequencies corresponding to the 128 Midi notes
     // based on the global tuning.
     // Thanks to http://subsynth.sourceforge.net/midinote2freq.html for this snippet.
-    for (int i = 0; i < 128; ++i)
+    for (int i = 0; i < 136; ++i)
     {
-        noteFrequencies[i] = (tuning / 32.0) * std::pow(2, (i - 9.0) / 12.0);
+        noteFrequencies.push_back((tuning / 32.0) * std::pow(2, (i - 9.0) / 12.0));
     }
 }
 
@@ -211,10 +211,15 @@ void MainComponent::drawNextLineOfSpectrogram()
 void MainComponent::calcNote()
 {
     // Getting fundamental frequency from FFT and calculating midi note number with velocity.
-    auto fund = fft.calcFundamentalFreq();
+    /*auto fund = fft.calcFundamentalFreq();
     double amp = fund.second;
     unsigned int note = findNearestNote(fund.first);
-    int velocity = (int)std::round(amp * 127.0);
+    int velocity = (int)std::round(amp * 127.0);*/
+
+    auto noteInfo = analyzeHarmonics();
+    int note = noteInfo.first;
+    double amp = noteInfo.second;
+    int velocity = (int)std::round(amp * 127);
 
     std::vector<bool> noteValues;
     if (midiProc.determineNoteValue(note, amp, noteValues))
@@ -233,6 +238,65 @@ void MainComponent::calcNote()
             }
         }
     }
+}
+
+std::pair<int, double> MainComponent::analyzeHarmonics()
+{
+    constexpr int numHarm{ 6 };
+    auto harmonics = fft.getHarmonics(numHarm, noteFrequencies);
+
+    int fundamental{ 0 };
+    double maxAmp{ 0.0 };
+    std::map<int, double> scores;
+    double totalAmp{ 0.0 };
+    for (int i = 0; i < numHarm; ++i)
+    {
+        int note = findNearestNote(harmonics[i].first);
+        
+        // Extracts the note letter information, without regards to the octave.
+        int noteLetter = note % 12;
+        
+        // Calculates a weighted scoring of each harmonic.
+        // The octave-internal note value gets a score, weighted by the number harmonic.
+        // Higher harmonics are more accurate, and thus will give higher score towards note.
+        double score = (double)i / numHarm;
+        scores[noteLetter] += score;
+
+        // Fundamental frequency determines which octave the note will be in.
+        if (harmonics[i].second > maxAmp)
+        {
+            fundamental = note;
+        }
+
+        totalAmp += harmonics[i].second;
+    }
+
+    // Gets the octave number of note from integer divison of fundamental note.
+    int octave = fundamental / 12;
+
+    // Finds note with highest score.
+    int correctNote{ 0 };
+    double maxScore{ 0.0 };
+    for (std::pair<int, double> s : scores)
+    {
+        if (s.second > maxScore)
+        {
+            correctNote = s.first;
+        }
+    }
+
+    // The note determined by the analyzation of harmonics is composed of the
+    // octave of the fundamental note, plus the note value of the harmonic highest scoring.
+    int analyzedNoteValue = octave * 12 + correctNote;
+
+    std::pair<int, double> analyzedNote = std::make_pair(analyzedNoteValue, totalAmp);
+    return analyzedNote;
+    // * Finn sterkeste overtone.
+    // * Heltallsdivider på 12, finn nummeret på oktavet. Grunnfrekvensen bestemmer oktav.
+    // * Iterer gjennom overtoner og finn modulusen som representerer noteverdien innad i et oktav.
+    //   Nye noter legges inn i vektor og får en vektet poengscore, hvor lysere overtoner teller mer.
+    // * Til slutt vil en note ha mest score og er dermed den korrekte tonen. Noteverdien legges sammen
+    //   med oktavverdien og produserer den korrekte notebokstaven i korrekt oktav.
 }
 
 void MainComponent::log(const juce::MidiMessage& midiMessage)

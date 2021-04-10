@@ -39,11 +39,14 @@ private:
     static constexpr unsigned int numOutputChannels{ 2 };
 
     // Lookup array to determine Midi notes from frequencies.
-    std::array<double, 128> noteFrequencies;
+    std::vector<double> noteFrequencies;
     static constexpr unsigned int tuning{ 440 };
 
     // Determines values for Midi message based on FFT analysis.
     void calcNote();
+
+    // Returns note value based on analysis of harmonics.
+    std::pair<int, double> analyzeHarmonics();
 
     // Finds closest Midi note in array of frequencies.
     int findNearestNote(double target);    
