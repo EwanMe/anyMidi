@@ -82,8 +82,14 @@ std::pair<double, double> ForwardFFT::calcFundamentalFreq() const
 
 std::vector<std::pair<double, double>> ForwardFFT::getHarmonics(const unsigned int& numPartials, const std::vector<double>& noteFreq)
 {
-    auto correctedBins = mapBinsToFrequencies(noteFreq);
-    return calculateHarmonics(numPartials, correctedBins);
+    //auto correctedBins = mapBinsToFrequencies(noteFreq);
+    std::array<double, fftSize> data{};
+    auto fft = getFFTData();
+    for (int i = 0; i < fftSize; ++i)
+    {
+        data[i] = fft[i];
+    }
+    return calculateHarmonics(numPartials, data);
 }
 
 std::array<double, ForwardFFT::fftSize> ForwardFFT::mapBinsToFrequencies(const std::vector<double>& noteFreq)
@@ -91,27 +97,34 @@ std::array<double, ForwardFFT::fftSize> ForwardFFT::mapBinsToFrequencies(const s
     auto data = getFFTData();
     std::array<double, fftSize> correctedBins{};
 
-    unsigned int f = 0;
+    double freqInterval = sampleRate / (getFFTSize() * 2);
+
+    unsigned int f = 1; // No need to include bin no. 0 (0 Hz).
     // Iterates through each frequency in input vector.
     for (unsigned int i = 0; i < noteFreq.size(); ++i)
     {
         // Maps all bins in vicinity of current frequency to this frequency.
-        for (f; f < getFFTSize(); ++f)
+        while (f < getFFTSize())
         {
             // Calcuates the actual frequency value.
             double freq = (double)f * sampleRate / (fftSize * 2);
 
             // Amplitude of bin is added to current note frequency when
             // bin has lower freq than note, since freqs closer to below note should have
-            // been handled in last iteration or by the base case.
-            if (freq <= noteFreq[i])
+            // been handled in last iteration or by the base case
+
+            
+            if (freq < noteFreq[i] || i == noteFreq.size()-1)
             {
-                correctedBins[i] += data[f];
+                correctedBins[i] += data[f++];
             }
-            // Bin is above current freq, but closer to current note than above note.
-            else if (std::abs(freq - noteFreq[i]) < std::abs(noteFreq[i + 1] - freq))
+            else if (std::abs(freq - noteFreq[i]) < std::abs(freq - noteFreq[i+1]))
             {
-                correctedBins[i] += data[f];
+                correctedBins[i] += data[f++];
+            }
+            else
+            {
+                break;
             }
         }
     }
