@@ -24,7 +24,7 @@ namespace anyMidi {
 
         void pushNextSampleIntoFifo(float sample);
 
-        // Returns pointer to the FFT data array.
+        // Returns the FFT data array.
         std::array<float, fftSize * 2> getFFTData() const;
         int getFFTSize() const;
 

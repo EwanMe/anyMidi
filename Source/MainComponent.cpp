@@ -45,7 +45,7 @@ MainComponent::MainComponent() :
     // Gain slider.
     addAndMakeVisible(gainSlider);
     gainSlider.setRange(0, 1, 0.01);
-    gainSlider.setValue(0.0);
+    gainSlider.setValue(0.8);
 
     // Output box, used for debugging.
     addAndMakeVisible(outputBox);
@@ -89,44 +89,74 @@ MainComponent::~MainComponent()
 //==============================================================================
 void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
 {
+    processingBuffer.setSize(numInputChannels, samplesPerBlockExpected, false, true);
     midiProc.setMidiOutput(deviceManager.getDefaultMidiOutput());
 
-    // Initializing highpass filter.
-    filter_1.setCoefficients(juce::IIRCoefficients::makeHighPass(sampleRate, 50.0, 1.0));
-    filter_1.reset();
+    noiseGate.setThreshold(16.0); //50
+    noiseGate.setAttack(5.0);
+    noiseGate.setRelease(17.0);
+    noiseGate.setRatio(1.0);
 
-    filter_2.setCoefficients(juce::IIRCoefficients::makeHighPass(sampleRate, 50.0, 1.0));
-    filter_2.reset();
+    // Initializing highpass filter.
+    hiPassFilter.setCoefficients(juce::IIRCoefficients::makeHighPass(sampleRate, 75.0, 1.0)); // E5 on guitar = ~82 Hz
+    hiPassFilter.reset();
 }
 
 void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
 {
     if (bufferToFill.buffer->getNumChannels() > 0)
     {
-        auto* channelData = bufferToFill.buffer->getReadPointer(0, bufferToFill.startSample);
-        auto* outBuffer_1 = bufferToFill.buffer->getWritePointer(0, bufferToFill.startSample);
-        auto* outBuffer_2 = bufferToFill.buffer->getWritePointer(1, bufferToFill.startSample);
-        
-        filter_1.processSamples(outBuffer_1, bufferToFill.buffer->getNumSamples());
-        filter_2.processSamples(outBuffer_2, bufferToFill.buffer->getNumSamples());
-        for (unsigned int i = 0; i < bufferToFill.numSamples; ++i)
+        int numSamples = bufferToFill.buffer->getNumSamples(); // To make sure copied buffer size is the same.
+
+        // Copies actual buffer into a buffer for processing.
+        for (int i = 0; i < processingBuffer.getNumChannels(); ++i)
         {
-            fft.pushNextSampleIntoFifo(outBuffer_1[i]);
-            
-            // Throughput for debugging purposes. Just sends singnal through, scaled by the gain slider.
-            outBuffer_1[i] = channelData[i] * gainSlider.getValue();
-            outBuffer_2[i] = channelData[i] * gainSlider.getValue();
+            processingBuffer.copyFrom(i, 0, bufferToFill.buffer->getReadPointer(i), numSamples);
         }
+
+        /*juce::dsp::AudioBlock<float> block{ processingBuffer };
+        juce::dsp::ProcessContextReplacing<float> context{ block };
+        noiseGate.process(context);*/
+
+        auto* channelData = processingBuffer.getReadPointer(0, bufferToFill.startSample);
+        auto* outBuffer = processingBuffer.getWritePointer(0, bufferToFill.startSample);
+        
+        // Puts samples into non-const buffer.
+        for (unsigned int i = 0; i < numSamples; ++i)
+        {
+            outBuffer[i] = channelData[i];
+        }
+
+        // Applies filter.
+        hiPassFilter.processSamples(outBuffer, numSamples);
+
+        // Puts samples into FFT fifo after processing.
+        for (unsigned int i = 0; i < numSamples; ++i)
+        {
+            fft.pushNextSampleIntoFifo(outBuffer[i]);
+        }
+
+        // Just for audio output. Can be removed --
+        for (int i = 0; i < processingBuffer.getNumChannels(); ++i)
+        {
+            bufferToFill.buffer->copyFrom(i, 0, processingBuffer, i, 0, numSamples);
+        }
+
+        auto* read = bufferToFill.buffer->getReadPointer(0, bufferToFill.startSample);
+        auto* write_l = bufferToFill.buffer->getWritePointer(0, bufferToFill.startSample);
+        auto* write_r = bufferToFill.buffer->getWritePointer(1, bufferToFill.startSample);
+        for (unsigned int i = 0; i < numSamples; ++i)
+        {
+            write_l[i] = read[i] * gainSlider.getValue();
+            write_r[i] = read[i] * gainSlider.getValue();
+        }
+        // -- can be removed
     }
 
     if (fft.nextFFTBlockReady)
-    {
-        // Draws the spectrogram image.
-        // drawNextLineOfSpectrogram();
-        
+    {       
         calcNote();
         fft.nextFFTBlockReady = false;
-        // repaint();
     }
 
     midiProc.pushBufferToOutput();
@@ -216,7 +246,7 @@ void MainComponent::calcNote()
     unsigned int note = findNearestNote(fund.first);
     int velocity = (int)std::round(amp * 127.0);*/
 
-    auto noteInfo = analyzeHarmonics();
+    auto noteInfo = analyzeHarmonics(); // Gets {note, amplitude}
     int note = noteInfo.first;
     double amp = noteInfo.second;
     int velocity = (int)std::round(amp * 127);

@@ -31,9 +31,13 @@ private:
     anyMidi::MidiProcessor midiProc;
     
     juce::AudioDeviceSelectorComponent audioSetupComp;
+
+    juce::AudioSampleBuffer processingBuffer;
     
-    juce::IIRFilter filter_1;
-    juce::IIRFilter filter_2;
+    juce::dsp::NoiseGate<float> noiseGate;
+    juce::IIRFilter hiPassFilter;
+
+    //juce::dsp::NoiseGate< noiseGate;
 
     static constexpr unsigned int numInputChannels{ 1 };
     static constexpr unsigned int numOutputChannels{ 2 };
