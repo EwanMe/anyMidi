@@ -80,58 +80,71 @@ std::pair<double, double> ForwardFFT::calcFundamentalFreq() const
     return fundamental;
 }
 
-std::vector<std::pair<double, double>> ForwardFFT::getHarmonics(const unsigned int& numPartials, const std::vector<double>& noteFreq)
+std::vector<std::pair<int, double>> ForwardFFT::getHarmonics(const unsigned int& numPartials, const std::vector<double>& noteFreq)
 {
-    //auto correctedBins = mapBinsToFrequencies(noteFreq);
-    std::array<double, fftSize> data{};
-    auto fft = getFFTData();
-    for (int i = 0; i < fftSize; ++i)
-    {
-        data[i] = fft[i];
-    }
-    return calculateHarmonics(numPartials, data);
+    auto correctedBins = mapBinsToNotes(noteFreq);
+    return analyzeHarmonics(numPartials, correctedBins);
 }
 
-std::array<double, ForwardFFT::fftSize> ForwardFFT::mapBinsToFrequencies(const std::vector<double>& noteFreq)
+std::array<float, ForwardFFT::fftSize*2> ForwardFFT::cleanUpLobes()
 {
     auto data = getFFTData();
-    std::array<double, fftSize> correctedBins{};
 
-    double freqInterval = sampleRate / (getFFTSize() * 2);
-
-    unsigned int f = 1; // No need to include bin no. 0 (0 Hz).
-    // Iterates through each frequency in input vector.
-    for (unsigned int i = 0; i < noteFreq.size(); ++i)
+    std::vector<int> lobe;
+    for (int i = 0; i < getFFTSize(); ++i)
     {
-        // Maps all bins in vicinity of current frequency to this frequency.
-        while (f < getFFTSize())
-        {
-            // Calcuates the actual frequency value.
-            double freq = (double)f * sampleRate / (fftSize * 2);
-
-            // Amplitude of bin is added to current note frequency when
-            // bin has lower freq than note, since freqs closer to below note should have
-            // been handled in last iteration or by the base case
-
-            
-            if (freq < noteFreq[i] || i == noteFreq.size()-1)
-            {
-                correctedBins[i] += data[f++];
-            }
-            else if (std::abs(freq - noteFreq[i]) < std::abs(freq - noteFreq[i+1]))
-            {
-                correctedBins[i] += data[f++];
-            }
-            else
-            {
-                break;
-            }
-        }
+        
     }
-    return correctedBins;
+    return data;
 }
 
-std::vector<std::pair<double, double>> ForwardFFT::calculateHarmonics(const unsigned int& numPartials, std::array<double, ForwardFFT::fftSize> data)
+std::vector<double> ForwardFFT::mapBinsToNotes(const std::vector<double>& noteFreq)
+{
+    auto data = getFFTData();
+    std::vector<double> noteAmps(noteFreq.size());
+
+    int i = 0;
+    for (int bin = 1; bin < getFFTSize(); ++bin)
+    {
+        double freq = (double)bin * sampleRate / (fftSize * 2);
+        int note = findNearestNote(freq, noteFreq);
+        noteAmps[note] += data[bin];
+        /*while (i < noteFreq.size()-1)
+        {
+            if (std::abs(freq - noteFreq[i]) > std::abs(freq - noteFreq[i+1]))
+            {
+                i++;
+                continue;
+            }
+            noteAmps[i++] += data[bin];
+            break;
+        }*/
+    }
+
+    std::vector<int> lobes;
+    std::vector<double> reestimatedNoteAmps(noteFreq.size());
+    for (int i = 0; i < noteAmps.size(); ++i)
+    {
+        if (noteAmps[i] > 0)
+        {
+            lobes.push_back(i);
+        }
+        if (lobes.size() > 0 && noteAmps[i] == 0.0)
+        {
+            int centerLobe = std::floor((lobes.size()-1) / 2);
+            int ctrNoteVal = lobes[centerLobe];
+            for (int l : lobes)
+            {
+                reestimatedNoteAmps[ctrNoteVal] += noteAmps[l];
+            }
+            lobes.clear();
+        }
+    }
+
+    return reestimatedNoteAmps;
+}
+
+std::vector<std::pair<int, double>> ForwardFFT::analyzeHarmonics(const unsigned int& numPartials, std::vector<double>& data) const
 {
     // Thanks to https://stackoverflow.com/questions/14902876/indices-of-the-k-largest-elements-in-an-unsorted-length-n-array/38391603#38391603
     // for inspiration for this algorithm.
@@ -140,7 +153,7 @@ std::vector<std::pair<double, double>> ForwardFFT::calculateHarmonics(const unsi
     std::priority_queue<std::pair<double, int>, std::vector<std::pair<double, int>>, std::greater<std::pair<double, int>>> queue;
 
     // Puts the loudest bins into the priority queue, storing the amplitude and the index.
-    for (int i = 0; i < getFFTSize(); ++i)
+    for (int i = 0; i < data.size(); ++i)
     {
         if (queue.size() < numPartials)
         {
@@ -155,17 +168,17 @@ std::vector<std::pair<double, double>> ForwardFFT::calculateHarmonics(const unsi
 
     // Transforms the priority queue into a vector.
     int k = queue.size();
-    std::vector<std::pair<double, double>> harmonics;
+    std::vector<std::pair<int, double>> harmonics;
     for (int i = 0; i < k; ++i)
     {
         // Creates pair of {frequenzy, amplitude}.
-        harmonics.push_back(std::make_pair((double)queue.top().second * sampleRate / (double)(fftSize * 2), queue.top().first / fftSize));
+        harmonics.push_back(std::make_pair(queue.top().second, queue.top().first / fftSize));
         queue.pop();
     }
 
     // Sorts harmonics based on lowest frequency.
     std::sort(harmonics.begin(), harmonics.end(),
-        [](std::pair<double, double> a, std::pair<double, double> b)
+        [](std::pair<int, double> a, std::pair<int, double> b)
         {
             return a.first < b.first;
         }
@@ -180,3 +193,48 @@ std::vector<std::pair<double, double>> ForwardFFT::calculateHarmonics(const unsi
 * Sjekke hvilken tone som spilles utfra vektet vurdering av overtoner, sterkeste frekvens bestemmer tone-oktav, men ikke nødvendigvis tone.
 * Generer MIDI-note utfra kalkulert tone og summen av alle ampitudeverdier i overtonespekter.
 --- */
+
+int ForwardFFT::findNearestNote(const double& target, const std::vector<double>& noteFrequencies) const
+{
+    unsigned int begin = 0;
+    unsigned int end = noteFrequencies.size();
+
+    // When frequency is below or above highest midi note.
+    if (target <= noteFrequencies[begin])
+    {
+        return begin;
+    }
+    if (target >= noteFrequencies[end - 1])
+    {
+        return end - 1;
+    }
+
+    // Variation of binary search.
+    unsigned int mid;
+    while (end - begin > 1)
+    {
+        mid = begin + (end - begin) / 2;
+
+        if (target == noteFrequencies[mid])
+        {
+            return mid;
+        }
+        if (target < noteFrequencies[mid])
+        {
+            end = mid;
+        }
+        else
+        {
+            begin = mid;
+        }
+    }
+
+    if (std::abs(target - noteFrequencies[begin]) < std::abs(target - noteFrequencies[end]))
+    {
+        return begin;
+    }
+    else
+    {
+        return end;
+    }
+}

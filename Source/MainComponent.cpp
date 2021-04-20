@@ -45,7 +45,7 @@ MainComponent::MainComponent() :
     // Gain slider.
     addAndMakeVisible(gainSlider);
     gainSlider.setRange(0, 1, 0.01);
-    gainSlider.setValue(0.8);
+    gainSlider.setValue(0.0);
 
     // Output box, used for debugging.
     addAndMakeVisible(outputBox);
@@ -74,7 +74,7 @@ MainComponent::MainComponent() :
     // Generates a list of frequencies corresponding to the 128 Midi notes
     // based on the global tuning.
     // Thanks to http://subsynth.sourceforge.net/midinote2freq.html for this snippet.
-    for (int i = 0; i < 136; ++i)
+    for (int i = 0; i < 140; ++i)
     {
         noteFrequencies.push_back((tuning / 32.0) * std::pow(2, (i - 9.0) / 12.0));
     }
@@ -92,7 +92,13 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
     processingBuffer.setSize(numInputChannels, samplesPerBlockExpected, false, true);
     midiProc.setMidiOutput(deviceManager.getDefaultMidiOutput());
 
-    noiseGate.setThreshold(16.0); //50
+    juce::dsp::ProcessSpec spec;
+    spec.sampleRate = sampleRate;
+    spec.maximumBlockSize = samplesPerBlockExpected;
+    spec.numChannels = numOutputChannels;
+
+    noiseGate.prepare(spec);
+    noiseGate.setThreshold(-1.0); //50
     noiseGate.setAttack(5.0);
     noiseGate.setRelease(17.0);
     noiseGate.setRatio(1.0);
@@ -114,9 +120,9 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
             processingBuffer.copyFrom(i, 0, bufferToFill.buffer->getReadPointer(i), numSamples);
         }
 
-        /*juce::dsp::AudioBlock<float> block{ processingBuffer };
+        juce::dsp::AudioBlock<float> block{ processingBuffer };
         juce::dsp::ProcessContextReplacing<float> context{ block };
-        noiseGate.process(context);*/
+        //noiseGate.process(context);
 
         auto* channelData = processingBuffer.getReadPointer(0, bufferToFill.startSample);
         auto* outBuffer = processingBuffer.getWritePointer(0, bufferToFill.startSample);
@@ -272,7 +278,7 @@ void MainComponent::calcNote()
 
 std::pair<int, double> MainComponent::analyzeHarmonics()
 {
-    constexpr int numHarm{ 6 };
+    constexpr int numHarm{ 5 };
     auto harmonics = fft.getHarmonics(numHarm, noteFrequencies);
 
     int fundamental{ 0 };
@@ -281,7 +287,7 @@ std::pair<int, double> MainComponent::analyzeHarmonics()
     double totalAmp{ 0.0 };
     for (int i = 0; i < numHarm; ++i)
     {
-        int note = findNearestNote(harmonics[i].first);
+        int note = harmonics[i].first; //findNearestNote(harmonics[i].first);
         
         // Extracts the note letter information, without regards to the octave.
         int noteLetter = note % 12;
@@ -289,11 +295,23 @@ std::pair<int, double> MainComponent::analyzeHarmonics()
         // Calculates a weighted scoring of each harmonic.
         // The octave-internal note value gets a score, weighted by the number harmonic.
         // Higher harmonics are more accurate, and thus will give higher score towards note.
-        double score = (double)i / numHarm;
-        scores[noteLetter] += score;
+        
+        // double score = (double)(i + 1) / numHarm;
+        double score = 1.0;
+
+        scores[noteLetter] += score * (double)(i + 1)/harmonics.size();
+
+        if (i >= 2)
+        {
+            int tonicOfThird = (12 + (noteLetter - 4)) % 12;
+            int tonicOfFifth = (12 + (noteLetter - 7)) % 12;
+
+            scores[tonicOfThird] += score * 0.75;
+            scores[tonicOfFifth] += score;
+        }
 
         // Fundamental frequency determines which octave the note will be in.
-        if (harmonics[i].second > maxAmp)
+        if (i == 0/*harmonics[i].second > maxAmp*/)
         {
             fundamental = note;
         }

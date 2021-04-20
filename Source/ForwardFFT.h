@@ -33,13 +33,16 @@ namespace anyMidi {
 
         // Fetches the number of harmonics specified, where the FFT bins are mapped to the provided note frequencies.
         // Returns pairs of {frequency, amplitude} for each harmonic.
-        std::vector<std::pair<double, double>> getHarmonics(const unsigned int& numPartials, const std::vector<double>& noteFreq);
+        std::vector<std::pair<int, double>> getHarmonics(const unsigned int& numPartials, const std::vector<double>& noteFreq);
+        std::array<float, fftSize*2> cleanUpLobes();
 
         // Takes in vector of frequencies corresponding to musical notes, and maps the bins in the FFT to these frequencies.
-        std::array<double, fftSize> mapBinsToFrequencies(const std::vector<double>& noteFreq);
+        std::vector<double> mapBinsToNotes(const std::vector<double>& noteFreq);
 
         // Finds the bins with largest amplitudes.
-        std::vector<std::pair<double, double>> calculateHarmonics(const unsigned int& numPartials, std::array<double, ForwardFFT::fftSize> data);
+        std::vector<std::pair<int, double>> analyzeHarmonics(const unsigned int& numPartials, std::vector<double>& data) const;
+
+        int findNearestNote(const double& target, const std::vector<double>& noteFrequencies) const;
 
         bool nextFFTBlockReady = false;
 
@@ -51,7 +54,7 @@ namespace anyMidi {
         std::array<float, fftSize * 2> fftData;
 
         juce::dsp::WindowingFunction<float> window;
-        static constexpr float windowCompensation{ 2.2 };
+        static constexpr float windowCompensation{ 2.0 }; //2.2
         
         const double sampleRate;
     };
