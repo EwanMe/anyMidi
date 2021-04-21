@@ -82,69 +82,64 @@ std::pair<double, double> ForwardFFT::calcFundamentalFreq() const
 
 std::vector<std::pair<int, double>> ForwardFFT::getHarmonics(const unsigned int& numPartials, const std::vector<double>& noteFreq)
 {
-    auto correctedBins = mapBinsToNotes(noteFreq);
-    return analyzeHarmonics(numPartials, correctedBins);
+    auto data = getFFTData();
+    cleanUpBins(data);
+    auto notes = mapBinsToNotes(noteFreq, data);
+    return determineHarmonics(numPartials, notes);
 }
 
-std::array<float, ForwardFFT::fftSize*2> ForwardFFT::cleanUpLobes()
+void ForwardFFT::cleanUpBins(std::array<float, fftSize*2>& data)
 {
-    auto data = getFFTData();
-
-    std::vector<int> lobe;
-    for (int i = 0; i < getFFTSize(); ++i)
+    std::vector<int> lobes;
+    for (int bin = 0; bin < getFFTSize(); ++bin)
     {
+        // Clean up noise - acts like a gate.
+        if (data[bin] < 1)
+        {
+            data[bin] = 0;
+        }
+        else
+        {
+            // Adds bin as part of a lobe when above threshold.
+            lobes.push_back(bin);
+        }
         
+        // When bin is zero, we've moved past the lobe and it can be analyzed.
+        if (lobes.size() > 0 && data[bin] == 0)
+        {
+            int centerLobe = std::floor((lobes.size() - 1) / 2);
+            int ctrBin = lobes[centerLobe];
+            for (int i : lobes)
+            {
+                // Adds all amplitudes to center bin.
+                if (i != ctrBin)
+                {  
+                    data[ctrBin] += data[i];
+                    data[i] = 0;
+                }
+            }
+            lobes.clear();
+        }
     }
-    return data;
 }
 
-std::vector<double> ForwardFFT::mapBinsToNotes(const std::vector<double>& noteFreq)
+std::vector<double> ForwardFFT::mapBinsToNotes(const std::vector<double>& noteFreq, std::array<float, fftSize * 2>& data)
 {
-    auto data = getFFTData();
+    // Determines closest note to all bins in FFT and thus maps bins to their correct frequencies.
+    // The amplitudes of each bin is added onto the notes amplitude.
     std::vector<double> noteAmps(noteFreq.size());
-
     int i = 0;
     for (int bin = 1; bin < getFFTSize(); ++bin)
     {
         double freq = (double)bin * sampleRate / (fftSize * 2);
         int note = findNearestNote(freq, noteFreq);
         noteAmps[note] += data[bin];
-        /*while (i < noteFreq.size()-1)
-        {
-            if (std::abs(freq - noteFreq[i]) > std::abs(freq - noteFreq[i+1]))
-            {
-                i++;
-                continue;
-            }
-            noteAmps[i++] += data[bin];
-            break;
-        }*/
     }
 
-    std::vector<int> lobes;
-    std::vector<double> reestimatedNoteAmps(noteFreq.size());
-    for (int i = 0; i < noteAmps.size(); ++i)
-    {
-        if (noteAmps[i] > 0)
-        {
-            lobes.push_back(i);
-        }
-        if (lobes.size() > 0 && noteAmps[i] == 0.0)
-        {
-            int centerLobe = std::floor((lobes.size()-1) / 2);
-            int ctrNoteVal = lobes[centerLobe];
-            for (int l : lobes)
-            {
-                reestimatedNoteAmps[ctrNoteVal] += noteAmps[l];
-            }
-            lobes.clear();
-        }
-    }
-
-    return reestimatedNoteAmps;
+    return noteAmps;
 }
 
-std::vector<std::pair<int, double>> ForwardFFT::analyzeHarmonics(const unsigned int& numPartials, std::vector<double>& data) const
+std::vector<std::pair<int, double>> ForwardFFT::determineHarmonics(const unsigned int& numPartials, std::vector<double>& data) const
 {
     // Thanks to https://stackoverflow.com/questions/14902876/indices-of-the-k-largest-elements-in-an-unsorted-length-n-array/38391603#38391603
     // for inspiration for this algorithm.
@@ -186,13 +181,6 @@ std::vector<std::pair<int, double>> ForwardFFT::analyzeHarmonics(const unsigned 
 
     return harmonics;
 }
-
-/* ---
-* Finne de n sterkeste bins i en fft.
-* Kalkulere amplituder til overtoner utfra liste med gitte frekvenser
-* Sjekke hvilken tone som spilles utfra vektet vurdering av overtoner, sterkeste frekvens bestemmer tone-oktav, men ikke nødvendigvis tone.
-* Generer MIDI-note utfra kalkulert tone og summen av alle ampitudeverdier i overtonespekter.
---- */
 
 int ForwardFFT::findNearestNote(const double& target, const std::vector<double>& noteFrequencies) const
 {
