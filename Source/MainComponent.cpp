@@ -330,6 +330,7 @@ std::pair<int, double> MainComponent::analyzeHarmonics()
         if (s.second > maxScore)
         {
             correctNote = s.first;
+            maxScore = s.second;
         }
     }
 
