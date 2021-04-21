@@ -107,8 +107,17 @@ void ForwardFFT::cleanUpBins(std::array<float, fftSize*2>& data)
         // When bin is zero, we've moved past the lobe and it can be analyzed.
         if (lobes.size() > 0 && data[bin] == 0)
         {
-            int centerLobe = std::floor((lobes.size() - 1) / 2);
-            int ctrBin = lobes[centerLobe];
+            float maxLobe{ 0.0 };
+            int ctrBin{ 0 };
+            for (int i : lobes)
+            {
+                if (data[i] > maxLobe)
+                {
+                    ctrBin = i;
+                    maxLobe = data[i];
+                }
+            }
+
             for (int i : lobes)
             {
                 // Adds all amplitudes to center bin.
