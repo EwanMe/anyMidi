@@ -246,14 +246,10 @@ void MainComponent::drawNextLineOfSpectrogram()
 
 void MainComponent::calcNote()
 {
-    // Getting fundamental frequency from FFT and calculating midi note number with velocity.
-    /*auto fund = fft.calcFundamentalFreq();
-    double amp = fund.second;
-    unsigned int note = findNearestNote(fund.first);
-    int velocity = (int)std::round(amp * 127.0);*/
-
     auto noteInfo = analyzeHarmonics(); // Gets {note, amplitude}
     int note = noteInfo.first;
+    /*auto noteInfo = fft.calcFundamentalFreq();
+    int note = findNearestNote(noteInfo.first);*/
     double amp = noteInfo.second;
     int velocity = (int)std::round(amp * 127);
 
@@ -270,7 +266,7 @@ void MainComponent::calcNote()
             {
                 // Problems with turning correct midi note off led to just turning
                 // everything off. This works for monophonic playing.
-                midiProc.turnOffAllMessages();
+                midiProc.createMidiMsg(note, 0, value);
             }
         }
     }
@@ -278,7 +274,7 @@ void MainComponent::calcNote()
 
 std::pair<int, double> MainComponent::analyzeHarmonics()
 {
-    constexpr int numHarm{ 5 };
+    constexpr int numHarm{ 4 };
     auto harmonics = fft.getHarmonics(numHarm, noteFrequencies);
 
     int fundamental{ 0 };
@@ -299,15 +295,15 @@ std::pair<int, double> MainComponent::analyzeHarmonics()
         // double score = (double)(i + 1) / numHarm;
         double score = 1.0;
 
-        scores[noteLetter] += score * (double)(i + 1)/harmonics.size();
+        scores[noteLetter] += score/* * (double)(i + 1)/harmonics.size()*/;
 
         if (i >= 2)
         {
             int tonicOfThird = (12 + (noteLetter - 4)) % 12;
             int tonicOfFifth = (12 + (noteLetter - 7)) % 12;
 
-            scores[tonicOfThird] += score * 0.75;
-            scores[tonicOfFifth] += score;
+            scores[tonicOfThird] += score * 0.25;
+            scores[tonicOfFifth] += score * 0.5;
         }
 
         // Fundamental frequency determines which octave the note will be in.

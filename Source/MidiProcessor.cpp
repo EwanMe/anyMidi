@@ -45,7 +45,7 @@ bool MidiProcessor::determineNoteValue(const unsigned int& note, const double& a
             // When another note is currently playing.
             if (note != lastNote)
             {
-                // When new note is differetn from the last note.
+                // When new note is different from the last note.
                 if (amp > threshold)
                 {
                     // When new, different note surpasses threshold.
@@ -59,7 +59,7 @@ bool MidiProcessor::determineNoteValue(const unsigned int& note, const double& a
                 }
                 return false;
             }
-            if (amp > lastAmp * 2)
+            if (amp > lastAmp * 3)
             {
                 // When new note is the same as last note,
                 // it has to be sufficiently louder to retrigger.
@@ -82,6 +82,7 @@ bool MidiProcessor::determineNoteValue(const unsigned int& note, const double& a
                 midiNoteCurrentlyOn = false;
                 return true;
             }
+            lastAmp = amp;
         }
     }
     return false;

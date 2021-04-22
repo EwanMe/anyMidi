@@ -40,8 +40,8 @@ namespace anyMidi {
         bool midiNoteCurrentlyOn{ false };
         int lastNote{ -1 };
         double lastAmp{ 0.0 };
-        static constexpr double threshold{ 0.01 };
-        static constexpr double releaseThreshold{ 0.001 };
+        static constexpr double threshold{ 0.1 };
+        static constexpr double releaseThreshold{ 0.01 };
 
         // Audio app start time. Used to determine Midi message timestamp.
         const double startTime;
