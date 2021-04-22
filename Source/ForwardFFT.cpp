@@ -15,7 +15,7 @@ ForwardFFT::ForwardFFT(const double sampleRate)
     : forwardFFT{ fftOrder },
     sampleRate{ sampleRate },
     // When initialising the windowing function, consider using fftSize + 1, ref. https://artandlogic.com/2019/11/making-spectrograms-in-juce/amp/
-    window{ fftSize + 1, juce::dsp::WindowingFunction<float>::hann }
+    window{ fftSize + 1, juce::dsp::WindowingFunction<float>::hamming }
 {
 
 }
