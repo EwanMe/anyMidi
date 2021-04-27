@@ -22,7 +22,7 @@ namespace anyMidi {
 
         // Determines if there is need for new midi note and alters the noteOn input
         // such that it states wheter note on or note off message is to be created.
-        bool determineNoteValue(const unsigned int& note, const double& amp, std::vector<bool>& noteValues);
+        bool determineNoteValue(const unsigned int& note, const double& amp, std::vector<std::pair<int, bool>>& noteValues);
 
         // Creates MIDI message based on input note number and velocity.
         void createMidiMsg(const unsigned int& noteNum, const juce::uint8& velocity, const bool noteOn);

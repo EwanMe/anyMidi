@@ -25,7 +25,7 @@ void MidiProcessor::setMidiOutput(juce::MidiOutput* output)
     midiOut = output;
 }
 
-bool MidiProcessor::determineNoteValue(const unsigned int& note, const double& amp, std::vector<bool>& noteValues)
+bool MidiProcessor::determineNoteValue(const unsigned int& note, const double& amp, std::vector<std::pair<int, bool>>& noteValues)
 {
     // Ensures that notes are within midi range.
     if (note >= 0 && note < 128)
@@ -34,7 +34,7 @@ bool MidiProcessor::determineNoteValue(const unsigned int& note, const double& a
         {
             // When there's no note currently playing, and the note
             // surpasses the threshold.
-            noteValues.push_back(true); // Note on
+            noteValues.push_back(std::make_pair(note, true)); // Note on
             midiNoteCurrentlyOn = true;
             lastNote = note;
             lastAmp = amp;
@@ -50,8 +50,8 @@ bool MidiProcessor::determineNoteValue(const unsigned int& note, const double& a
                 {
                     // When new, different note surpasses threshold.
                     // Last note is turned off before new note is turned on.
-                    noteValues.push_back(false); // Note off
-                    noteValues.push_back(true); // Note on
+                    noteValues.push_back(std::make_pair(lastNote, false)); // Note off
+                    noteValues.push_back(std::make_pair(note, true)); // Note on
                     midiNoteCurrentlyOn = true;
                     lastNote = note;
                     lastAmp = amp;
@@ -65,8 +65,8 @@ bool MidiProcessor::determineNoteValue(const unsigned int& note, const double& a
                 // it has to be sufficiently louder to retrigger.
                 if (amp > threshold)
                 {
-                    noteValues.push_back(false); // Note off
-                    noteValues.push_back(true); // Note on
+                    noteValues.push_back(std::make_pair(lastNote, false)); // Note off
+                    noteValues.push_back(std::make_pair(note, true)); // Note on
                     midiNoteCurrentlyOn = true;
                     lastNote = note;
                     lastAmp = amp;
@@ -78,7 +78,7 @@ bool MidiProcessor::determineNoteValue(const unsigned int& note, const double& a
             {
                 // When new note is not different, nor louder than last
                 // it's probably a releasing note and we check if it has rung out.
-                noteValues.push_back(false); // Note off
+                noteValues.push_back(std::make_pair(lastNote, false)); // Note off
                 midiNoteCurrentlyOn = false;
                 return true;
             }

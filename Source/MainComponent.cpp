@@ -246,27 +246,27 @@ void MainComponent::drawNextLineOfSpectrogram()
 
 void MainComponent::calcNote()
 {
-    auto noteInfo = analyzeHarmonics(); // Gets {note, amplitude}
-    int note = noteInfo.first;
-    /*auto noteInfo = fft.calcFundamentalFreq();
-    int note = findNearestNote(noteInfo.first);*/
+    //auto noteInfo = analyzeHarmonics(); // Gets {note, amplitude}
+    //int note = noteInfo.first;
+    auto noteInfo = fft.calcFundamentalFreq();
+    int note = findNearestNote(noteInfo.first);
     double amp = noteInfo.second;
     int velocity = (int)std::round(amp * 127);
 
-    std::vector<bool> noteValues;
+    std::vector<std::pair<int, bool>> noteValues;
     if (midiProc.determineNoteValue(note, amp, noteValues))
     {
-        for (bool value : noteValues)
+        for (std::pair newNote : noteValues)
         {
-            if (value == true)
+            if (newNote.second == true)
             {
-                midiProc.createMidiMsg(note, velocity, value);
+                midiProc.createMidiMsg(newNote.first, velocity, newNote.second);
             }
             else
             {
                 // Problems with turning correct midi note off led to just turning
                 // everything off. This works for monophonic playing.
-                midiProc.createMidiMsg(note, 0, value);
+                midiProc.createMidiMsg(newNote.first, 0, newNote.second);
             }
         }
     }
