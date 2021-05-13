@@ -90,11 +90,13 @@ std::vector<std::pair<int, double>> ForwardFFT::getHarmonics(const unsigned int&
 
 void ForwardFFT::cleanUpBins(std::array<float, fftSize*2>& data)
 {
+    constexpr double threshold{ 1.0 };
+
     std::vector<int> lobes;
     for (int bin = 0; bin < getFFTSize(); ++bin)
     {
         // Clean up noise - acts like a gate.
-        if (data[bin] < 1)
+        if (data[bin] < threshold)
         {
             data[bin] = 0;
         }
@@ -105,6 +107,7 @@ void ForwardFFT::cleanUpBins(std::array<float, fftSize*2>& data)
         }
         
         // When bin is zero, we've moved past the lobe and it can be analyzed.
+        // Squeezes lobe into a sigle bin, being the center bin of the lobe.
         if (lobes.size() > 0 && data[bin] == 0)
         {
             float maxLobe{ 0.0 };
@@ -134,21 +137,22 @@ void ForwardFFT::cleanUpBins(std::array<float, fftSize*2>& data)
 
 std::vector<double> ForwardFFT::mapBinsToNotes(const std::vector<double>& noteFreq, std::array<float, fftSize * 2>& data)
 {
-    // Determines closest note to all bins in FFT and thus maps bins to their correct frequencies.
+    // Determines closest note to all bins in FFT and maps bins to their correct frequencies.
     // The amplitudes of each bin is added onto the notes amplitude.
-    std::vector<double> noteAmps(noteFreq.size());
+    std::vector<double> amps(noteFreq.size());
     int i = 0;
     for (int bin = 1; bin < getFFTSize(); ++bin)
     {
         double freq = (double)bin * sampleRate / (fftSize * 2);
-        int note = findNearestNote(freq, noteFreq);
-        noteAmps[note] += data[bin];
+        int note = anyMidi::findNearestNote(freq, noteFreq);
+
+        amps[note] += data[bin];
     }
 
-    return noteAmps;
+    return amps;
 }
 
-std::vector<std::pair<int, double>> ForwardFFT::determineHarmonics(const unsigned int& numPartials, std::vector<double>& data) const
+std::vector<std::pair<int, double>> ForwardFFT::determineHarmonics(const unsigned int& numPartials, std::vector<double>& amps) const
 {
     // Thanks to https://stackoverflow.com/questions/14902876/indices-of-the-k-largest-elements-in-an-unsorted-length-n-array/38391603#38391603
     // for inspiration for this algorithm.
@@ -157,16 +161,16 @@ std::vector<std::pair<int, double>> ForwardFFT::determineHarmonics(const unsigne
     std::priority_queue<std::pair<double, int>, std::vector<std::pair<double, int>>, std::greater<std::pair<double, int>>> queue;
 
     // Puts the loudest bins into the priority queue, storing the amplitude and the index.
-    for (int i = 0; i < data.size(); ++i)
+    for (int i = 0; i < amps.size(); ++i)
     {
         if (queue.size() < numPartials)
         {
-            queue.push(std::pair<double, int>{data[i], i});
+            queue.push(std::pair<double, int>{amps[i], i});
         }
-        else if (queue.top().first < data[i])
+        else if (queue.top().first < amps[i])
         {
             queue.pop();
-            queue.push(std::pair<double, int>{data[i], i});
+            queue.push(std::pair<double, int>{amps[i], i});
         }
     }
 
@@ -191,7 +195,7 @@ std::vector<std::pair<int, double>> ForwardFFT::determineHarmonics(const unsigne
     return harmonics;
 }
 
-int ForwardFFT::findNearestNote(const double& target, const std::vector<double>& noteFrequencies) const
+int anyMidi::findNearestNote(const double& target, const std::vector<double>& noteFrequencies)
 {
     unsigned int begin = 0;
     unsigned int end = noteFrequencies.size();

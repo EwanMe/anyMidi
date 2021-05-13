@@ -69,7 +69,7 @@ MainComponent::MainComponent() :
     // Timer used for messages.
     startTimer(500);
 
-    setSize(1000, 600);
+    setSize(1000, 500);
 
     // Generates a list of frequencies corresponding to the 128 Midi notes
     // based on the global tuning.
@@ -246,10 +246,10 @@ void MainComponent::drawNextLineOfSpectrogram()
 
 void MainComponent::calcNote()
 {
-    //auto noteInfo = analyzeHarmonics(); // Gets {note, amplitude}
-    //int note = noteInfo.first;
-    auto noteInfo = fft.calcFundamentalFreq();
-    int note = findNearestNote(noteInfo.first);
+    auto noteInfo = analyzeHarmonics(); // Gets {note, amplitude}
+    int note = noteInfo.first;
+    // auto noteInfo = fft.calcFundamentalFreq();
+    // int note = findNearestNote(noteInfo.first);
     double amp = noteInfo.second;
     int velocity = (int)std::round(amp * 127);
 
@@ -274,7 +274,7 @@ void MainComponent::calcNote()
 
 std::pair<int, double> MainComponent::analyzeHarmonics()
 {
-    constexpr int numHarm{ 4 };
+    constexpr int numHarm{ 6 };
     auto harmonics = fft.getHarmonics(numHarm, noteFrequencies);
 
     int fundamental{ 0 };
@@ -283,40 +283,15 @@ std::pair<int, double> MainComponent::analyzeHarmonics()
     double totalAmp{ 0.0 };
     for (int i = 0; i < numHarm; ++i)
     {
-        int note = harmonics[i].first; //findNearestNote(harmonics[i].first);
+        double freq = noteFrequencies[harmonics[i].first];
         
-        // Extracts the note letter information, without regards to the octave.
-        int noteLetter = note % 12;
+        double f = freq / (i + 1);
+        int note = anyMidi::findNearestNote(f, noteFrequencies);
         
-        // Calculates a weighted scoring of each harmonic.
-        // The octave-internal note value gets a score, weighted by the number harmonic.
-        // Higher harmonics are more accurate, and thus will give higher score towards note.
-        
-        // double score = (double)(i + 1) / numHarm;
-        double score = 1.0;
-
-        scores[noteLetter] += score/* * (double)(i + 1)/harmonics.size()*/;
-
-        if (i >= 2)
-        {
-            int tonicOfThird = (12 + (noteLetter - 4)) % 12;
-            int tonicOfFifth = (12 + (noteLetter - 7)) % 12;
-
-            scores[tonicOfThird] += score * 0.25;
-            scores[tonicOfFifth] += score * 0.5;
-        }
-
-        // Fundamental frequency determines which octave the note will be in.
-        if (i == 0/*harmonics[i].second > maxAmp*/)
-        {
-            fundamental = note;
-        }
+        scores[note] += 1.0 * log2(f);
 
         totalAmp += harmonics[i].second;
     }
-
-    // Gets the octave number of note from integer divison of fundamental note.
-    int octave = fundamental / 12;
 
     // Finds note with highest score.
     int correctNote{ 0 };
@@ -330,18 +305,8 @@ std::pair<int, double> MainComponent::analyzeHarmonics()
         }
     }
 
-    // The note determined by the analyzation of harmonics is composed of the
-    // octave of the fundamental note, plus the note value of the harmonic highest scoring.
-    int analyzedNoteValue = octave * 12 + correctNote;
-
-    std::pair<int, double> analyzedNote = std::make_pair(analyzedNoteValue, totalAmp);
+    std::pair<int, double> analyzedNote = std::make_pair(correctNote, totalAmp);
     return analyzedNote;
-    // * Finn sterkeste overtone.
-    // * Heltallsdivider på 12, finn nummeret på oktavet. Grunnfrekvensen bestemmer oktav.
-    // * Iterer gjennom overtoner og finn modulusen som representerer noteverdien innad i et oktav.
-    //   Nye noter legges inn i vektor og får en vektet poengscore, hvor lysere overtoner teller mer.
-    // * Til slutt vil en note ha mest score og er dermed den korrekte tonen. Noteverdien legges sammen
-    //   med oktavverdien og produserer den korrekte notebokstaven i korrekt oktav.
 }
 
 void MainComponent::log(const juce::MidiMessage& midiMessage)
@@ -355,49 +320,4 @@ void MainComponent::log(T msg)
 {
     outputBox.moveCaretToEnd();
     outputBox.insertTextAtCaret(std::to_string(msg) + juce::newLine);
-}
-
-int MainComponent::findNearestNote(double target)
-{
-    unsigned int begin = 0;
-    unsigned int end = noteFrequencies.size();
-    
-    // When frequency is below or above highest midi note.
-    if (target <= noteFrequencies[begin])
-    {
-        return begin;
-    }
-    if (target >= noteFrequencies[end - 1])
-    {
-        return end - 1;
-    }
-
-    // Variation of binary search.
-    unsigned int mid;
-    while (end - begin > 1)
-    {
-        mid = begin + (end - begin) / 2;
-
-        if (target == noteFrequencies[mid])
-        {
-            return mid;
-        }
-        if (target < noteFrequencies[mid])
-        {
-            end = mid;
-        }
-        else
-        {
-            begin = mid;
-        }
-    }
-
-    if (target - noteFrequencies[begin] < target - noteFrequencies[end])
-    {
-        return begin;
-    }
-    else
-    {
-        return end;
-    }
 }

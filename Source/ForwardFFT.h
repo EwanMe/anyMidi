@@ -34,15 +34,15 @@ namespace anyMidi {
         // Fetches the number of harmonics specified, where the FFT bins are mapped to the provided note frequencies.
         // Returns pairs of {frequency, amplitude} for each harmonic.
         std::vector<std::pair<int, double>> getHarmonics(const unsigned int& numPartials, const std::vector<double>& noteFreq);
+        
+        // Zeroes out bins below threshold. Compresses lobes in FFT into single bins.
         void cleanUpBins(std::array<float, fftSize * 2>& data);
 
         // Takes in vector of frequencies corresponding to musical notes, and maps the bins in the FFT to these frequencies.
         std::vector<double> mapBinsToNotes(const std::vector<double>& noteFreq, std::array<float, fftSize * 2>& data);
 
         // Finds the bins with largest amplitudes.
-        std::vector<std::pair<int, double>> determineHarmonics(const unsigned int& numPartials, std::vector<double>& data) const;
-
-        int findNearestNote(const double& target, const std::vector<double>& noteFrequencies) const;
+        std::vector<std::pair<int, double>> determineHarmonics(const unsigned int& numPartials, std::vector<double>& amps) const;
 
         bool nextFFTBlockReady = false;
 
@@ -58,4 +58,7 @@ namespace anyMidi {
         
         const double sampleRate;
     };
+
+    // Finds nearest note among the provided note frequencies.
+    int findNearestNote(const double& target, const std::vector<double>& noteFrequencies);
 } // namespace anyMidi

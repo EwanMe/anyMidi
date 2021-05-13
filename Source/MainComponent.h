@@ -50,10 +50,7 @@ private:
     void calcNote();
 
     // Returns note value based on analysis of harmonics.
-    std::pair<int, double> analyzeHarmonics();
-
-    // Finds closest Midi note in array of frequencies.
-    int findNearestNote(double target);    
+    std::pair<int, double> analyzeHarmonics();  
 
     // Logging function for debugging purposes.
     void log(const juce::MidiMessage& midiMessage);
