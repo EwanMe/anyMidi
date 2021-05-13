@@ -6,7 +6,7 @@
 #include "MidiProcessor.h"
 
 
-class MainComponent  : public juce::AudioAppComponent, private juce::Timer
+class MainComponent  : public juce::AudioAppComponent
 {
 public:
     //==============================================================================
@@ -17,7 +17,6 @@ public:
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
     void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
-    void timerCallback() override;
 
     //==============================================================================
     void paint (juce::Graphics& g) override;
@@ -64,7 +63,6 @@ private:
     juce::TextButton clearOutput;
     juce::Slider gainSlider;
     juce::TextEditor outputBox;
-    juce::Image spectrogramImage;
 
     // ====== LAYOUT-END ======
 

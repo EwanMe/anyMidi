@@ -4,7 +4,6 @@
 MainComponent::MainComponent() :
     fft{ 48000 },
     midiProc{ 48000, juce::Time::getMillisecondCounterHiRes() * 0.001 },
-    spectrogramImage{ juce::Image::RGB, 512, 512, true },
     audioSetupComp{
         deviceManager,
         0,      // min input ch
@@ -42,34 +41,31 @@ MainComponent::MainComponent() :
     // Audio device manager.
     addAndMakeVisible(audioSetupComp);
 
-    // Gain slider.
-    addAndMakeVisible(gainSlider);
-    gainSlider.setRange(0, 1, 0.01);
-    gainSlider.setValue(0.0);
+    //// Gain slider.
+    //addAndMakeVisible(gainSlider);
+    //gainSlider.setRange(0, 1, 0.01);
+    //gainSlider.setValue(0.0);
 
-    // Output box, used for debugging.
-    addAndMakeVisible(outputBox);
-    outputBox.setMultiLine(true);
-    outputBox.setReturnKeyStartsNewLine(true);
-    outputBox.setReadOnly(true);
-    outputBox.setScrollbarsShown(true);
-    outputBox.setCaretVisible(false);
-    outputBox.setPopupMenuEnabled(true);
-    outputBox.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0x32ffffff));
-    outputBox.setColour(juce::TextEditor::outlineColourId, juce::Colour(0x1c000000));
-    outputBox.setColour(juce::TextEditor::shadowColourId, juce::Colour(0x16000000));
+    //// Output box, used for debugging.
+    //addAndMakeVisible(outputBox);
+    //outputBox.setMultiLine(true);
+    //outputBox.setReturnKeyStartsNewLine(true);
+    //outputBox.setReadOnly(true);
+    //outputBox.setScrollbarsShown(true);
+    //outputBox.setCaretVisible(false);
+    //outputBox.setPopupMenuEnabled(true);
+    //outputBox.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0x32ffffff));
+    //outputBox.setColour(juce::TextEditor::outlineColourId, juce::Colour(0x1c000000));
+    //outputBox.setColour(juce::TextEditor::shadowColourId, juce::Colour(0x16000000));
 
-    addAndMakeVisible(clearOutput);
-    clearOutput.setButtonText("Clear output");
-    clearOutput.onClick = [this]
-    {
-        outputBox.clear();
-    };
+    //addAndMakeVisible(clearOutput);
+    //clearOutput.setButtonText("Clear output");
+    //clearOutput.onClick = [this]
+    //{
+    //    outputBox.clear();
+    //};
 
-    // Timer used for messages.
-    startTimer(500);
-
-    setSize(1000, 500);
+    setSize(500, 400);
 
     // Generates a list of frequencies corresponding to the 128 Midi notes
     // based on the global tuning.
@@ -182,29 +178,11 @@ void MainComponent::releaseResources()
     midiProc.turnOffAllMessages();
 }
 
-void MainComponent::timerCallback()
-{
-    /*if (messagesPending.test_and_set())
-    {
-        drawNextLineOfSpectrogram();
-
-        for (auto m : midiBuffer)
-        {
-            log(m.getMessage());
-        }
-
-        messagesPending.clear();
-    }*/
-}
-
 //==============================================================================
 void MainComponent::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
-
-    // Draws spectrogram underneath GUI. It works for now.
-    g.drawImage(spectrogramImage, getLocalBounds().toFloat());
 }
 
 void MainComponent::resized()
@@ -212,36 +190,15 @@ void MainComponent::resized()
     auto rect = getLocalBounds();
     
     auto halfWidth = getWidth() / 2;
-    auto halfHeight = getHeight() / 2;
+    // auto halfHeight = getHeight() / 2;
 
-    audioSetupComp.setBounds(rect.withWidth(halfWidth));
+    audioSetupComp.setBounds(rect.withWidth(getWidth()));
 
-    clearOutput.setBounds(rect.getCentreX(), 15, halfWidth / 2 - 10, 20);
+    // clearOutput.setBounds(rect.getCentreX(), 15, halfWidth / 2 - 10, 20);
 
-    gainSlider.setBounds(rect.getCentreX(), 45, halfWidth / 2 - 10, 20);
+    // gainSlider.setBounds(rect.getCentreX(), 45, halfWidth / 2 - 10, 20);
 
-    outputBox.setBounds(halfWidth, 85, halfWidth - 10, halfHeight + 40);
-}
-
-void MainComponent::drawNextLineOfSpectrogram()
-{
-    auto rightHandEdge = spectrogramImage.getWidth() - 1;
-    auto imageHeight = spectrogramImage.getHeight();
-    spectrogramImage.moveImageSection(0, 0, 1, 0, rightHandEdge, imageHeight);
-
-    auto fftData = fft.getFFTData();
-    int fftSize = fft.getFFTSize();
-        
-    auto fftRange = juce::FloatVectorOperations::findMinAndMax(fftData.data(), fftSize / 2);
-
-    for (auto y = 1; y < imageHeight; ++y)
-    {
-        float skewedProportionY = 1.0f - std::exp(std::log((float)y / (float)imageHeight) * 0.2f);
-        size_t fftDataIndex = (size_t)juce::jlimit(0, fftSize / 2, (int)(skewedProportionY * fftSize / 2 ));
-        float level = juce::jmap(fftData[fftDataIndex], 0.0f, juce::jmax(fftRange.getEnd(), 1e-5f), 0.0f, 1.0f);
-
-        spectrogramImage.setPixelAt(rightHandEdge, y, juce::Colour::fromHSV(level, 1.0f, level, 1.0f));
-    }
+    // outputBox.setBounds(halfWidth, 85, halfWidth - 10, halfHeight + 40);
 }
 
 void MainComponent::calcNote()
