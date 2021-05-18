@@ -242,11 +242,17 @@ std::pair<int, double> MainComponent::analyzeHarmonics()
     {
         double freq = noteFrequencies[harmonics[i].first];
         
-        double f = freq / (i + 1);
-        int note = anyMidi::findNearestNote(f, noteFrequencies);
+        // Calculates fundamental frequency of partial based on index.
+        double fundamental = freq / (i + 1);
         
-        scores[note] += 1.0 * log2(f);
+        // Get nearest MIDI note value of frequency.
+        int note = anyMidi::findNearestNote(fundamental, noteFrequencies);
+        
+        // Scoring weighted based on log2 of freq. FFT bins are distributed linearly and freqencies are percieved
+        // logarithmically. This aims to let the high frequency bins of the FFT with high resolution have more weighting on score.
+        scores[note] += 1.0 * log2(fundamental);
 
+        // Amps of partials added together to represent true amplitude.
         totalAmp += harmonics[i].second;
     }
 
