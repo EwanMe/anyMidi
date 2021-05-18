@@ -54,7 +54,7 @@ namespace anyMidi {
         std::array<float, fftSize * 2> fftData;
 
         juce::dsp::WindowingFunction<float> window;
-        static constexpr float windowCompensation{ 2.0 }; //2.2
+        static constexpr float windowCompensation{ 1.85 }; // 1.85 for Hamming window.
         
         const double sampleRate;
     };
