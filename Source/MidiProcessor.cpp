@@ -93,18 +93,20 @@ void MidiProcessor::createMidiMsg(const unsigned int& noteNum, const juce::uint8
 {
     juce::MidiMessage midiMessage;
     unsigned int scaledNoteNum = noteNum + 12; // Juce is one octave off for some reason.
-    if (noteOn)
+    if (scaledNoteNum >= 40 && scaledNoteNum < 90)
     {
-        midiMessage = juce::MidiMessage::noteOn(midiChannel, scaledNoteNum, velocity);
+        if (noteOn)
+        {
+            midiMessage = juce::MidiMessage::noteOn(midiChannel, scaledNoteNum, velocity);
+        }
+        else
+        {
+            midiMessage = juce::MidiMessage::noteOff(midiChannel, scaledNoteNum);
+        }
+        midiMessage.setTimeStamp(juce::Time::getMillisecondCounter() * 0.001 - startTime);
+        addMessageToBuffer(midiMessage);
+        DBG(midiMessage.getDescription());
     }
-    else
-    {
-        midiMessage = juce::MidiMessage::noteOff(midiChannel, scaledNoteNum);
-    }
-
-    midiMessage.setTimeStamp(juce::Time::getMillisecondCounter() * 0.001 - startTime);
-    addMessageToBuffer(midiMessage);
-    DBG(midiMessage.getDescription());
 }
 
 void MidiProcessor::addMessageToBuffer(const juce::MidiMessage& message)
