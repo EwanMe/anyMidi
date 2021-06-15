@@ -4,6 +4,7 @@
 #include <fstream>
 #include "ForwardFFT.h"
 #include "MidiProcessor.h"
+#include "appGUI.h"
 
 
 class MainComponent  : public juce::AudioAppComponent
@@ -29,7 +30,7 @@ private:
     anyMidi::ForwardFFT fft;
     anyMidi::MidiProcessor midiProc;
     
-    juce::AudioDeviceSelectorComponent audioSetupComp;
+    // juce::AudioDeviceSelectorComponent audioSetupComp;
 
     juce::AudioSampleBuffer processingBuffer;
     
@@ -63,6 +64,8 @@ private:
     juce::TextButton clearOutput;
     juce::Slider gainSlider;
     juce::TextEditor outputBox;
+
+    anyMidi::anyMidiTabbedComp tabs;
 
     // ====== LAYOUT-END ======
 

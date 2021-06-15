@@ -4,16 +4,17 @@
 MainComponent::MainComponent() :
     fft{ 48000 },
     midiProc{ 48000, juce::Time::getMillisecondCounterHiRes() * 0.001 },
-    audioSetupComp{
-        deviceManager,
-        0,      // min input ch
-        256,    // max input ch
-        0,      // min output ch
-        256,    // max output ch
-        false,  // can select midi inputs?
-        true,   // can select midi output device?
-        false,  // treat channels as stereo pairs
-        false } // hide advanced options?
+    tabs{ deviceManager }//,
+    //audioSetupComp{
+    //    deviceManager,
+    //    0,      // min input ch
+    //    256,    // max input ch
+    //    0,      // min output ch
+    //    256,    // max output ch
+    //    false,  // can select midi inputs?
+    //    true,   // can select midi output device?
+    //    false,  // treat channels as stereo pairs
+    //    false } // hide advanced options?
 {
     // Some platforms require permissions to open input channels so request that here.
     if (juce::RuntimePermissions::isRequired (juce::RuntimePermissions::recordAudio)
@@ -39,7 +40,8 @@ MainComponent::MainComponent() :
     }
     
     // Audio device manager.
-    addAndMakeVisible(audioSetupComp);
+    //addAndMakeVisible(audioSetupComp);
+    addAndMakeVisible(tabs);
 
     //// Gain slider.
     //addAndMakeVisible(gainSlider);
@@ -65,7 +67,7 @@ MainComponent::MainComponent() :
     //    outputBox.clear();
     //};
 
-    setSize(500, 400);
+    setSize(500, 500);
 
     // Generates a list of frequencies corresponding to the 128 Midi notes
     // based on the global tuning.
@@ -166,14 +168,14 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
 
 void MainComponent::releaseResources()
 {
-    auto audioDeviceSettings = audioSetupComp.deviceManager.createStateXml();
+    //auto audioDeviceSettings = audioSetupComp.deviceManager.createStateXml();
 
-    if (audioDeviceSettings != nullptr)
-    {
-        // Writes user settings to XML file for storage.
-        juce::File settingsFileName = juce::File::getCurrentWorkingDirectory().getChildFile("audio_device_settings.xml");
-        settingsFileName.replaceWithText(audioDeviceSettings->toString());
-    }
+    //if (audioDeviceSettings != nullptr)
+    //{
+    //    // Writes user settings to XML file for storage.
+    //    juce::File settingsFileName = juce::File::getCurrentWorkingDirectory().getChildFile("audio_device_settings.xml");
+    //    settingsFileName.replaceWithText(audioDeviceSettings->toString());
+    //}
 
     midiProc.turnOffAllMessages();
 }
@@ -191,8 +193,9 @@ void MainComponent::resized()
     
     auto halfWidth = getWidth() / 2;
     // auto halfHeight = getHeight() / 2;
-
-    audioSetupComp.setBounds(rect.withWidth(getWidth()));
+    
+    // audioSetupComp.setBounds(rect.withWidth(getWidth()));
+    tabs.setBounds(rect.reduced(4));
 
     // clearOutput.setBounds(rect.getCentreX(), 15, halfWidth / 2 - 10, 20);
 
