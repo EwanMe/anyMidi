@@ -15,18 +15,18 @@ using namespace anyMidi;
 // =============================================================================
 // TABBED COMPONENT
 
-anyMidiTabbedComp::anyMidiTabbedComp(juce::AudioDeviceManager& deviceManager) : TabbedComponent(juce::TabbedButtonBar::TabsAtTop)
+TabbedComp::TabbedComp(juce::AudioDeviceManager& deviceManager) : TabbedComponent(juce::TabbedButtonBar::TabsAtTop)
 {
     auto color = juce::Colour(0, 0, 0);
 
-    addTab("Audio Settings", color, new audioSetupPage(deviceManager), true);
-    addTab("App Settings", color, new appSettingsPage(), true);
+    addTab("Audio Settings", color, new AudioSetupPage(deviceManager), true);
+    addTab("App Settings", color, new AppSettingsPage(), true);
 }
 
 // =============================================================================
 // AUDIO SETUP PAGE
 
-audioSetupPage::audioSetupPage(juce::AudioDeviceManager& deviceManager) :
+AudioSetupPage::AudioSetupPage(juce::AudioDeviceManager& deviceManager) :
     audioSetupComp{
         deviceManager,
         0,      // min input ch
@@ -41,19 +41,19 @@ audioSetupPage::audioSetupPage(juce::AudioDeviceManager& deviceManager) :
     addAndMakeVisible(audioSetupComp);
 }
 
-audioSetupPage::~audioSetupPage()
+AudioSetupPage::~AudioSetupPage()
 {
     auto audioDeviceSettings = audioSetupComp.deviceManager.createStateXml();
 
     if (audioDeviceSettings != nullptr)
     {
         // Writes user settings to XML file for storage.
-        juce::File settingsFileName = juce::File::getCurrentWorkingDirectory().getChildFile("audio_device_settings.xml");
+        juce::File settingsFileName = juce::File::getCurrentWorkingDirectory().getChildFile(AUDIO_SETTINGS_FILENAME);
         settingsFileName.replaceWithText(audioDeviceSettings->toString());
     }
 }
 
-void audioSetupPage::resized()
+void AudioSetupPage::resized()
 {
     audioSetupComp.setBounds(getLocalBounds().withWidth(getWidth()));
 }
@@ -61,12 +61,58 @@ void audioSetupPage::resized()
 // =============================================================================
 // APP SETTINGS PAGE
 
-appSettingsPage::appSettingsPage()
+AppSettingsPage::AppSettingsPage()
 {
+    // ATTACK THRESHOLD SLIDER
+    addAndMakeVisible(attThreshSlider);
+    attThreshSlider.setRange(0, 1, 0.01);
+    attThreshSlider.setSliderStyle(juce::Slider::LinearBarVertical);
+    attThreshSlider.setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::transparentWhite);
+    attThreshSlider.setVelocityBasedMode(true);
+    attThreshSlider.setVelocityModeParameters(0.4, 1, 0.09, false);
+    attThreshSlider.onValueChange = [this]
+    {
+        return;
+    };
 
+    // ATTACK THRESHOLD LABEL
+    addAndMakeVisible(attThreshLabel);
+    attThreshLabel.setText("Attack Threshold", juce::dontSendNotification);
+    attThreshLabel.attachToComponent(&attThreshSlider, true);
+
+    // RELEASE THRESHOLD SLIDER
+    addAndMakeVisible(relThreshSlider);
+    relThreshSlider.setRange(0, 1, 0.01);
+    relThreshSlider.setSliderStyle(juce::Slider::LinearBarVertical);
+    relThreshSlider.setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::transparentWhite);
+    relThreshSlider.setVelocityBasedMode(true);
+    relThreshSlider.setVelocityModeParameters(0.4, 1, 0.09, false);
+
+    // RELEASE THRESHOLD LABEL
+    addAndMakeVisible(relThreshLabel);
+    relThreshLabel.setText("Release Threshold", juce::dontSendNotification);
+    relThreshLabel.attachToComponent(&relThreshSlider, true);
+
+    // PARTIALS SLIDER
+    addAndMakeVisible(partialsSlider);
+    partialsSlider.setRange(0, 10, 1);
+    partialsSlider.setSliderStyle(juce::Slider::LinearBarVertical);
+    partialsSlider.setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::transparentWhite);
+    partialsSlider.setVelocityBasedMode(true);
+    partialsSlider.setVelocityModeParameters(0.4, 1, 0.09, false);
+
+    // PARTIALS LABEL
+    addAndMakeVisible(partialsLabel);
+    partialsLabel.setText("Partials", juce::dontSendNotification);
+    partialsLabel.attachToComponent(&partialsSlider, true);
 }
 
-void appSettingsPage::resized()
+void AppSettingsPage::resized()
 {
+    constexpr int buttonWidth = 100;
+    constexpr int buttonHeight = 20;
 
+    attThreshSlider.setBounds(100, 10, buttonWidth, buttonHeight);
+    relThreshSlider.setBounds(100, 50, buttonWidth, buttonHeight);
+    partialsSlider.setBounds(100, 90, buttonWidth, buttonHeight);
 }

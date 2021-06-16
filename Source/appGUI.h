@@ -12,40 +12,50 @@
 
 #include <JuceHeader.h>
 
-namespace anyMidi {
+constexpr char AUDIO_SETTINGS_FILENAME[] = "audio_device_settings.xml";
 
-    class anyMidiTabbedComp : public juce::TabbedComponent
+
+namespace anyMidi {
+    // =============================================================================
+    class TabbedComp : public juce::TabbedComponent
     {
     public:
-        anyMidiTabbedComp(juce::AudioDeviceManager& deviceManager);
+        TabbedComp(juce::AudioDeviceManager& deviceManager);
 
     private:
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (anyMidiTabbedComp)
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TabbedComp)
     };
 
-    
-    class audioSetupPage : public juce::Component
+    // =============================================================================
+    class AudioSetupPage : public juce::Component
     {
     public:
-        audioSetupPage(juce::AudioDeviceManager& deviceManager);
-        ~audioSetupPage();
+        AudioSetupPage(juce::AudioDeviceManager& deviceManager);
+        ~AudioSetupPage();
         void resized() override;
 
     private:
         juce::AudioDeviceSelectorComponent audioSetupComp;
 
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (audioSetupPage)
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioSetupPage)
     };
 
-
-    class appSettingsPage : public juce::Component
+    // =============================================================================
+    class AppSettingsPage : public juce::Component
     {
     public:
-        appSettingsPage();
+        AppSettingsPage();
         void resized() override;
 
     private:
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (appSettingsPage)
+        juce::Slider attThreshSlider;
+        juce::Label attThreshLabel;
+        juce::Slider relThreshSlider;
+        juce::Label relThreshLabel;
+        juce::Slider partialsSlider;
+        juce::Label partialsLabel;
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AppSettingsPage)
     };
 
 }; // namespace anyMidi

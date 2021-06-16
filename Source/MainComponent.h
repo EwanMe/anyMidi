@@ -29,8 +29,6 @@ private:
 
     anyMidi::ForwardFFT fft;
     anyMidi::MidiProcessor midiProc;
-    
-    // juce::AudioDeviceSelectorComponent audioSetupComp;
 
     juce::AudioSampleBuffer processingBuffer;
     
@@ -65,7 +63,7 @@ private:
     juce::Slider gainSlider;
     juce::TextEditor outputBox;
 
-    anyMidi::anyMidiTabbedComp tabs;
+    anyMidi::TabbedComp tabs;
 
     // ====== LAYOUT-END ======
 
