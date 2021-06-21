@@ -1,10 +1,17 @@
 #include "MainComponent.h"
 
+namespace anyMidi
+{
+    class TabbedComp
+    {
+        TabbedComp(std::unique_ptr<MainComponent> mc);
+    };
+};
+
 //==============================================================================
 MainComponent::MainComponent() :
     fft{ 48000 },
-    midiProc{ 48000, juce::Time::getMillisecondCounterHiRes() * 0.001 },
-    tabs{ deviceManager }
+    midiProc{ 48000, juce::Time::getMillisecondCounterHiRes() * 0.001 }
 {
     // Some platforms require permissions to open input channels so request that here.
     if (juce::RuntimePermissions::isRequired (juce::RuntimePermissions::recordAudio)
@@ -28,32 +35,27 @@ MainComponent::MainComponent() :
             setAudioChannels(numInputChannels, numOutputChannels);
         }
     }
-    
-    addAndMakeVisible(tabs);
 
-    //// Gain slider.
-    //addAndMakeVisible(gainSlider);
-    //gainSlider.setRange(0, 1, 0.01);
-    //gainSlider.setValue(0.0);
+    gui = std::make_unique<anyMidi::TabbedComp>(std::make_unique<MainComponent>(this));
 
-    //// Output box, used for debugging.
-    //addAndMakeVisible(outputBox);
-    //outputBox.setMultiLine(true);
-    //outputBox.setReturnKeyStartsNewLine(true);
-    //outputBox.setReadOnly(true);
-    //outputBox.setScrollbarsShown(true);
-    //outputBox.setCaretVisible(false);
-    //outputBox.setPopupMenuEnabled(true);
-    //outputBox.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0x32ffffff));
-    //outputBox.setColour(juce::TextEditor::outlineColourId, juce::Colour(0x1c000000));
-    //outputBox.setColour(juce::TextEditor::shadowColourId, juce::Colour(0x16000000));
+    // Output box, used for debugging.
+    addAndMakeVisible(outputBox);
+    outputBox.setMultiLine(true);
+    outputBox.setReturnKeyStartsNewLine(true);
+    outputBox.setReadOnly(true);
+    outputBox.setScrollbarsShown(true);
+    outputBox.setCaretVisible(false);
+    outputBox.setPopupMenuEnabled(true);
+    outputBox.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0x32ffffff));
+    outputBox.setColour(juce::TextEditor::outlineColourId, juce::Colour(0x1c000000));
+    outputBox.setColour(juce::TextEditor::shadowColourId, juce::Colour(0x16000000));
 
-    //addAndMakeVisible(clearOutput);
-    //clearOutput.setButtonText("Clear output");
-    //clearOutput.onClick = [this]
-    //{
-    //    outputBox.clear();
-    //};
+    addAndMakeVisible(clearOutput);
+    clearOutput.setButtonText("Clear output");
+    clearOutput.onClick = [this]
+    {
+        outputBox.clear();
+    };
 
     setSize(500, 500);
 
@@ -171,15 +173,27 @@ void MainComponent::resized()
     auto rect = getLocalBounds();
     
     auto halfWidth = getWidth() / 2;
-    // auto halfHeight = getHeight() / 2;
+    auto halfHeight = getHeight() / 2;
+
+     clearOutput.setBounds(rect.getCentreX(), 15, halfWidth / 2 - 10, 20);
+
+     outputBox.setBounds(halfWidth, 85, halfWidth - 10, halfHeight + 40);
+}
+
+void MainComponent::setAttackThreshold(double thresh)
+{
     
-    tabs.setBounds(rect.reduced(4));
+}
 
-    // clearOutput.setBounds(rect.getCentreX(), 15, halfWidth / 2 - 10, 20);
+void MainComponent::setReleaseThreshold(double thresh)
+{
 
-    // gainSlider.setBounds(rect.getCentreX(), 45, halfWidth / 2 - 10, 20);
+}
 
-    // outputBox.setBounds(halfWidth, 85, halfWidth - 10, halfHeight + 40);
+void MainComponent::setNumPartials(unsigned int num)
+{
+    numPartials = num;
+    log(numPartials);
 }
 
 void MainComponent::calcNote()
@@ -210,12 +224,11 @@ void MainComponent::calcNote()
 
 std::pair<int, double> MainComponent::analyzeHarmonics()
 {
-    constexpr int numHarm{ 6 };
-    auto harmonics = fft.getHarmonics(numHarm, noteFrequencies);
+    auto harmonics = fft.getHarmonics(numPartials, noteFrequencies);
 
     std::map<int, double> scores;
     double totalAmp{ 0.0 };
-    for (int i = 0; i < numHarm; ++i)
+    for (int i = 0; i < numPartials; ++i)
     {
         double freq = noteFrequencies[harmonics[i].first];
         
@@ -261,3 +274,7 @@ void MainComponent::log(T msg)
     outputBox.moveCaretToEnd();
     outputBox.insertTextAtCaret(std::to_string(msg) + juce::newLine);
 }
+
+void MainComponent::sliderValueChanged(juce::Slider* slider) {}
+void MainComponent::sliderDragStarted(juce::Slider*) {}
+void MainComponent::sliderDragEnded(juce::Slider*) {}

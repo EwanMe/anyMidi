@@ -15,12 +15,19 @@ using namespace anyMidi;
 // =============================================================================
 // TABBED COMPONENT
 
-TabbedComp::TabbedComp(juce::AudioDeviceManager& deviceManager) : TabbedComponent(juce::TabbedButtonBar::TabsAtTop)
+TabbedComp::TabbedComp(MainComponent* mc) : TabbedComponent(juce::TabbedButtonBar::TabsAtTop)
 {
+    addAndMakeVisible(this);
+
     auto color = juce::Colour(0, 0, 0);
 
-    addTab("Audio Settings", color, new AudioSetupPage(deviceManager), true);
-    addTab("App Settings", color, new AppSettingsPage(), true);
+    addTab("Audio Settings", color, new AudioSetupPage(mc->deviceManager), true);
+    addTab("App Settings", color, new AppSettingsPage(mc), true);
+}
+
+void TabbedComp::resized()
+{
+    this->setBounds(getLocalBounds().reduced(4));
 }
 
 // =============================================================================
@@ -61,8 +68,14 @@ void AudioSetupPage::resized()
 // =============================================================================
 // APP SETTINGS PAGE
 
-AppSettingsPage::AppSettingsPage()
+AppSettingsPage::AppSettingsPage(MainComponent* mc)
 {
+    addAndMakeVisible(output);
+    output.setReturnKeyStartsNewLine(true);
+    output.setReadOnly(true);
+    output.setScrollbarsShown(true);
+    output.setCaretVisible(false);
+
     // ATTACK THRESHOLD SLIDER
     addAndMakeVisible(attThreshSlider);
     attThreshSlider.setRange(0, 1, 0.01);
@@ -70,10 +83,6 @@ AppSettingsPage::AppSettingsPage()
     attThreshSlider.setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::transparentWhite);
     attThreshSlider.setVelocityBasedMode(true);
     attThreshSlider.setVelocityModeParameters(0.4, 1, 0.09, false);
-    attThreshSlider.onValueChange = [this]
-    {
-        return;
-    };
 
     // ATTACK THRESHOLD LABEL
     addAndMakeVisible(attThreshLabel);
@@ -100,6 +109,10 @@ AppSettingsPage::AppSettingsPage()
     partialsSlider.setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::transparentWhite);
     partialsSlider.setVelocityBasedMode(true);
     partialsSlider.setVelocityModeParameters(0.4, 1, 0.09, false);
+    partialsSlider.onValueChange = [mc]
+    {
+        mc->DBG("Hello");
+    };
 
     // PARTIALS LABEL
     addAndMakeVisible(partialsLabel);
@@ -115,4 +128,6 @@ void AppSettingsPage::resized()
     attThreshSlider.setBounds(100, 10, buttonWidth, buttonHeight);
     relThreshSlider.setBounds(100, 50, buttonWidth, buttonHeight);
     partialsSlider.setBounds(100, 90, buttonWidth, buttonHeight);
+
+
 }
