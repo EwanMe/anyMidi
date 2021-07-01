@@ -11,19 +11,19 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "MainComponent.h"
 
+constexpr char AUDIO_SETTINGS_FILENAME[] = "audio_device_settings.xml"; // Defined two places
 
 namespace anyMidi {
     // =============================================================================
     class TabbedComp : public juce::TabbedComponent
     {
     public:
-        TabbedComp(MainComponent* mc);
+        TabbedComp();
         void resized() override;
 
     private:
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TabbedComp)
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TabbedComp)
     };
 
     // =============================================================================
@@ -37,14 +37,14 @@ namespace anyMidi {
     private:
         juce::AudioDeviceSelectorComponent audioSetupComp;
 
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioSetupPage)
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioSetupPage)
     };
 
     // =============================================================================
     class AppSettingsPage : public juce::Component
     {
     public:
-        AppSettingsPage(MainComponent* mc);
+        AppSettingsPage();
         void resized() override;
 
         juce::Slider attThreshSlider;
@@ -57,7 +57,7 @@ namespace anyMidi {
         juce::TextEditor output;
 
     private:
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AppSettingsPage)
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AppSettingsPage)
     };
 
 }; // namespace anyMidi

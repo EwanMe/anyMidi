@@ -15,14 +15,9 @@ using namespace anyMidi;
 // =============================================================================
 // TABBED COMPONENT
 
-TabbedComp::TabbedComp(MainComponent* mc) : TabbedComponent(juce::TabbedButtonBar::TabsAtTop)
+TabbedComp::TabbedComp() : TabbedComponent(juce::TabbedButtonBar::TabsAtTop)
 {
-    addAndMakeVisible(this);
-
-    auto color = juce::Colour(0, 0, 0);
-
-    addTab("Audio Settings", color, new AudioSetupPage(mc->deviceManager), true);
-    addTab("App Settings", color, new AppSettingsPage(mc), true);
+    // addAndMakeVisible(this);
 }
 
 void TabbedComp::resized()
@@ -68,13 +63,13 @@ void AudioSetupPage::resized()
 // =============================================================================
 // APP SETTINGS PAGE
 
-AppSettingsPage::AppSettingsPage(MainComponent* mc)
+AppSettingsPage::AppSettingsPage()
 {
-    addAndMakeVisible(output);
+    /*addAndMakeVisible(output);
     output.setReturnKeyStartsNewLine(true);
     output.setReadOnly(true);
     output.setScrollbarsShown(true);
-    output.setCaretVisible(false);
+    output.setCaretVisible(false);*/
 
     // ATTACK THRESHOLD SLIDER
     addAndMakeVisible(attThreshSlider);
@@ -109,10 +104,6 @@ AppSettingsPage::AppSettingsPage(MainComponent* mc)
     partialsSlider.setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::transparentWhite);
     partialsSlider.setVelocityBasedMode(true);
     partialsSlider.setVelocityModeParameters(0.4, 1, 0.09, false);
-    partialsSlider.onValueChange = [mc]
-    {
-        mc->DBG("Hello");
-    };
 
     // PARTIALS LABEL
     addAndMakeVisible(partialsLabel);
