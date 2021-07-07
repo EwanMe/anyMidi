@@ -4,16 +4,8 @@
 using namespace anyMidi;
 
 //==============================================================================
-MainComponent::MainComponent(juce::ValueTree v) :
-    gui{ v },
-    tree{ v }
+MainComponent::MainComponent()
 {
-    juce::Identifier guiNodeType{ "GUI" };
-    juce::ValueTree guiNode{ guiNodeType };
-    //tree.setProperty(guiNode, -1, nullptr);
-
-    
-
     addAndMakeVisible(gui);
 
     //// Output box, used for debugging.
@@ -46,14 +38,7 @@ void MainComponent::paint(juce::Graphics& g)
 
 void MainComponent::resized()
 {
-    auto rect = getLocalBounds();
-
-    auto halfWidth = getWidth() / 2;
-    auto halfHeight = getHeight() / 2;
-
-    clearOutput.setBounds(rect.getCentreX(), 15, halfWidth / 2 - 10, 20);
-
-    outputBox.setBounds(halfWidth, 85, halfWidth - 10, halfHeight + 40);
+    gui.setBounds(getLocalBounds().reduced(4));
 }
 
 void MainComponent::log(const juce::MidiMessage& midiMessage)

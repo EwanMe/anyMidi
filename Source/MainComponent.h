@@ -4,13 +4,13 @@
 #include <fstream>
 #include "appGUI.h"
 
-namespace anyMidi {
+//namespace anyMidi {
 
     class MainComponent : public juce::Component
     {
     public:
         //==============================================================================
-        MainComponent(juce::ValueTree v);
+        MainComponent();
 
         //==============================================================================
         void paint(juce::Graphics& g) override;
@@ -31,8 +31,6 @@ namespace anyMidi {
 
         anyMidi::TabbedComp gui;
 
-        juce::ValueTree tree;
-
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
     };
-};// namespace anyMidi
+//};// namespace anyMidi

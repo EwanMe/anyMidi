@@ -13,16 +13,16 @@
 #include <JuceHeader.h>
 
 namespace anyMidi {
+    class AudioProcessor; // Forward declaration
+
     // =============================================================================
     class TabbedComp : public juce::TabbedComponent
     {
     public:
-        TabbedComp(juce::ValueTree v);
+        TabbedComp();
         void resized() override;
 
     private:
-        juce::ValueTree tree;
-
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TabbedComp)
     };
 
@@ -30,13 +30,14 @@ namespace anyMidi {
     class AudioSetupPage : public juce::Component
     {
     public:
-        AudioSetupPage(juce::ValueTree v);
+        AudioSetupPage();
         ~AudioSetupPage();
+
         void resized() override;
 
     private:
-        std::unique_ptr<juce::AudioDeviceSelectorComponent> audioSetupComp;
-        juce::ValueTree tree;
+        juce::AudioDeviceManager deviceManager;
+        juce::AudioDeviceSelectorComponent audioSetupComp;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioSetupPage)
     };
@@ -45,7 +46,8 @@ namespace anyMidi {
     class AppSettingsPage : public juce::Component
     {
     public:
-        AppSettingsPage(juce::ValueTree v);
+        AppSettingsPage();
+
         void resized() override;
 
         juce::Slider attThreshSlider;
@@ -58,8 +60,6 @@ namespace anyMidi {
         juce::TextEditor output;
 
     private:
-        juce::ValueTree tree;
-
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AppSettingsPage)
     };
 
