@@ -4,20 +4,15 @@
 using namespace anyMidi;
 
 //==============================================================================
-MainComponent::MainComponent(juce::ValueTree v)
-{    
-   // audioProcessor = std::make_unique<anyMidi::AudioProcessor>(proc);
+MainComponent::MainComponent(juce::ValueTree v) :
+    gui{ v },
+    tree{ v }
+{
+    juce::Identifier guiNodeType{ "GUI" };
+    juce::ValueTree guiNode{ guiNodeType };
+    //tree.setProperty(guiNode, -1, nullptr);
 
-    auto settingsPage = anyMidi::AppSettingsPage();
-    settingsPage.partialsSlider.onValueChange = [this]
-    {
-
-    };
-    auto color = juce::Colour(0, 0, 0);
-    gui.addTab("App Settings", color, &settingsPage, true);
-
-    //auto audioPage = anyMidi::AudioSetupPage(audioProcessor->deviceManager);
-    //gui.addTab("Audio Settings", color, &audioPage, true);
+    
 
     addAndMakeVisible(gui);
 

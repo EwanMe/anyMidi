@@ -2,13 +2,9 @@
 
 #include <JuceHeader.h>
 #include <fstream>
-#include "ForwardFFT.h"
-#include "MidiProcessor.h"
 #include "appGUI.h"
 
 namespace anyMidi {
-    class AudioProcessor;
-
 
     class MainComponent : public juce::Component
     {
@@ -29,15 +25,13 @@ namespace anyMidi {
 
     private:
         //==============================================================================
-        std::unique_ptr<anyMidi::AudioProcessor> audioProcessor;
-
         juce::TextButton clearOutput;
         juce::Slider gainSlider;
         juce::TextEditor outputBox;
 
         anyMidi::TabbedComp gui;
 
-
+        juce::ValueTree tree;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
     };

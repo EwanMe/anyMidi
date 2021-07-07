@@ -16,6 +16,8 @@ namespace anyMidi
 {
     constexpr char AUDIO_SETTINGS_FILENAME[]            { "audio_device_settings.xml" };
 
-    static const juce::Identifier DEVICE_MANAGER_ID     { "deviceManager" };
-    static const juce::Identifier PARTIALS_ID           { "numParitals" };
+    static const juce::Identifier ROOT_ID               { "App" };
+    static const juce::Identifier AUDIO_PROC_ID         { "AudioProcessor" };
+    static const juce::Identifier DEVICE_MANAGER_ID     { "DeviceManager" };
+    static const juce::Identifier PARTIALS_ID           { "NumParitals" };
 };

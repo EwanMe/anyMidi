@@ -9,13 +9,14 @@
 #include <JuceHeader.h>
 #include "MainComponent.h"
 #include "AudioProcessor.h"
+#include "Globals.h"
 
 //==============================================================================
 class anyMidiStandaloneApplication : public juce::JUCEApplication
 {
 public:
     //==============================================================================
-    anyMidiStandaloneApplication() {}
+    anyMidiStandaloneApplication() : tree{anyMidi::ROOT_ID} {}
 
     const juce::String getApplicationName() override { return ProjectInfo::projectName; }
     const juce::String getApplicationVersion() override { return ProjectInfo::versionString; }
@@ -24,8 +25,8 @@ public:
     //==============================================================================
     void initialise(const juce::String& commandLine) override
     {
-        // This method is where you should put your application's initialisation code..
-
+        // This method is where you should put your application's initialisation code...
+        audioProcessor = std::make_unique<anyMidi::AudioProcessor>(tree);
         mainWindow.reset(new MainWindow(getApplicationName(), tree));
     }
 
@@ -96,9 +97,8 @@ public:
     private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainWindow)
     };
-public:
 private:
-    static anyMidi::AudioProcessor* audioProcessor;
+    std::unique_ptr<anyMidi::AudioProcessor> audioProcessor;
     std::unique_ptr<MainWindow> mainWindow;
     juce::ValueTree tree;
 };

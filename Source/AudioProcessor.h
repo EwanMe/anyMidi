@@ -16,20 +16,28 @@
 
 namespace anyMidi {
 
-    class AudioProcessor : public juce::AudioSource
+    class AudioDeviceManagerRCO :   public juce::AudioDeviceManager,
+                                    public juce::ReferenceCountedObject 
+    {
+    public:
+        using Ptr = juce::ReferenceCountedObjectPtr<AudioDeviceManagerRCO>;
+    };
+
+    class AudioProcessor :  public juce::AudioSource, 
+                            public juce::ValueTree::Listener
     {
     public:
         //==============================================================================
-        AudioProcessor();
-        AudioProcessor(AudioProcessor&& other) noexcept;
-        AudioProcessor& operator=(AudioProcessor&& other) noexcept;
+        AudioProcessor(juce::ValueTree v);
         ~AudioProcessor() override;
 
         void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
         void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
         void releaseResources() override;
 
-        juce::AudioDeviceManager deviceManager;
+        void valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property) override;
+
+        anyMidi::AudioDeviceManagerRCO::Ptr deviceManager;
 
     private:
         //==============================================================================
@@ -61,6 +69,7 @@ namespace anyMidi {
         unsigned int numPartials{ 6 };
 
 
-        // JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioProcessor)
+        juce::ValueTree tree;
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioProcessor)
     };
 }; // namespace anyMidi

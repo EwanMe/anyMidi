@@ -9,15 +9,21 @@
 */
 
 #include "appGUI.h"
+#include "Globals.h"
+#include "AudioProcessor.h"
 
 using namespace anyMidi;
 
 // =============================================================================
 // TABBED COMPONENT
 
-TabbedComp::TabbedComp() : TabbedComponent(juce::TabbedButtonBar::TabsAtTop)
+TabbedComp::TabbedComp(juce::ValueTree v) :
+    TabbedComponent(juce::TabbedButtonBar::TabsAtTop),
+    tree{ v }
 {
-    // addAndMakeVisible(this);
+    auto color = juce::Colour(0, 0, 0);
+    addTab("App Settings", color, new AppSettingsPage(tree), true);
+    addTab("Audio Settings", color, new AudioSetupPage(tree), true);
 }
 
 void TabbedComp::resized()
@@ -28,42 +34,50 @@ void TabbedComp::resized()
 // =============================================================================
 // AUDIO SETUP PAGE
 
-AudioSetupPage::AudioSetupPage(juce::AudioDeviceManager& deviceManager) :
-    audioSetupComp{
-        deviceManager,
-        0,      // min input ch
-        256,    // max input ch
-        0,      // min output ch
-        256,    // max output ch
-        false,  // can select midi inputs?
-        true,   // can select midi output device?
-        false,  // treat channels as stereo pairs
-        false } // hide advanced options?
+AudioSetupPage::AudioSetupPage(juce::ValueTree v) :
+    tree{ v }        
 {
-    addAndMakeVisible(audioSetupComp);
+    auto val = tree.getChildWithName(anyMidi::AUDIO_PROC_ID).getProperty(anyMidi::DEVICE_MANAGER_ID);
+    auto deviceManager = dynamic_cast<anyMidi::AudioDeviceManagerRCO*>(val.getObject());
+    audioSetupComp = std::make_unique<juce::AudioDeviceSelectorComponent>
+        (
+            *deviceManager,
+            0,      // min input ch
+            256,    // max input ch
+            0,      // min output ch
+            256,    // max output ch
+            false,  // can select midi inputs?
+            true,   // can select midi output device?
+            false,  // treat channels as stereo pairs
+            false   // hide advanced options?
+            );
+
+
+    addAndMakeVisible(*audioSetupComp);
 }
 
 AudioSetupPage::~AudioSetupPage()
 {
-    auto audioDeviceSettings = audioSetupComp.deviceManager.createStateXml();
+    auto audioDeviceSettings = audioSetupComp->deviceManager.createStateXml();
 
     if (audioDeviceSettings != nullptr)
     {
         // Writes user settings to XML file for storage.
-        juce::File settingsFileName = juce::File::getCurrentWorkingDirectory().getChildFile(AUDIO_SETTINGS_FILENAME);
+        juce::File settingsFileName = juce::File::getCurrentWorkingDirectory().getChildFile(anyMidi::AUDIO_SETTINGS_FILENAME);
         settingsFileName.replaceWithText(audioDeviceSettings->toString());
     }
 }
 
 void AudioSetupPage::resized()
 {
-    audioSetupComp.setBounds(getLocalBounds().withWidth(getWidth()));
+    audioSetupComp->setBounds(getLocalBounds().withWidth(getWidth()));
 }
 
 // =============================================================================
 // APP SETTINGS PAGE
 
-AppSettingsPage::AppSettingsPage()
+AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
+    tree{ v }
 {
     /*addAndMakeVisible(output);
     output.setReturnKeyStartsNewLine(true);
@@ -104,6 +118,10 @@ AppSettingsPage::AppSettingsPage()
     partialsSlider.setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::transparentWhite);
     partialsSlider.setVelocityBasedMode(true);
     partialsSlider.setVelocityModeParameters(0.4, 1, 0.09, false);
+    partialsSlider.onValueChange = [this]
+    {
+        tree.setProperty(anyMidi::PARTIALS_ID, partialsSlider.getValue(), nullptr);
+    };
 
     // PARTIALS LABEL
     addAndMakeVisible(partialsLabel);
