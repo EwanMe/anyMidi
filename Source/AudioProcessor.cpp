@@ -15,10 +15,13 @@
 using namespace anyMidi;
 
 //==============================================================================
-AudioProcessor::AudioProcessor() :
+AudioProcessor::AudioProcessor(juce::ValueTree v) :
     fft{ 48000 },
-    midiProc{ 48000, juce::Time::getMillisecondCounterHiRes() * 0.001 }
+    midiProc{ 48000, juce::Time::getMillisecondCounterHiRes() * 0.001 },
+    tree{ v }
 {
+    deviceManager = new anyMidi::AudioDeviceManagerRCO();
+
     // Some platforms require permissions to open input channels so request that here.
     if (juce::RuntimePermissions::isRequired(juce::RuntimePermissions::recordAudio)
         && !juce::RuntimePermissions::isGranted(juce::RuntimePermissions::recordAudio))
@@ -49,12 +52,19 @@ AudioProcessor::AudioProcessor() :
     {
         noteFrequencies.push_back((tuning / 32.0) * std::pow(2, (i - 9.0) / 12.0));
     }
+
+    juce::ValueTree audioProcNode(anyMidi::AUDIO_PROC_ID);
+    audioProcNode.setProperty(anyMidi::DEVICE_MANAGER_ID, deviceManager.getObject(), nullptr);
+    tree.addChild(audioProcNode, -1, nullptr);
+
+    tree.addListener(this);
 }
 
 AudioProcessor::~AudioProcessor()
 {
     audioSourcePlayer.setSource(nullptr);
-    deviceManager.removeAudioCallback(&audioSourcePlayer);
+    deviceManager->removeAudioCallback(&audioSourcePlayer);
+    deviceManager = nullptr;
 
     // Maybe superflous?
     jassert(audioSourcePlayer.getCurrentSource() == nullptr);
@@ -63,7 +73,7 @@ AudioProcessor::~AudioProcessor()
 void AudioProcessor::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
     processingBuffer.setSize(numInputChannels, samplesPerBlockExpected, false, true);
-    midiProc.setMidiOutput(deviceManager.getDefaultMidiOutput());
+    midiProc.setMidiOutput(deviceManager->getDefaultMidiOutput());
 
     // Initializing highpass filter.
     hiPassFilter.setCoefficients(juce::IIRCoefficients::makeHighPass(sampleRate, 75.0, 1.0)); // E5 on guitar = ~82 Hz
@@ -183,11 +193,11 @@ std::pair<int, double> AudioProcessor::analyzeHarmonics()
 
 void AudioProcessor::setAudioChannels(int numInputChannels, int numOutputChannels, const juce::XmlElement* const xml)
 {
-    juce::String audioError = deviceManager.initialise(numInputChannels, numOutputChannels, xml, true);
+    juce::String audioError = deviceManager->initialise(numInputChannels, numOutputChannels, xml, true);
 
     jassert(audioError.isEmpty());
 
-    deviceManager.addAudioCallback(&audioSourcePlayer);
+    deviceManager->addAudioCallback(&audioSourcePlayer);
     audioSourcePlayer.setSource(this);
 }
 

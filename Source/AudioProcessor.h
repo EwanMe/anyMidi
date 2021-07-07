@@ -16,12 +16,19 @@
 
 namespace anyMidi {
 
+    class AudioDeviceManagerRCO :   public juce::AudioDeviceManager,
+                                    public juce::ReferenceCountedObject 
+    {
+    public:
+        using Ptr = juce::ReferenceCountedObjectPtr<AudioDeviceManagerRCO>;
+    };
+
     class AudioProcessor :  public juce::AudioSource, 
                             public juce::ValueTree::Listener
     {
     public:
         //==============================================================================
-        AudioProcessor();
+        AudioProcessor(juce::ValueTree v);
         ~AudioProcessor() override;
 
         void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
@@ -30,7 +37,7 @@ namespace anyMidi {
 
         void valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property) override;
 
-        juce::AudioDeviceManager deviceManager;
+        anyMidi::AudioDeviceManagerRCO::Ptr deviceManager;
 
     private:
         //==============================================================================
@@ -62,6 +69,7 @@ namespace anyMidi {
         unsigned int numPartials{ 6 };
 
 
+        juce::ValueTree tree;
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioProcessor)
     };
 }; // namespace anyMidi

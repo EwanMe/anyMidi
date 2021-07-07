@@ -8,15 +8,15 @@
 
 #include <JuceHeader.h>
 #include "MainComponent.h"
-//#include "AudioProcessor.h"
-//#include "Globals.h"
+#include "AudioProcessor.h"
+#include "Globals.h"
 
 //==============================================================================
 class anyMidiStandaloneApplication : public juce::JUCEApplication
 {
 public:
     //==============================================================================
-    anyMidiStandaloneApplication() {}
+    anyMidiStandaloneApplication() : tree{anyMidi::ROOT_ID} {}
 
     const juce::String getApplicationName() override { return ProjectInfo::projectName; }
     const juce::String getApplicationVersion() override { return ProjectInfo::versionString; }
@@ -26,12 +26,14 @@ public:
     void initialise(const juce::String& commandLine) override
     {
         // This method is where you should put your application's initialisation code...
-        mainWindow.reset(new MainWindow(getApplicationName()));
+        audioProcessor = std::make_unique<anyMidi::AudioProcessor>(tree);
+        mainWindow.reset(new MainWindow(getApplicationName(), tree));
     }
 
     void shutdown() override
     {
         // Add your application's shutdown code here..
+
         mainWindow = nullptr; // (deletes our window)
     }
 
@@ -58,14 +60,14 @@ public:
     class MainWindow : public juce::DocumentWindow
     {
     public:
-        MainWindow(juce::String name)
+        MainWindow(juce::String name, juce::ValueTree v)
             : DocumentWindow(name,
                 juce::Desktop::getInstance().getDefaultLookAndFeel()
                 .findColour(juce::ResizableWindow::backgroundColourId),
                 DocumentWindow::minimiseButton | DocumentWindow::closeButton)
         {
             setUsingNativeTitleBar(true);
-            setContentOwned(new MainComponent(), true);
+            setContentOwned(new anyMidi::MainComponent(v), true);
 
 #if JUCE_IOS || JUCE_ANDROID
             setFullScreen(true);
@@ -96,7 +98,9 @@ public:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainWindow)
     };
 private:
+    std::unique_ptr<anyMidi::AudioProcessor> audioProcessor;
     std::unique_ptr<MainWindow> mainWindow;
+    juce::ValueTree tree;
 };
 
 //==============================================================================

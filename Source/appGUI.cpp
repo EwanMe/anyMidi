@@ -17,12 +17,13 @@ using namespace anyMidi;
 // =============================================================================
 // TABBED COMPONENT
 
-TabbedComp::TabbedComp() :
-    TabbedComponent(juce::TabbedButtonBar::TabsAtTop)
+TabbedComp::TabbedComp(juce::ValueTree v) :
+    TabbedComponent(juce::TabbedButtonBar::TabsAtTop),
+    tree{ v }
 {
     auto color = juce::Colour(0, 0, 0);
-    addTab("App Settings", color, new AppSettingsPage(), true);
-    addTab("Audio Settings", color, new AudioSetupPage(), true);
+    addTab("App Settings", color, new AppSettingsPage(tree), true);
+    addTab("Audio Settings", color, new AudioSetupPage(tree), true);
 }
 
 void TabbedComp::resized()
@@ -33,9 +34,14 @@ void TabbedComp::resized()
 // =============================================================================
 // AUDIO SETUP PAGE
 
-AudioSetupPage::AudioSetupPage() :
-    audioSetupComp{
-            deviceManager,
+AudioSetupPage::AudioSetupPage(juce::ValueTree v) :
+    tree{ v }        
+{
+    auto val = tree.getChildWithName(anyMidi::AUDIO_PROC_ID).getProperty(anyMidi::DEVICE_MANAGER_ID);
+    auto deviceManager = dynamic_cast<anyMidi::AudioDeviceManagerRCO*>(val.getObject());
+    audioSetupComp = std::make_unique<juce::AudioDeviceSelectorComponent>
+        (
+            *deviceManager,
             0,      // min input ch
             256,    // max input ch
             0,      // min output ch
@@ -44,14 +50,15 @@ AudioSetupPage::AudioSetupPage() :
             true,   // can select midi output device?
             false,  // treat channels as stereo pairs
             false   // hide advanced options?
-    }
-{
-    addAndMakeVisible(audioSetupComp);
+            );
+
+
+    addAndMakeVisible(*audioSetupComp);
 }
 
 AudioSetupPage::~AudioSetupPage()
 {
-    auto audioDeviceSettings = audioSetupComp.deviceManager.createStateXml();
+    auto audioDeviceSettings = audioSetupComp->deviceManager.createStateXml();
 
     if (audioDeviceSettings != nullptr)
     {
@@ -63,14 +70,21 @@ AudioSetupPage::~AudioSetupPage()
 
 void AudioSetupPage::resized()
 {
-    audioSetupComp.setBounds(getLocalBounds().withWidth(getWidth()));
+    audioSetupComp->setBounds(getLocalBounds().withWidth(getWidth()));
 }
 
 // =============================================================================
 // APP SETTINGS PAGE
 
-AppSettingsPage::AppSettingsPage()
+AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
+    tree{ v }
 {
+    /*addAndMakeVisible(output);
+    output.setReturnKeyStartsNewLine(true);
+    output.setReadOnly(true);
+    output.setScrollbarsShown(true);
+    output.setCaretVisible(false);*/
+
     // ATTACK THRESHOLD SLIDER
     addAndMakeVisible(attThreshSlider);
     attThreshSlider.setRange(0, 1, 0.01);
@@ -106,7 +120,7 @@ AppSettingsPage::AppSettingsPage()
     partialsSlider.setVelocityModeParameters(0.4, 1, 0.09, false);
     partialsSlider.onValueChange = [this]
     {
-        
+        tree.setProperty(anyMidi::PARTIALS_ID, partialsSlider.getValue(), nullptr);
     };
 
     // PARTIALS LABEL
