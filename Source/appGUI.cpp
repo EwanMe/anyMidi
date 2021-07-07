@@ -26,11 +26,6 @@ TabbedComp::TabbedComp(juce::ValueTree v) :
     addTab("Audio Settings", color, new AudioSetupPage(tree), true);
 }
 
-void TabbedComp::resized()
-{
-    this->setBounds(getLocalBounds().reduced(4));
-}
-
 // =============================================================================
 // AUDIO SETUP PAGE
 

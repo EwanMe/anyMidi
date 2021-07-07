@@ -18,7 +18,6 @@ namespace anyMidi {
     {
     public:
         TabbedComp(juce::ValueTree v);
-        void resized() override;
 
     private:
         juce::ValueTree tree;
