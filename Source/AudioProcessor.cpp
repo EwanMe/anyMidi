@@ -122,7 +122,7 @@ void AudioProcessor::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffe
 
 void AudioProcessor::releaseResources()
 {
-    //midiProc.turnOffAllMessages();
+    midiProc.turnOffAllMessages();
 }
 
 void AudioProcessor::calcNote()
