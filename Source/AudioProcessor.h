@@ -15,7 +15,7 @@
 #include "MidiProcessor.h"
 
 namespace anyMidi {
-
+    //==============================================================================
     class AudioDeviceManagerRCO :   public juce::AudioDeviceManager,
                                     public juce::ReferenceCountedObject 
     {
@@ -23,6 +23,7 @@ namespace anyMidi {
         using Ptr = juce::ReferenceCountedObjectPtr<AudioDeviceManagerRCO>;
     };
 
+    //==============================================================================
     class AudioProcessor :  public juce::AudioSource, 
                             public juce::ValueTree::Listener
     {
@@ -50,11 +51,9 @@ namespace anyMidi {
         anyMidi::MidiProcessor midiProc;
 
         juce::AudioSampleBuffer processingBuffer;
-
         juce::IIRFilter hiPassFilter;
-
         static constexpr unsigned int numInputChannels{ 1 };
-        static constexpr unsigned int numOutputChannels{ 2 };
+        static constexpr unsigned int numOutputChannels{ 0 };
 
         //==============================================================================
         // Lookup array to determine Midi notes from frequencies.

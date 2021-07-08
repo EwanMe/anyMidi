@@ -17,9 +17,11 @@ namespace anyMidi {
     class TabbedComp : public juce::TabbedComponent
     {
     public:
+        //==============================================================================
         TabbedComp(juce::ValueTree v);
 
     private:
+        //==============================================================================
         juce::ValueTree tree;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TabbedComp)
@@ -29,11 +31,13 @@ namespace anyMidi {
     class AudioSetupPage : public juce::Component
     {
     public:
+        //==============================================================================
         AudioSetupPage(juce::ValueTree v);
         ~AudioSetupPage();
         void resized() override;
 
     private:
+        //==============================================================================
         std::unique_ptr<juce::AudioDeviceSelectorComponent> audioSetupComp;
         juce::ValueTree tree;
 
@@ -44,6 +48,7 @@ namespace anyMidi {
     class AppSettingsPage : public juce::Component
     {
     public:
+        //==============================================================================
         AppSettingsPage(juce::ValueTree v);
         void resized() override;
 
@@ -57,6 +62,7 @@ namespace anyMidi {
         juce::TextEditor output;
 
     private:
+        //==============================================================================
         juce::ValueTree tree;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AppSettingsPage)

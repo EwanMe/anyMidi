@@ -5,7 +5,7 @@
 #include "appGUI.h"
 
 namespace anyMidi {
-
+    //==============================================================================
     class MainComponent : public juce::Component
     {
     public:

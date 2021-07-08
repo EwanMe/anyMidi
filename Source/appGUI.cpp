@@ -32,21 +32,23 @@ TabbedComp::TabbedComp(juce::ValueTree v) :
 AudioSetupPage::AudioSetupPage(juce::ValueTree v) :
     tree{ v }        
 {
-    auto val = tree.getChildWithName(anyMidi::AUDIO_PROC_ID).getProperty(anyMidi::DEVICE_MANAGER_ID);
-    auto deviceManager = dynamic_cast<anyMidi::AudioDeviceManagerRCO*>(val.getObject());
+    auto deviceManager = dynamic_cast<anyMidi::AudioDeviceManagerRCO*>
+        (
+            tree.getChildWithName(anyMidi::AUDIO_PROC_ID).getProperty(anyMidi::DEVICE_MANAGER_ID).getObject()
+        );
+
     audioSetupComp = std::make_unique<juce::AudioDeviceSelectorComponent>
         (
             *deviceManager,
             0,      // min input ch
             256,    // max input ch
             0,      // min output ch
-            256,    // max output ch
+            0,    // max output ch
             false,  // can select midi inputs?
             true,   // can select midi output device?
             false,  // treat channels as stereo pairs
             false   // hide advanced options?
-            );
-
+        );
 
     addAndMakeVisible(*audioSetupComp);
 }
