@@ -60,6 +60,8 @@ namespace anyMidi {
         std::vector<double> noteFrequencies;
         static constexpr unsigned int tuning{ 440 }; // Can't be changed due to the MIDI protocol.
 
+        void setNumPartials(int& n);
+
         // Determines values for Midi message based on FFT analysis.
         void calcNote();
 

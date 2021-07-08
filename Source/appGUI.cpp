@@ -34,7 +34,7 @@ AudioSetupPage::AudioSetupPage(juce::ValueTree v) :
 {
     auto deviceManager = dynamic_cast<anyMidi::AudioDeviceManagerRCO*>
         (
-            tree.getChildWithName(anyMidi::AUDIO_PROC_ID).getProperty(anyMidi::DEVICE_MANAGER_ID).getObject()
+            tree.getParent().getChildWithName(anyMidi::AUDIO_PROC_ID).getProperty(anyMidi::DEVICE_MANAGER_ID).getObject()
         );
 
     audioSetupComp = std::make_unique<juce::AudioDeviceSelectorComponent>
@@ -89,6 +89,11 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
     attThreshSlider.setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::transparentWhite);
     attThreshSlider.setVelocityBasedMode(true);
     attThreshSlider.setVelocityModeParameters(0.4, 1, 0.09, false);
+    attThreshSlider.onValueChange = [this]
+    {
+        // Callback
+        tree.setProperty(anyMidi::ATTACK_THRESH_ID, attThreshSlider.getValue(), nullptr);
+    };
 
     // ATTACK THRESHOLD LABEL
     addAndMakeVisible(attThreshLabel);
@@ -102,6 +107,11 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
     relThreshSlider.setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::transparentWhite);
     relThreshSlider.setVelocityBasedMode(true);
     relThreshSlider.setVelocityModeParameters(0.4, 1, 0.09, false);
+    relThreshSlider.onValueChange = [this]
+    {
+        // Callback
+        tree.setProperty(anyMidi::RELEASE_THRESH_ID, relThreshSlider.getValue(), nullptr);
+    };
 
     // RELEASE THRESHOLD LABEL
     addAndMakeVisible(relThreshLabel);
@@ -110,14 +120,15 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
 
     // PARTIALS SLIDER
     addAndMakeVisible(partialsSlider);
-    partialsSlider.setRange(0, 10, 1);
+    partialsSlider.setRange(1, 10, 1);
     partialsSlider.setSliderStyle(juce::Slider::LinearBarVertical);
     partialsSlider.setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::transparentWhite);
     partialsSlider.setVelocityBasedMode(true);
     partialsSlider.setVelocityModeParameters(0.4, 1, 0.09, false);
     partialsSlider.onValueChange = [this]
     {
-        tree.setProperty(anyMidi::PARTIALS_ID, partialsSlider.getValue(), nullptr);
+        // Callback
+        tree.setProperty(anyMidi::PARTIALS_ID, static_cast<int>(partialsSlider.getValue()), nullptr);
     };
 
     // PARTIALS LABEL
@@ -134,6 +145,4 @@ void AppSettingsPage::resized()
     attThreshSlider.setBounds(100, 10, buttonWidth, buttonHeight);
     relThreshSlider.setBounds(100, 50, buttonWidth, buttonHeight);
     partialsSlider.setBounds(100, 90, buttonWidth, buttonHeight);
-
-
 }

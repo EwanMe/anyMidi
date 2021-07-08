@@ -27,10 +27,11 @@ AudioProcessor::AudioProcessor(juce::ValueTree v) :
         && !juce::RuntimePermissions::isGranted(juce::RuntimePermissions::recordAudio))
     {
         juce::RuntimePermissions::request(juce::RuntimePermissions::recordAudio,
-            [&](bool granted) { setAudioChannels(granted ? 2 : 0, 2); });
+            [&](bool granted) { setAudioChannels(granted ? numInputChannels : 0, numOutputChannels); });
     }
     else
     {
+        // Should maybe be added to above scope too?
         juce::File deviceSettingsFile = juce::File::getCurrentWorkingDirectory().getChildFile(anyMidi::AUDIO_SETTINGS_FILENAME);
 
         if (deviceSettingsFile.existsAsFile())
@@ -53,10 +54,13 @@ AudioProcessor::AudioProcessor(juce::ValueTree v) :
         noteFrequencies.push_back((tuning / 32.0) * std::pow(2, (i - 9.0) / 12.0));
     }
 
+    // Adding device manager to ValueTree so AudioDeviceSelectorComponent in GUI can access it.
+    // No listeners needed since pointer to device manager is received by GUI.
     juce::ValueTree audioProcNode(anyMidi::AUDIO_PROC_ID);
     audioProcNode.setProperty(anyMidi::DEVICE_MANAGER_ID, deviceManager.getObject(), nullptr);
     tree.addChild(audioProcNode, -1, nullptr);
 
+    // Register this class as listener to ValueTree.
     tree.addListener(this);
 }
 
@@ -203,5 +207,27 @@ void AudioProcessor::setAudioChannels(int numInputChannels, int numOutputChannel
 
 void AudioProcessor::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
 {
-    
+    /*auto xml = treeWhosePropertyHasChanged.getParent().toXmlString();
+    juce::File::getCurrentWorkingDirectory().getChildFile("ValueTree.xml").replaceWithText(xml);*/
+
+    if (property == anyMidi::ATTACK_THRESH_ID)
+    {
+        double t = treeWhosePropertyHasChanged.getProperty(property);
+        midiProc.setAttackThreshold(t);
+    }
+    else if (property == anyMidi::RELEASE_THRESH_ID)
+    {
+        double t = treeWhosePropertyHasChanged.getProperty(property);
+        midiProc.setReleaseThreshold(t);
+    }
+    else if (property == anyMidi::PARTIALS_ID)
+    {
+        int n = treeWhosePropertyHasChanged.getProperty(property);
+        setNumPartials(n);
+    }
+}
+
+void AudioProcessor::setNumPartials(int& n)
+{
+    numPartials = n;
 }

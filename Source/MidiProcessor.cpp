@@ -30,7 +30,7 @@ bool MidiProcessor::determineNoteValue(const unsigned int& note, const double& a
     // Ensures that notes are within midi range.
     if (note >= 0 && note < 128)
     {
-        if (!midiNoteCurrentlyOn && amp > threshold)
+        if (!midiNoteCurrentlyOn && amp > attackThreshold)
         {
             // When there's no note currently playing, and the note
             // surpasses the threshold.
@@ -46,7 +46,7 @@ bool MidiProcessor::determineNoteValue(const unsigned int& note, const double& a
             if (note != lastNote)
             {
                 // When new note is different from the last note.
-                if (amp > threshold)
+                if (amp > attackThreshold)
                 {
                     // When new, different note surpasses threshold.
                     // Last note is turned off before new note is turned on.
@@ -63,7 +63,7 @@ bool MidiProcessor::determineNoteValue(const unsigned int& note, const double& a
             {
                 // When new note is the same as last note,
                 // it has to be sufficiently louder to retrigger.
-                if (amp > threshold)
+                if (amp > attackThreshold)
                 {
                     noteValues.push_back(std::make_pair(lastNote, false)); // Note off
                     noteValues.push_back(std::make_pair(note, true)); // Note on
@@ -134,4 +134,14 @@ void MidiProcessor::pushBufferToOutput()
 void MidiProcessor::turnOffAllMessages()
 {
     midiOut->sendMessageNow(juce::MidiMessage::allNotesOff(midiChannel));
+}
+
+void MidiProcessor::setAttackThreshold(double& t)
+{
+    attackThreshold = t;
+}
+
+void MidiProcessor::setReleaseThreshold(double& t)
+{
+    releaseThreshold = t;
 }

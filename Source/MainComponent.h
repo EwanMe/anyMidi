@@ -25,13 +25,8 @@ namespace anyMidi {
 
     private:
         //==============================================================================
-        juce::TextButton clearOutput;
-        juce::Slider gainSlider;
-        juce::TextEditor outputBox;
-
-        anyMidi::TabbedComp gui;
-
         juce::ValueTree tree;
+        std::unique_ptr<anyMidi::TabbedComp> gui;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
     };
