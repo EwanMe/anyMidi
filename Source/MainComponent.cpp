@@ -1,6 +1,7 @@
 #include "MainComponent.h"
 #include "AudioProcessor.h"
 #include "Globals.h"
+#include "appGUI.h"
 
 using namespace anyMidi;
 
@@ -29,13 +30,15 @@ void MainComponent::resized()
 
 void MainComponent::log(const juce::MidiMessage& midiMessage)
 {
-    /*outputBox.moveCaretToEnd();
-    outputBox.insertTextAtCaret(midiMessage.getDescription() + juce::newLine);*/
+    auto outputBox = dynamic_cast<juce::TextEditor*>(gui->getTabContentComponent(2)->findChildWithID("output"));
+    outputBox->moveCaretToEnd();
+    outputBox->insertTextAtCaret(midiMessage.getDescription() + juce::newLine);
 }
 
 template<typename T>
 void MainComponent::log(T msg)
 {
-    /*outputBox.moveCaretToEnd();
-    outputBox.insertTextAtCaret(std::to_string(msg) + juce::newLine);*/
+    auto outputBox = dynamic_cast<juce::TextEditor*>(gui->getTabContentComponent(2)->findChildWithID("output"));
+    outputBox->moveCaretToEnd();
+    outputBox->insertTextAtCaret(std::string(msg) + juce::newLine);
 }

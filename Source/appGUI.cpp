@@ -157,6 +157,7 @@ DebugPage::DebugPage(juce::ValueTree v) :
     outputBox.setScrollbarsShown(true);
     outputBox.setCaretVisible(false);
     outputBox.setPopupMenuEnabled(true); 
+    outputBox.setComponentID("output");
 
     addAndMakeVisible(clearOutput);
     clearOutput.setButtonText("Clear output");
