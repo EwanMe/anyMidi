@@ -80,7 +80,7 @@ void AudioProcessor::prepareToPlay(int samplesPerBlockExpected, double sampleRat
     midiProc.setMidiOutput(deviceManager->getDefaultMidiOutput());
 
     // Initializing highpass filter.
-    hiPassFilter.setCoefficients(juce::IIRCoefficients::makeHighPass(sampleRate, 75.0, 1.0)); // E5 on guitar = ~82 Hz
+    hiPassFilter.setCoefficients(juce::IIRCoefficients::makeHighPass(sampleRate, 75.0)); // E5 on guitar = ~82 Hz
     hiPassFilter.reset();
 }
 
