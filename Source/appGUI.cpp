@@ -24,6 +24,7 @@ TabbedComp::TabbedComp(juce::ValueTree v) :
     auto color = juce::Colour(0, 0, 0);
     addTab("App Settings", color, new AppSettingsPage(tree), true);
     addTab("Audio Settings", color, new AudioSetupPage(tree), true);
+    addTab("Debug", color, new DebugPage(tree), true);
 }
 
 // =============================================================================
@@ -76,12 +77,6 @@ void AudioSetupPage::resized()
 AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
     tree{ v }
 {
-    /*addAndMakeVisible(output);
-    output.setReturnKeyStartsNewLine(true);
-    output.setReadOnly(true);
-    output.setScrollbarsShown(true);
-    output.setCaretVisible(false);*/
-
     // ATTACK THRESHOLD SLIDER
     addAndMakeVisible(attThreshSlider);
     attThreshSlider.setRange(0, 1, 0.01);
@@ -145,4 +140,34 @@ void AppSettingsPage::resized()
     attThreshSlider.setBounds(100, 10, buttonWidth, buttonHeight);
     relThreshSlider.setBounds(100, 50, buttonWidth, buttonHeight);
     partialsSlider.setBounds(100, 90, buttonWidth, buttonHeight);
+}
+
+
+// =============================================================================
+// DEBUG PAGE
+
+DebugPage::DebugPage(juce::ValueTree v) :
+    tree{ v }
+{
+    // Output box, used for debugging.
+    addAndMakeVisible(outputBox);
+    outputBox.setMultiLine(true);
+    outputBox.setReturnKeyStartsNewLine(true);
+    outputBox.setReadOnly(true);
+    outputBox.setScrollbarsShown(true);
+    outputBox.setCaretVisible(false);
+    outputBox.setPopupMenuEnabled(true); 
+
+    addAndMakeVisible(clearOutput);
+    clearOutput.setButtonText("Clear output");
+    clearOutput.onClick = [this]
+    {
+        outputBox.clear();
+    };
+}
+
+void DebugPage::resized()
+{    
+    outputBox.setBounds(10, 10, getWidth()-20, getHeight()/2);
+    clearOutput.setBounds(10, getHeight()-50, 100, 30);
 }

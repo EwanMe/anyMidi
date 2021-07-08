@@ -12,28 +12,7 @@ MainComponent::MainComponent(juce::ValueTree v) :
     tree.addChild(guiNode, -1, nullptr);
     gui = std::make_unique<anyMidi::TabbedComp>(guiNode);
     
-
     addAndMakeVisible(*gui);
-
-    //// Output box, used for debugging.
-    //addAndMakeVisible(outputBox);
-    //outputBox.setMultiLine(true);
-    //outputBox.setReturnKeyStartsNewLine(true);
-    //outputBox.setReadOnly(true);
-    //outputBox.setScrollbarsShown(true);
-    //outputBox.setCaretVisible(false);
-    //outputBox.setPopupMenuEnabled(true);
-    //outputBox.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0x32ffffff));
-    //outputBox.setColour(juce::TextEditor::outlineColourId, juce::Colour(0x1c000000));
-    //outputBox.setColour(juce::TextEditor::shadowColourId, juce::Colour(0x16000000));
-
-    //addAndMakeVisible(clearOutput);
-    //clearOutput.setButtonText("Clear output");
-    //clearOutput.onClick = [this]
-    //{
-    //    outputBox.clear();
-    //};
-
     setSize(500, 500);
 }
 

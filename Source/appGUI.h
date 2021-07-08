@@ -68,4 +68,18 @@ namespace anyMidi {
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AppSettingsPage)
     };
 
+    class DebugPage : public juce::Component
+    {
+    public:
+        DebugPage(juce::ValueTree v);
+        void resized() override;
+
+    private:
+        juce::ValueTree tree;
+        juce::TextEditor outputBox;
+        juce::TextButton clearOutput;
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DebugPage)
+    };
+
 }; // namespace anyMidi
