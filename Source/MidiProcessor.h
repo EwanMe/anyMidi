@@ -17,6 +17,8 @@ namespace anyMidi {
     public:
         MidiProcessor(const unsigned int& sampleRate, const double& startTime);
         void setMidiOutput(juce::MidiOutput* output);
+        void setAttackThreshold(double& t);
+        void setReleaseThreshold(double& t);
         void pushBufferToOutput();
         void turnOffAllMessages();
 
@@ -40,8 +42,8 @@ namespace anyMidi {
         bool midiNoteCurrentlyOn{ false };
         int lastNote{ -1 };
         double lastAmp{ 0.0 };
-        static constexpr double threshold{ 0.1 };
-        static constexpr double releaseThreshold{ 0.001 };
+        double attackThreshold{ 0.1 };
+        double releaseThreshold{ 0.001 };
 
         // Audio app start time. Used to determine Midi message timestamp.
         const double startTime;

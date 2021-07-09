@@ -57,6 +57,15 @@ namespace anyMidi {
         static constexpr float windowCompensation{ 1.85 }; // 1.85 for Hamming window.
         
         const double sampleRate;
+
+        const std::map<juce::dsp::WindowingFunction<float>::WindowingMethod, float> Window{
+            {juce::dsp::WindowingFunction<float>::WindowingMethod::rectangular, 1.0},
+            {juce::dsp::WindowingFunction<float>::WindowingMethod::hann, 2.0},
+            {juce::dsp::WindowingFunction<float>::WindowingMethod::hamming, 1.85},
+            {juce::dsp::WindowingFunction<float>::WindowingMethod::blackman, 2.8},
+            {juce::dsp::WindowingFunction<float>::WindowingMethod::flatTop, 4.18},
+            {juce::dsp::WindowingFunction<float>::WindowingMethod::kaiser, 2.49},
+        };
     };
 
     // Finds nearest note among the provided note frequencies.

@@ -2,70 +2,32 @@
 
 #include <JuceHeader.h>
 #include <fstream>
-#include "ForwardFFT.h"
-#include "MidiProcessor.h"
+#include "appGUI.h"
 
-
-class MainComponent  : public juce::AudioAppComponent
-{
-public:
+namespace anyMidi {
     //==============================================================================
-    MainComponent();
-    ~MainComponent() override;
+    class MainComponent : public juce::Component
+    {
+    public:
+        //==============================================================================
+        MainComponent(juce::ValueTree v);
 
-    //==============================================================================
-    void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
-    void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override;
-    void releaseResources() override;
+        //==============================================================================
+        void paint(juce::Graphics& g) override;
+        void resized() override;
 
-    //==============================================================================
-    void paint (juce::Graphics& g) override;
-    void resized() override;
-    void drawNextLineOfSpectrogram();
+        //==============================================================================
+        // Logging function for debugging purposes.
+        void log(const juce::MidiMessage& midiMessage);
 
-private:
-    //==============================================================================
+        template<typename T>
+        void log(T msg);
 
-    anyMidi::ForwardFFT fft;
-    anyMidi::MidiProcessor midiProc;
-    
-    juce::AudioDeviceSelectorComponent audioSetupComp;
+    private:
+        //==============================================================================
+        juce::ValueTree tree;
+        std::unique_ptr<anyMidi::TabbedComp> gui;
 
-    juce::AudioSampleBuffer processingBuffer;
-    
-    juce::dsp::NoiseGate<float> noiseGate;
-    juce::IIRFilter hiPassFilter;
-
-    //juce::dsp::NoiseGate< noiseGate;
-
-    static constexpr unsigned int numInputChannels{ 1 };
-    static constexpr unsigned int numOutputChannels{ 2 };
-
-    // Lookup array to determine Midi notes from frequencies.
-    std::vector<double> noteFrequencies;
-    static constexpr unsigned int tuning{ 440 };
-
-    // Determines values for Midi message based on FFT analysis.
-    void calcNote();
-
-    // Returns note value based on analysis of harmonics.
-    std::pair<int, double> analyzeHarmonics();  
-
-    // Logging function for debugging purposes.
-    void log(const juce::MidiMessage& midiMessage);
-    
-    template<typename T>
-    void log(T msg);
-
-
-    // ====== LAYOUT ==========
-
-    juce::TextButton clearOutput;
-    juce::Slider gainSlider;
-    juce::TextEditor outputBox;
-
-    // ====== LAYOUT-END ======
-
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
-};
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
+    };
+};// namespace anyMidi
