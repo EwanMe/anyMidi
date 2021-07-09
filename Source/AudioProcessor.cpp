@@ -207,9 +207,6 @@ void AudioProcessor::setAudioChannels(int numInputChannels, int numOutputChannel
 
 void AudioProcessor::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
 {
-    /*auto xml = treeWhosePropertyHasChanged.getParent().toXmlString();
-    juce::File::getCurrentWorkingDirectory().getChildFile("ValueTree.xml").replaceWithText(xml);*/
-
     if (property == anyMidi::ATTACK_THRESH_ID)
     {
         double t = treeWhosePropertyHasChanged.getProperty(property);

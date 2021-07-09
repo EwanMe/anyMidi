@@ -77,7 +77,9 @@ namespace anyMidi {
     private:
         juce::ValueTree tree;
         juce::TextEditor outputBox;
+        juce::Label outputBoxLabel;
         juce::TextButton clearOutput;
+        juce::TextButton writeToXml;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DebugPage)
     };

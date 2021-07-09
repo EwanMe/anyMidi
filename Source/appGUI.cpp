@@ -159,16 +159,41 @@ DebugPage::DebugPage(juce::ValueTree v) :
     outputBox.setPopupMenuEnabled(true); 
     outputBox.setComponentID("output");
 
+    addAndMakeVisible(outputBoxLabel);
+    outputBoxLabel.setText("Output log:", juce::dontSendNotification);
+    outputBoxLabel.attachToComponent(&outputBox, false);
+
     addAndMakeVisible(clearOutput);
     clearOutput.setButtonText("Clear output");
     clearOutput.onClick = [this]
     {
         outputBox.clear();
     };
+
+    addAndMakeVisible(writeToXml);
+    writeToXml.setButtonText("Write ValueTree to file");
+    writeToXml.onClick = [this]
+    {
+        // Reference Counted Objects can't be serialized into XML.
+        // Device manager is stored and the node it lies in is replaced with a string while XML is generated.
+        // After, the device manager is added back into the tree as a RCO.
+        auto audioProcNode = tree.getParent().getChildWithName(anyMidi::AUDIO_PROC_ID);
+        auto deviceManager = dynamic_cast<anyMidi::AudioDeviceManagerRCO*>
+            (
+                audioProcNode.getProperty(anyMidi::DEVICE_MANAGER_ID).getObject()
+            );
+        audioProcNode.setProperty(anyMidi::DEVICE_MANAGER_ID, "AudioDeviceManager exists but can't be serialized", nullptr);
+
+        auto xml = tree.getRoot().toXmlString();
+        juce::File::getCurrentWorkingDirectory().getChildFile("ValueTree.xml").replaceWithText(xml);
+
+        audioProcNode.setProperty(anyMidi::DEVICE_MANAGER_ID, deviceManager, nullptr);
+    };
 }
 
 void DebugPage::resized()
 {    
-    outputBox.setBounds(10, 10, getWidth()-20, getHeight()/2);
-    clearOutput.setBounds(10, getHeight()-50, 100, 30);
+    outputBox.setBounds(10, 25, getWidth() - 20, getHeight() / 2);
+    clearOutput.setBounds(10, getHeight() / 2 + 40, 100, 30);
+    writeToXml.setBounds(10, getHeight() / 2 + 80, 100, 30);
 }
