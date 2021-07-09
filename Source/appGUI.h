@@ -13,7 +13,7 @@
 #include <JuceHeader.h>
 
 namespace anyMidi {
-    // =============================================================================
+    // =================================================================================
     class TabbedComp : public juce::TabbedComponent
     {
     public:
@@ -27,7 +27,7 @@ namespace anyMidi {
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TabbedComp)
     };
 
-    // =============================================================================
+    // =================================================================================
     class AudioSetupPage : public juce::Component
     {
     public:
@@ -44,7 +44,7 @@ namespace anyMidi {
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioSetupPage)
     };
 
-    // =============================================================================
+    // =================================================================================
     class AppSettingsPage : public juce::Component
     {
     public:

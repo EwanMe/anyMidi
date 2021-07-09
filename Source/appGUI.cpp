@@ -182,7 +182,15 @@ DebugPage::DebugPage(juce::ValueTree v) :
             (
                 audioProcNode.getProperty(anyMidi::DEVICE_MANAGER_ID).getObject()
             );
-        audioProcNode.setProperty(anyMidi::DEVICE_MANAGER_ID, "AudioDeviceManager exists but can't be serialized", nullptr);
+        
+        if (deviceManager != nullptr)
+        {
+            audioProcNode.setProperty(anyMidi::DEVICE_MANAGER_ID, "Audio device manager exists but can't be serialized", nullptr);
+        }
+        else
+        {
+            audioProcNode.setProperty(anyMidi::DEVICE_MANAGER_ID, "No audio device manager found", nullptr);
+        }
 
         auto xml = tree.getRoot().toXmlString();
         juce::File::getCurrentWorkingDirectory().getChildFile("ValueTree.xml").replaceWithText(xml);

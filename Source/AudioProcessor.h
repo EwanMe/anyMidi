@@ -15,7 +15,7 @@
 #include "MidiProcessor.h"
 
 namespace anyMidi {
-    //==============================================================================
+    //==================================================================================
     class AudioDeviceManagerRCO :   public juce::AudioDeviceManager,
                                     public juce::ReferenceCountedObject 
     {
@@ -23,7 +23,7 @@ namespace anyMidi {
         using Ptr = juce::ReferenceCountedObjectPtr<AudioDeviceManagerRCO>;
     };
 
-    //==============================================================================
+    //==================================================================================
     class AudioProcessor :  public juce::AudioSource, 
                             public juce::ValueTree::Listener
     {
