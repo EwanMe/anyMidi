@@ -105,7 +105,6 @@ void MidiProcessor::createMidiMsg(const unsigned int& noteNum, const juce::uint8
         }
         midiMessage.setTimeStamp(juce::Time::getMillisecondCounter() * 0.001 - startTime);
         addMessageToBuffer(midiMessage);
-        DBG(midiMessage.getDescription());
     }
 }
 
