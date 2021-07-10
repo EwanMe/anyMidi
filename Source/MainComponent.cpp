@@ -30,7 +30,7 @@ void MainComponent::resized()
 
 void MainComponent::log(const juce::MidiMessage& midiMessage)
 {
-    log(midiMessage.getDescription());
+    log(midiMessage.getDescription().toStdString());
 }
 
 template<typename T>
