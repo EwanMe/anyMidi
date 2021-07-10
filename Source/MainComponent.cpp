@@ -30,13 +30,11 @@ void MainComponent::resized()
 
 void MainComponent::log(const juce::MidiMessage& midiMessage)
 {
-    auto outputBox = dynamic_cast<juce::TextEditor*>(gui->getTabContentComponent(2)->findChildWithID("output"));
-    outputBox->moveCaretToEnd();
-    outputBox->insertTextAtCaret(midiMessage.getDescription() + juce::newLine);
+    log(midiMessage.getDescription());
 }
 
 template<typename T>
-void MainComponent::log(T msg)
+void MainComponent::log(const T& msg)
 {
     auto outputBox = dynamic_cast<juce::TextEditor*>(gui->getTabContentComponent(2)->findChildWithID("output"));
     outputBox->moveCaretToEnd();

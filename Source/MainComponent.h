@@ -21,7 +21,7 @@ namespace anyMidi {
         void log(const juce::MidiMessage& midiMessage);
 
         template<typename T>
-        void log(T msg);
+        void log(const T& msg);
 
     private:
         //==============================================================================
