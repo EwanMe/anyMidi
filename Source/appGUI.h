@@ -52,17 +52,19 @@ namespace anyMidi {
         AppSettingsPage(juce::ValueTree v);
         void resized() override;
 
-        juce::Slider attThreshSlider;
-        juce::Label attThreshLabel;
-        juce::Slider relThreshSlider;
-        juce::Label relThreshLabel;
-        juce::Slider partialsSlider;
-        juce::Label partialsLabel;
 
         juce::TextEditor output;
 
     private:
         //==============================================================================
+        juce::Slider attThreshSlider;
+        juce::Slider relThreshSlider;
+        juce::Slider partialsSlider;
+
+        juce::Label attThreshLabel;
+        juce::Label relThreshLabel;
+        juce::Label partialsLabel;
+
         juce::ValueTree tree;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AppSettingsPage)
@@ -77,9 +79,10 @@ namespace anyMidi {
     private:
         juce::ValueTree tree;
         juce::TextEditor outputBox;
-        juce::Label outputBoxLabel;
         juce::TextButton clearOutput;
         juce::TextButton writeToXml;
+
+        juce::Label outputBoxLabel;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DebugPage)
     };

@@ -79,39 +79,41 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
 {
     // ATTACK THRESHOLD SLIDER
     addAndMakeVisible(attThreshSlider);
-    attThreshSlider.setRange(0, 1, 0.01);
+    attThreshSlider.setRange(0, 1, 0.001);
     attThreshSlider.setSliderStyle(juce::Slider::LinearBarVertical);
     attThreshSlider.setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::transparentWhite);
     attThreshSlider.setVelocityBasedMode(true);
     attThreshSlider.setVelocityModeParameters(0.4, 1, 0.09, false);
+    
+    if (tree.hasProperty(anyMidi::ATTACK_THRESH_ID))
+    {
+        attThreshSlider.setValue(tree.getProperty(anyMidi::ATTACK_THRESH_ID));
+    }
+
     attThreshSlider.onValueChange = [this]
     {
         // Callback
         tree.setProperty(anyMidi::ATTACK_THRESH_ID, attThreshSlider.getValue(), nullptr);
     };
 
-    // ATTACK THRESHOLD LABEL
-    addAndMakeVisible(attThreshLabel);
-    attThreshLabel.setText("Attack Threshold", juce::dontSendNotification);
-    attThreshLabel.attachToComponent(&attThreshSlider, true);
-
     // RELEASE THRESHOLD SLIDER
     addAndMakeVisible(relThreshSlider);
-    relThreshSlider.setRange(0, 1, 0.01);
+    relThreshSlider.setRange(0, 1, 0.001);
     relThreshSlider.setSliderStyle(juce::Slider::LinearBarVertical);
     relThreshSlider.setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::transparentWhite);
     relThreshSlider.setVelocityBasedMode(true);
     relThreshSlider.setVelocityModeParameters(0.4, 1, 0.09, false);
+    
+    if (tree.hasProperty(anyMidi::RELEASE_THRESH_ID))
+    {
+        relThreshSlider.setValue(tree.getProperty(anyMidi::RELEASE_THRESH_ID));
+    }
+
     relThreshSlider.onValueChange = [this]
     {
         // Callback
         tree.setProperty(anyMidi::RELEASE_THRESH_ID, relThreshSlider.getValue(), nullptr);
     };
-
-    // RELEASE THRESHOLD LABEL
-    addAndMakeVisible(relThreshLabel);
-    relThreshLabel.setText("Release Threshold", juce::dontSendNotification);
-    relThreshLabel.attachToComponent(&relThreshSlider, true);
 
     // PARTIALS SLIDER
     addAndMakeVisible(partialsSlider);
@@ -120,11 +122,28 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
     partialsSlider.setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::transparentWhite);
     partialsSlider.setVelocityBasedMode(true);
     partialsSlider.setVelocityModeParameters(0.4, 1, 0.09, false);
+    
+    if (tree.hasProperty(anyMidi::PARTIALS_ID))
+    {
+        partialsSlider.setValue(tree.getProperty(anyMidi::PARTIALS_ID));
+    }
+    
     partialsSlider.onValueChange = [this]
     {
         // Callback
         tree.setProperty(anyMidi::PARTIALS_ID, static_cast<int>(partialsSlider.getValue()), nullptr);
     };
+
+
+    // ATTACK THRESHOLD LABEL
+    addAndMakeVisible(attThreshLabel);
+    attThreshLabel.setText("Attack Threshold", juce::dontSendNotification);
+    attThreshLabel.attachToComponent(&attThreshSlider, true);
+
+    // RELEASE THRESHOLD LABEL
+    addAndMakeVisible(relThreshLabel);
+    relThreshLabel.setText("Release Threshold", juce::dontSendNotification);
+    relThreshLabel.attachToComponent(&relThreshSlider, true);
 
     // PARTIALS LABEL
     addAndMakeVisible(partialsLabel);
@@ -185,11 +204,11 @@ DebugPage::DebugPage(juce::ValueTree v) :
         
         if (deviceManager != nullptr)
         {
-            audioProcNode.setProperty(anyMidi::DEVICE_MANAGER_ID, "Audio device manager exists but can't be serialized", nullptr);
+            audioProcNode.setProperty(anyMidi::DEVICE_MANAGER_ID, "Audio device manager exists, settings in separate file.", nullptr);
         }
         else
         {
-            audioProcNode.setProperty(anyMidi::DEVICE_MANAGER_ID, "No audio device manager found", nullptr);
+            audioProcNode.setProperty(anyMidi::DEVICE_MANAGER_ID, "No audio device manager found.", nullptr);
         }
 
         auto xml = tree.getRoot().toXmlString();

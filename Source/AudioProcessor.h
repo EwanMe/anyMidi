@@ -23,6 +23,7 @@ namespace anyMidi {
         using Ptr = juce::ReferenceCountedObjectPtr<AudioDeviceManagerRCO>;
     };
 
+
     //==================================================================================
     class AudioProcessor :  public juce::AudioSource, 
                             public juce::ValueTree::Listener
@@ -67,7 +68,7 @@ namespace anyMidi {
 
         // Returns note value based on analysis of harmonics.
         std::pair<int, double> analyzeHarmonics();
-        unsigned int numPartials{ 6 };
+        int numPartials{ 6 };
 
 
         juce::ValueTree tree;

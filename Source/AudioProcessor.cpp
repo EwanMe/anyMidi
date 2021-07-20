@@ -56,12 +56,15 @@ AudioProcessor::AudioProcessor(juce::ValueTree v) :
 
     // Adding device manager to ValueTree so AudioDeviceSelectorComponent in GUI can access it.
     // No listeners needed since pointer to device manager is received by GUI.
-    juce::ValueTree audioProcNode(anyMidi::AUDIO_PROC_ID);
-    audioProcNode.setProperty(anyMidi::DEVICE_MANAGER_ID, deviceManager.getObject(), nullptr);
-    tree.addChild(audioProcNode, -1, nullptr);
+    tree.setProperty(anyMidi::DEVICE_MANAGER_ID, deviceManager.getObject(), nullptr);
 
     // Register this class as listener to ValueTree.
     tree.addListener(this);
+
+    auto guiNode = tree.getParent().getChildWithName(anyMidi::GUI_ID);
+    guiNode.setProperty(anyMidi::ATTACK_THRESH_ID, midiProc.getAttackThreshold(), nullptr);
+    guiNode.setProperty(anyMidi::RELEASE_THRESH_ID, midiProc.getReleaseThreshold(), nullptr);
+    guiNode.setProperty(anyMidi::PARTIALS_ID, numPartials, nullptr);
 }
 
 AudioProcessor::~AudioProcessor()

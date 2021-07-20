@@ -8,10 +8,8 @@ using namespace anyMidi;
 //==============================================================================
 MainComponent::MainComponent(juce::ValueTree v) :
     tree{ v }
-{
-    juce::ValueTree guiNode{ anyMidi::GUI_ID };
-    tree.addChild(guiNode, -1, nullptr);
-    gui = std::make_unique<anyMidi::TabbedComp>(guiNode);
+{ 
+    gui = std::make_unique<anyMidi::TabbedComp>(tree);
     
     addAndMakeVisible(*gui);
     setSize(500, 500);

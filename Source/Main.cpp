@@ -25,9 +25,14 @@ public:
     //==============================================================================
     void initialise(const juce::String& commandLine) override
     {
-        // This method is where you should put your application's initialisation code...
-        audioProcessor = std::make_unique<anyMidi::AudioProcessor>(tree);
-        mainWindow.reset(new MainWindow(getApplicationName(), tree));
+        juce::ValueTree audioProcNode(anyMidi::AUDIO_PROC_ID);
+        tree.addChild(audioProcNode, -1, nullptr);
+        
+        juce::ValueTree guiNode{ anyMidi::GUI_ID };
+        tree.addChild(guiNode, -1, nullptr);
+
+        audioProcessor = std::make_unique<anyMidi::AudioProcessor>(audioProcNode);
+        mainWindow.reset(new MainWindow(getApplicationName(), guiNode));
     }
 
     void shutdown() override

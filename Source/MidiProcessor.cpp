@@ -135,6 +135,16 @@ void MidiProcessor::turnOffAllMessages()
     midiOut->sendMessageNow(juce::MidiMessage::allNotesOff(midiChannel));
 }
 
+double MidiProcessor::getAttackThreshold() const
+{
+    return attackThreshold;
+}
+
+double MidiProcessor::getReleaseThreshold() const
+{
+    return releaseThreshold;
+}
+
 void MidiProcessor::setAttackThreshold(double& t)
 {
     attackThreshold = t;

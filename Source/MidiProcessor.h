@@ -16,9 +16,13 @@ namespace anyMidi {
     class MidiProcessor {
     public:
         MidiProcessor(const unsigned int& sampleRate, const double& startTime);
+        
         void setMidiOutput(juce::MidiOutput* output);
+        double getAttackThreshold() const;
+        double getReleaseThreshold() const;
         void setAttackThreshold(double& t);
         void setReleaseThreshold(double& t);
+        
         void pushBufferToOutput();
         void turnOffAllMessages();
 
@@ -42,6 +46,7 @@ namespace anyMidi {
         bool midiNoteCurrentlyOn{ false };
         int lastNote{ -1 };
         double lastAmp{ 0.0 };
+
         double attackThreshold{ 0.1 };
         double releaseThreshold{ 0.001 };
 
