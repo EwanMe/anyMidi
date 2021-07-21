@@ -168,6 +168,8 @@ void AppSettingsPage::resized()
 DebugPage::DebugPage(juce::ValueTree v) :
     tree{ v }
 {
+    tree.addListener(this);
+
     // Output box, used for debugging.
     addAndMakeVisible(outputBox);
     outputBox.setMultiLine(true);
@@ -223,4 +225,14 @@ void DebugPage::resized()
     outputBox.setBounds(10, 25, getWidth() - 20, getHeight() / 2);
     clearOutput.setBounds(10, getHeight() / 2 + 40, 100, 30);
     writeToXml.setBounds(10, getHeight() / 2 + 80, 100, 30);
+}
+
+void DebugPage::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
+{
+    if (property == anyMidi::LOG_ID)
+    {
+        juce::String message = treeWhosePropertyHasChanged.getProperty(property).toString();
+        outputBox.moveCaretToEnd();
+        outputBox.insertTextAtCaret(message + juce::newLine);
+    }
 }

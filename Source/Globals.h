@@ -25,4 +25,16 @@ namespace anyMidi
     static const juce::Identifier ATTACK_THRESH_ID      { "AttackThreshold" };
     static const juce::Identifier RELEASE_THRESH_ID     { "ReleaseThreshold" };
     static const juce::Identifier PARTIALS_ID           { "NumParitals" };
+    static const juce::Identifier LOG_ID                { "Log" };
+
+
+    // Logs any non-object juce::var to output on the debug tab.
+    inline void log(juce::ValueTree tree, juce::var message)
+    {
+        if (message.isObject())
+        {
+            message = "Error: Cannot log objects.";
+        }
+        tree.getRoot().getChildWithName(anyMidi::GUI_ID).setProperty(anyMidi::LOG_ID, message, nullptr);
+    }
 };

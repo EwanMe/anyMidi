@@ -16,13 +16,6 @@ namespace anyMidi {
         void paint(juce::Graphics& g) override;
         void resized() override;
 
-        //==============================================================================
-        // Logging function for debugging purposes.
-        void log(const juce::MidiMessage& midiMessage);
-
-        template<typename T>
-        void log(const T& msg);
-
     private:
         //==============================================================================
         juce::ValueTree tree;

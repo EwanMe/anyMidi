@@ -25,16 +25,3 @@ void MainComponent::resized()
 {
     gui->setBounds(getLocalBounds().reduced(4));
 }
-
-void MainComponent::log(const juce::MidiMessage& midiMessage)
-{
-    log(midiMessage.getDescription().toStdString());
-}
-
-template<typename T>
-void MainComponent::log(const T& msg)
-{
-    auto outputBox = dynamic_cast<juce::TextEditor*>(gui->getTabContentComponent(2)->findChildWithID("output"));
-    outputBox->moveCaretToEnd();
-    outputBox->insertTextAtCaret(std::string(msg) + juce::newLine);
-}
