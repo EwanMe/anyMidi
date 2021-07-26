@@ -25,6 +25,8 @@ namespace anyMidi
     static const juce::Identifier ATTACK_THRESH_ID      { "AttackThreshold" };
     static const juce::Identifier RELEASE_THRESH_ID     { "ReleaseThreshold" };
     static const juce::Identifier PARTIALS_ID           { "NumParitals" };
+    static const juce::Identifier LO_CUT_ID             { "LowCutFrequenzy" };
+    static const juce::Identifier HI_CUT_ID             { "HighCutFrequenzy" };
     static const juce::Identifier LOG_ID                { "Log" };
 
 

@@ -134,6 +134,37 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
         tree.setProperty(anyMidi::PARTIALS_ID, static_cast<int>(partialsSlider.getValue()), nullptr);
     };
 
+    // FILTER SLIDERS
+    addAndMakeVisible(filterSlider);
+    filterSlider.setRange(20, 20000, 1);
+    filterSlider.setSliderStyle(juce::Slider::TwoValueHorizontal);
+    filterSlider.setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::transparentWhite);
+    filterSlider.setVelocityBasedMode(true);
+    filterSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 300, 1000);
+
+    if (tree.hasProperty(anyMidi::LO_CUT_ID) && tree.hasProperty(anyMidi::HI_CUT_ID))
+    {
+        filterSlider.setMinAndMaxValues(tree.getProperty(anyMidi::LO_CUT_ID), tree.getProperty(anyMidi::HI_CUT_ID));
+    }
+
+    filterSlider.onValueChange = [this]
+    {
+        // Callback
+        juce::Value& loVal = filterSlider.getMinValueObject();
+        juce::Value& hival = filterSlider.getMaxValueObject();
+
+        tree.setProperty(anyMidi::LO_CUT_ID, loVal.getValue(), nullptr);
+        tree.setProperty(anyMidi::HI_CUT_ID, hival.getValue(), nullptr);
+
+        loCutFreq.setText(loVal.toString() + " Hz");
+        hiCutFreq.setText(hival.toString() + " Hz");
+    };
+
+    addAndMakeVisible(loCutFreq);
+    loCutFreq.setReadOnly(true);
+
+    addAndMakeVisible(hiCutFreq);
+    hiCutFreq.setReadOnly(true);
 
     // ATTACK THRESHOLD LABEL
     addAndMakeVisible(attThreshLabel);
@@ -149,6 +180,11 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
     addAndMakeVisible(partialsLabel);
     partialsLabel.setText("Partials", juce::dontSendNotification);
     partialsLabel.attachToComponent(&partialsSlider, true);
+
+    // FILTER LABEL
+    addAndMakeVisible(filterLabel);
+    filterLabel.setText("Filter", juce::dontSendNotification);
+    filterLabel.attachToComponent(&filterSlider, true);
 }
 
 void AppSettingsPage::resized()
@@ -159,6 +195,9 @@ void AppSettingsPage::resized()
     attThreshSlider.setBounds(100, 10, buttonWidth, buttonHeight);
     relThreshSlider.setBounds(100, 50, buttonWidth, buttonHeight);
     partialsSlider.setBounds(100, 90, buttonWidth, buttonHeight);
+    filterSlider.setBounds(100, 130, buttonWidth*2, buttonHeight);
+    loCutFreq.setBounds(100, 150, buttonWidth, buttonHeight);
+    hiCutFreq.setBounds(100+buttonWidth, 150, buttonWidth, buttonHeight);
 }
 
 

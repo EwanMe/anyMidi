@@ -56,15 +56,15 @@ AudioProcessor::AudioProcessor(juce::ValueTree v) :
 
     // Adding device manager to ValueTree so AudioDeviceSelectorComponent in GUI can access it.
     // No listeners needed since pointer to device manager is received by GUI.
-    tree.setProperty(anyMidi::DEVICE_MANAGER_ID, deviceManager.getObject(), nullptr);
+    tree.getChildWithName(anyMidi::AUDIO_PROC_ID).setProperty(anyMidi::DEVICE_MANAGER_ID, deviceManager.getObject(), nullptr);
 
-    // Register this class as listener to ValueTree.
-    tree.addListener(this);
-
-    auto guiNode = tree.getParent().getChildWithName(anyMidi::GUI_ID);
+    auto guiNode = tree.getChildWithName(anyMidi::GUI_ID);
     guiNode.setProperty(anyMidi::ATTACK_THRESH_ID, midiProc.getAttackThreshold(), nullptr);
     guiNode.setProperty(anyMidi::RELEASE_THRESH_ID, midiProc.getReleaseThreshold(), nullptr);
     guiNode.setProperty(anyMidi::PARTIALS_ID, numPartials, nullptr);
+    
+    // Register this class as listener to ValueTree.
+    tree.addListener(this);
 }
 
 AudioProcessor::~AudioProcessor()
@@ -73,7 +73,7 @@ AudioProcessor::~AudioProcessor()
     deviceManager->removeAudioCallback(&audioSourcePlayer);
     deviceManager = nullptr;
 
-    // Maybe superflous?
+    // Maybe superfluous?
     jassert(audioSourcePlayer.getCurrentSource() == nullptr);
 }
 
@@ -83,7 +83,7 @@ void AudioProcessor::prepareToPlay(int samplesPerBlockExpected, double sampleRat
     midiProc.setMidiOutput(deviceManager->getDefaultMidiOutput());
 
     // Initializing highpass filter.
-    hiPassFilter.setCoefficients(juce::IIRCoefficients::makeHighPass(sampleRate, 75.0)); // E5 on guitar = ~82 Hz
+    hiPassFilter.setCoefficients(juce::IIRCoefficients::makeHighPass(sampleRate, lowFilterFreq));
     hiPassFilter.reset();
 }
 
@@ -224,6 +224,12 @@ void AudioProcessor::valueTreePropertyChanged(juce::ValueTree& treeWhoseProperty
     {
         int n = treeWhosePropertyHasChanged.getProperty(property);
         setNumPartials(n);
+    }
+    else if (property == anyMidi::LO_CUT_ID)
+    {
+        double f = treeWhosePropertyHasChanged.getProperty(property);
+        auto test = deviceManager.get()->getAudioDeviceSetup().sampleRate;
+        hiPassFilter.setCoefficients(juce::IIRCoefficients::makeHighPass(deviceManager.get()->getAudioDeviceSetup().sampleRate, f));
     }
 }
 

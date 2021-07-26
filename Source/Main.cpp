@@ -31,7 +31,7 @@ public:
         juce::ValueTree guiNode{ anyMidi::GUI_ID };
         tree.addChild(guiNode, -1, nullptr);
 
-        audioProcessor = std::make_unique<anyMidi::AudioProcessor>(audioProcNode);
+        audioProcessor = std::make_unique<anyMidi::AudioProcessor>(tree);
         mainWindow.reset(new MainWindow(getApplicationName(), guiNode));
     }
 

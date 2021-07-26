@@ -43,18 +43,21 @@ namespace anyMidi {
 
     private:
         //==============================================================================
-        void setAudioChannels(int numInputChannels, int numOutputChannels, const juce::XmlElement* const storedSettings = nullptr);
-
         juce::AudioSourcePlayer audioSourcePlayer;
 
+        static constexpr unsigned int numInputChannels{ 1 };
+        static constexpr unsigned int numOutputChannels{ 0 };
+
+        void setAudioChannels(int numInputChannels, int numOutputChannels, const juce::XmlElement* const storedSettings = nullptr);
+        
         //==============================================================================
         anyMidi::ForwardFFT fft;
         anyMidi::MidiProcessor midiProc;
 
         juce::AudioSampleBuffer processingBuffer;
         juce::IIRFilter hiPassFilter;
-        static constexpr unsigned int numInputChannels{ 1 };
-        static constexpr unsigned int numOutputChannels{ 0 };
+        static constexpr double lowFilterFreq{ 75.0 }; // E5 on guitar = ~82 Hz
+        static constexpr double highFilterFreq{ 24000.0 };
 
         //==============================================================================
         // Lookup array to determine Midi notes from frequencies.

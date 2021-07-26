@@ -60,10 +60,14 @@ namespace anyMidi {
         juce::Slider attThreshSlider;
         juce::Slider relThreshSlider;
         juce::Slider partialsSlider;
+        juce::Slider filterSlider;
+        juce::TextEditor loCutFreq;
+        juce::TextEditor hiCutFreq;
 
         juce::Label attThreshLabel;
         juce::Label relThreshLabel;
         juce::Label partialsLabel;
+        juce::Label filterLabel;
 
         juce::ValueTree tree;
 
