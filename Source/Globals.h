@@ -30,6 +30,7 @@ namespace anyMidi
     static const juce::Identifier LOG_ID                { "Log" };
 
 
+    
     // Logs any non-object juce::var to output on the debug tab.
     inline void log(juce::ValueTree tree, juce::var message)
     {
@@ -38,5 +39,15 @@ namespace anyMidi
             message = "Error: Cannot log objects.";
         }
         tree.getRoot().getChildWithName(anyMidi::GUI_ID).setProperty(anyMidi::LOG_ID, message, nullptr);
+    }
+    
+    // Logs any type with overloaded operator<< to debug tab.
+    template<typename T>
+    inline void log(juce::ValueTree tree, const T& message)
+    {
+        std::stringstream ss;
+        ss << message;
+        juce::var msgVar = ss.str();
+        anyMidi::log(tree, msgVar);
     }
 };
