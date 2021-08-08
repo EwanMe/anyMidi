@@ -7,12 +7,17 @@ using namespace anyMidi;
 
 //==============================================================================
 MainComponent::MainComponent(juce::ValueTree v) :
-    tree{ v }
+    tree{ v },
+    gui{ v }
 { 
-    gui = std::make_unique<anyMidi::TabbedComp>(tree);
-    
-    addAndMakeVisible(*gui);
-    setSize(500, 500);
+    addAndMakeVisible(gui);
+    setLookAndFeel(&layout);
+    setSize(500, 400);
+}
+
+MainComponent::~MainComponent()
+{
+    setLookAndFeel(nullptr);
 }
 
 void MainComponent::paint(juce::Graphics& g)
@@ -23,5 +28,5 @@ void MainComponent::paint(juce::Graphics& g)
 
 void MainComponent::resized()
 {
-    gui->setBounds(getLocalBounds().reduced(4));
+    gui.setBounds(getLocalBounds());
 }

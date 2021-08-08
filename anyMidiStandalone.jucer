@@ -5,6 +5,10 @@
               displaySplashScreen="1" cppLanguageStandard="17" headerPath="D:\dev\anyMidiStandalone\Source\ASIO\&#10;C:\dev\anyMidi\Source\ASIO\">
   <MAINGROUP id="V3BKVY" name="anyMidiStandalone">
     <GROUP id="{19E908DE-ABB1-AB26-675F-DD9CF27A73FB}" name="Source">
+      <FILE id="JiZj0Q" name="CustomLookAndFeel.cpp" compile="1" resource="0"
+            file="Source/CustomLookAndFeel.cpp"/>
+      <FILE id="ZRDu37" name="CustomLookAndFeel.h" compile="0" resource="0"
+            file="Source/CustomLookAndFeel.h"/>
       <FILE id="cVm0IG" name="AudioProcessor.cpp" compile="1" resource="0"
             file="Source/AudioProcessor.cpp"/>
       <FILE id="PHqCgM" name="AudioProcessor.h" compile="0" resource="0"

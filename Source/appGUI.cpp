@@ -21,7 +21,7 @@ TabbedComp::TabbedComp(juce::ValueTree v) :
     TabbedComponent(juce::TabbedButtonBar::TabsAtTop),
     tree{ v }
 {
-    auto color = juce::Colour(0, 0, 0);
+    auto color = findColour(juce::TabbedComponent::backgroundColourId);
     addTab("App Settings", color, new AppSettingsPage(tree), true);
     addTab("Audio Settings", color, new AudioSetupPage(tree), true);
     addTab("Debug", color, new DebugPage(tree), true);

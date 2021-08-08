@@ -1,7 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include <fstream>
+#include "CustomLookAndFeel.h"
 #include "appGUI.h"
 
 namespace anyMidi {
@@ -11,6 +11,7 @@ namespace anyMidi {
     public:
         //==============================================================================
         MainComponent(juce::ValueTree v);
+        ~MainComponent() override;
 
         //==============================================================================
         void paint(juce::Graphics& g) override;
@@ -19,7 +20,8 @@ namespace anyMidi {
     private:
         //==============================================================================
         juce::ValueTree tree;
-        std::unique_ptr<anyMidi::TabbedComp> gui;
+        anyMidi::CustomLookaAndFeel layout;
+        anyMidi::TabbedComp gui;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
     };
