@@ -1,7 +1,7 @@
 #include "MainComponent.h"
 #include "AudioProcessor.h"
 #include "Globals.h"
-#include "appGUI.h"
+#include "UserInterface.h"
 
 using namespace anyMidi;
 

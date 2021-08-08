@@ -14,8 +14,9 @@
       <FILE id="PHqCgM" name="AudioProcessor.h" compile="0" resource="0"
             file="Source/AudioProcessor.h"/>
       <FILE id="xGXPCV" name="Globals.h" compile="0" resource="0" file="Source/Globals.h"/>
-      <FILE id="GgmVkv" name="appGUI.cpp" compile="1" resource="0" file="Source/appGUI.cpp"/>
-      <FILE id="AXS3qG" name="appGUI.h" compile="0" resource="0" file="Source/appGUI.h"/>
+      <FILE id="GgmVkv" name="UserInterface.cpp" compile="1" resource="0"
+            file="Source/UserInterface.cpp"/>
+      <FILE id="AXS3qG" name="UserInterface.h" compile="0" resource="0" file="Source/UserInterface.h"/>
       <FILE id="lkCEqN" name="MidiProcessor.h" compile="0" resource="0" file="Source/MidiProcessor.h"/>
       <FILE id="Oib2WI" name="MidiProcessor.cpp" compile="1" resource="0"
             file="Source/MidiProcessor.cpp"/>

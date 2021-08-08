@@ -8,7 +8,7 @@
   ==============================================================================
 */
 
-#include "appGUI.h"
+#include "UserInterface.h"
 #include "Globals.h"
 #include "AudioProcessor.h"
 

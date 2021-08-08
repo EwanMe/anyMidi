@@ -2,7 +2,7 @@
 
 #include <JuceHeader.h>
 #include "CustomLookAndFeel.h"
-#include "appGUI.h"
+#include "UserInterface.h"
 
 namespace anyMidi {
     //==================================================================================
