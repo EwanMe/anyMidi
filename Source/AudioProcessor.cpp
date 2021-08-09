@@ -62,6 +62,8 @@ AudioProcessor::AudioProcessor(juce::ValueTree v) :
     guiNode.setProperty(anyMidi::ATTACK_THRESH_ID, midiProc.getAttackThreshold(), nullptr);
     guiNode.setProperty(anyMidi::RELEASE_THRESH_ID, midiProc.getReleaseThreshold(), nullptr);
     guiNode.setProperty(anyMidi::PARTIALS_ID, numPartials, nullptr);
+    guiNode.setProperty(anyMidi::LO_CUT_ID, lowFilterFreq, nullptr);
+    guiNode.setProperty(anyMidi::HI_CUT_ID, highFilterFreq, nullptr);
     
     // Register this class as listener to ValueTree.
     tree.addListener(this);
