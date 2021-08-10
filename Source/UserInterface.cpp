@@ -138,8 +138,7 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
     addAndMakeVisible(filterSlider);
     filterSlider.setRange(20, 20000, 1);
     filterSlider.setSliderStyle(juce::Slider::TwoValueHorizontal);
-    filterSlider.setColour(juce::Slider::ColourIds::trackColourId, juce::Colours::transparentWhite);
-    filterSlider.setVelocityBasedMode(true);
+    // filterSlider.setVelocityBasedMode(true);
     filterSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 300, 1000);
 
     if (tree.hasProperty(anyMidi::LO_CUT_ID) && tree.hasProperty(anyMidi::HI_CUT_ID))
