@@ -10,6 +10,8 @@ There is need for a separate driver for routing MIDI from anyMidi to your DAW or
 
 For Mac users there is a way to set up loopback drivers for MIDI (https://www.youtube.com/watch?v=MK4hrjfJEX4), although this has not been tested with the application.
 
+There is also need for the [ASIO SDK](https://www.steinberg.net/developers/) to reduce latency considerably. Make sure the paths to the SDK are correct, they can be updated in the .jucer file. Right now these header search paths are used: `D:\dev\asiosdk_2.3.3_2019-06-14\common` and `C:\dev\asiosdk_2.3.3_2019-06-14\common`.
+
 ## Build
 
 1. Open the anyMidiStandalone.jucer file. Make sure the global paths are correct by going to File>Global Paths and see that "Path to JUCE" and "JUCE Modules" are pointing to your JUCE install directory and the modules directory, respectively.
