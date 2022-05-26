@@ -50,7 +50,7 @@ void ForwardFFT::pushNextSampleIntoFifo(float sample)
             forwardFFT.performFrequencyOnlyForwardTransform(fftData.data());
             
             // Amplitude compensation for window function.
-            juce::FloatVectorOperations::multiply(fftData.data(), windowCompensation, fftSize);
+            juce::detail::FloatVectorOperationsBase<float, size_t>::multiply(fftData.data(), windowCompensation, fftSize);
         }
 
         fifoIndex = 0;

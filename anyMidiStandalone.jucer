@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="xHuwhM" name="anyMidiStandalone" projectType="guiapp" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" companyName="Hallvard Jensen"
-              displaySplashScreen="1" cppLanguageStandard="17" headerPath="D:\dev\asiosdk_2.3.3_2019-06-14\common&#10;C:\dev\asiosdk_2.3.3_2019-06-14\common">
+              displaySplashScreen="1" cppLanguageStandard="17" headerPath="D:\dev\asiosdk_2.3.3_2019-06-14\common&#10;C:\dev\asiosdk_2.3.3_2019-06-14\common&#10;C:\dev\sdk\asiosdk_2.3.3_2019-06-14\common">
   <MAINGROUP id="V3BKVY" name="anyMidiStandalone">
     <GROUP id="{19E908DE-ABB1-AB26-675F-DD9CF27A73FB}" name="Source">
       <FILE id="JiZj0Q" name="CustomLookAndFeel.cpp" compile="1" resource="0"
