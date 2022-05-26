@@ -13,44 +13,52 @@
 using namespace anyMidi;
 
 CustomLookaAndFeel::CustomLookaAndFeel()
-{
-    setColour(juce::ResizableWindow::backgroundColourId, juce::Colours::yellow); // remove
-    
+{    
     // TABS
-    setColour(juce::TabbedComponent::outlineColourId, dimWhite);
-    setColour(juce::TabbedComponent::backgroundColourId, black);
+    setColour(juce::TabbedComponent::ColourIds::outlineColourId, white);
+    setColour(juce::TabbedComponent::ColourIds::backgroundColourId, white);
 
-    setColour(juce::TabbedButtonBar::tabOutlineColourId, dimWhite);
-    setColour(juce::TabbedButtonBar::tabTextColourId, dimWhite);
-    setColour(juce::TabbedButtonBar::frontTextColourId, white);
-    setColour(juce::TabbedButtonBar::frontOutlineColourId, white);
+    setColour(juce::TabbedButtonBar::ColourIds::tabOutlineColourId, gray);
+    setColour(juce::TabbedButtonBar::ColourIds::tabTextColourId, lightGray);
+    setColour(juce::TabbedButtonBar::ColourIds::frontTextColourId, black);
 
     // LABEL
-    setColour(juce::Label::textColourId, white);
+    setColour(juce::Label::textColourId, black);
 
     // SLIDER
-    setColour(juce::Slider::textBoxTextColourId, turquoise);
-    setColour(juce::Slider::trackColourId, turquoise);
-    setColour(juce::Slider::textBoxBackgroundColourId, gray);
+    setColour(juce::Slider::ColourIds::textBoxTextColourId, black); // Text sliders / boxes
+    setColour(juce::Slider::ColourIds::trackColourId, gray);
+    setColour(juce::Slider::ColourIds::backgroundColourId, lightGray);
+    setColour(juce::Slider::ColourIds::textBoxOutlineColourId, gray);
+    setColour(juce::Slider::ColourIds::thumbColourId, gray);
 
     // BUTTON
-    setColour(juce::TextButton::textColourOnId, turquoise);
-    setColour(juce::TextButton::textColourOffId, white);
-    setColour(juce::TextButton::buttonColourId, gray);
-    setColour(juce::TextButton::buttonOnColourId, gold);
+    setColour(juce::TextButton::ColourIds::textColourOffId, black);
+    setColour(juce::TextButton::ColourIds::buttonColourId, white);
+    setColour(juce::TextButton::ColourIds::buttonOnColourId, lightGray);
 
     // DROPDOWN MENU
-    setColour(juce::ComboBox::textColourId, white);
-    setColour(juce::ComboBox::backgroundColourId, gray);
-    //setColour(juce::ComboBox::buttonColourId, gray);
-    setColour(juce::ComboBox::arrowColourId, turquoise);
+    setColour(juce::ComboBox::ColourIds::textColourId, black);
+    setColour(juce::ComboBox::ColourIds::backgroundColourId, white);
+    setColour(juce::ComboBox::ColourIds::arrowColourId, black);
+    setColour(juce::ComboBox::ColourIds::outlineColourId, gray);
 
-    setColour(juce::PopupMenu::backgroundColourId, gray);
+    setColour(juce::PopupMenu::ColourIds::backgroundColourId, white);
+    setColour(juce::PopupMenu::ColourIds::textColourId, black);
+    setColour(juce::PopupMenu::ColourIds::highlightedBackgroundColourId, blue);
+    setColour(juce::PopupMenu::ColourIds::highlightedTextColourId, white);
 
     // Checkboxes
-    setColour(juce::ListBox::backgroundColourId, gray);
+    setColour(juce::ListBox::ColourIds::backgroundColourId, white);
+    setColour(juce::ListBox::ColourIds::textColourId, black);
+    setColour(juce::ListBox::ColourIds::outlineColourId, gray);
+
+    setColour(juce::ToggleButton::ColourIds::textColourId, black);
+    setColour(juce::ToggleButton::ColourIds::tickColourId, black);
+    setColour(juce::ToggleButton::ColourIds::tickDisabledColourId, gray);
 
     // TEXT BOX
-    setColour(juce::TextEditor::textColourId, white);
-    setColour(juce::TextEditor::backgroundColourId, gray);
+    setColour(juce::TextEditor::ColourIds::textColourId, black);
+    setColour(juce::TextEditor::ColourIds::backgroundColourId, white);
+    setColour(juce::TextEditor::ColourIds::outlineColourId, gray);
 }

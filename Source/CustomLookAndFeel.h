@@ -19,11 +19,10 @@ namespace anyMidi {
         CustomLookaAndFeel();
 
     private:
-        const juce::Colour black        { juce::Colour(34, 40, 49) };
-        const juce::Colour gray         { juce::Colour(57, 62, 70) };
-        const juce::Colour white        { juce::Colour(238, 238, 238) };
-        const juce::Colour dimWhite     { white.darker(0.5) };
-        const juce::Colour turquoise    { juce::Colour(127, 216, 190) };
-        const juce::Colour gold         { juce::Colour(255, 211, 105) };
+        const juce::Colour black        { juce::Colour(6, 7, 14) };
+        const juce::Colour gray         { juce::Colour(92, 92, 92) };
+        const juce::Colour lightGray    { juce::Colour(190, 190, 190) };
+        const juce::Colour white        { juce::Colour(242, 242, 242) };
+        const juce::Colour blue         { juce::Colour(97, 159, 209) };
     };
 }; // namespace anyMidi

@@ -44,7 +44,7 @@ AudioSetupPage::AudioSetupPage(juce::ValueTree v) :
             0,      // min input ch
             256,    // max input ch
             0,      // min output ch
-            0,    // max output ch
+            0,      // max output ch
             false,  // can select midi inputs?
             true,   // can select midi output device?
             false,  // treat channels as stereo pairs
@@ -167,36 +167,42 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
 
     // ATTACK THRESHOLD LABEL
     addAndMakeVisible(attThreshLabel);
-    attThreshLabel.setText("Attack Threshold", juce::dontSendNotification);
-    attThreshLabel.attachToComponent(&attThreshSlider, true);
+    attThreshLabel.setText("Attack thresh.", juce::dontSendNotification);
 
     // RELEASE THRESHOLD LABEL
     addAndMakeVisible(relThreshLabel);
-    relThreshLabel.setText("Release Threshold", juce::dontSendNotification);
-    relThreshLabel.attachToComponent(&relThreshSlider, true);
+    relThreshLabel.setText("Release thresh.", juce::dontSendNotification);
 
     // PARTIALS LABEL
     addAndMakeVisible(partialsLabel);
     partialsLabel.setText("Partials", juce::dontSendNotification);
-    partialsLabel.attachToComponent(&partialsSlider, true);
 
     // FILTER LABEL
     addAndMakeVisible(filterLabel);
     filterLabel.setText("Filter", juce::dontSendNotification);
-    filterLabel.attachToComponent(&filterSlider, true);
 }
 
 void AppSettingsPage::resized()
 {
     constexpr int buttonWidth = 100;
     constexpr int buttonHeight = 20;
+    constexpr int yPad = 40;
+    const int xPad = 20;
+    const int labelPad = xPad;
+    const int valPad = getWidth() / 3;
 
-    attThreshSlider.setBounds(100, 10, buttonWidth, buttonHeight);
-    relThreshSlider.setBounds(100, 50, buttonWidth, buttonHeight);
-    partialsSlider.setBounds(100, 90, buttonWidth, buttonHeight);
-    filterSlider.setBounds(100, 130, buttonWidth*2, buttonHeight);
-    loCutFreq.setBounds(100, 150, buttonWidth, buttonHeight);
-    hiCutFreq.setBounds(100+buttonWidth, 150, buttonWidth, buttonHeight);
+    attThreshLabel.setBounds(labelPad, yPad, buttonWidth, buttonHeight);
+    relThreshLabel.setBounds(labelPad, yPad + 2 * buttonHeight, buttonWidth, buttonHeight);
+    partialsLabel.setBounds(labelPad, yPad + 4 * buttonHeight, buttonWidth, buttonHeight);
+    filterLabel.setBounds(labelPad, yPad + 6 * buttonHeight, buttonWidth, buttonHeight);
+
+
+    attThreshSlider.setBounds(valPad, yPad, buttonWidth, buttonHeight);
+    relThreshSlider.setBounds(valPad, yPad + 2 * buttonHeight, buttonWidth, buttonHeight);
+    partialsSlider.setBounds(valPad, yPad + 4 * buttonHeight, buttonWidth, buttonHeight);
+    filterSlider.setBounds(valPad, yPad + 6 * buttonHeight, buttonWidth*2, buttonHeight);
+    loCutFreq.setBounds(valPad, yPad + 7.2 * buttonHeight, buttonWidth, buttonHeight);
+    hiCutFreq.setBounds(valPad + buttonWidth, yPad + 7.2 * buttonHeight, buttonWidth, buttonHeight);
 }
 
 

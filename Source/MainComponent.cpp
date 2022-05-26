@@ -12,7 +12,7 @@ MainComponent::MainComponent(juce::ValueTree v) :
 { 
     addAndMakeVisible(gui);
     setLookAndFeel(&layout);
-    setSize(500, 400);
+    setSize(400, 300);
 }
 
 MainComponent::~MainComponent()
