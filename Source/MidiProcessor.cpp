@@ -132,7 +132,10 @@ void MidiProcessor::pushBufferToOutput()
 
 void MidiProcessor::turnOffAllMessages()
 {
-    midiOut->sendMessageNow(juce::MidiMessage::allNotesOff(midiChannel));
+    if (midiOut)
+    {
+        midiOut->sendMessageNow(juce::MidiMessage::allNotesOff(midiChannel));
+    }
 }
 
 double MidiProcessor::getAttackThreshold() const
