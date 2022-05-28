@@ -138,7 +138,6 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
     addAndMakeVisible(filterSlider);
     filterSlider.setRange(20, 20000, 1);
     filterSlider.setSliderStyle(juce::Slider::TwoValueHorizontal);
-    // filterSlider.setVelocityBasedMode(true);
     filterSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 300, 1000);
 
     if (tree.hasProperty(anyMidi::LO_CUT_ID) && tree.hasProperty(anyMidi::HI_CUT_ID))
@@ -165,6 +164,25 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
     addAndMakeVisible(hiCutFreq);
     hiCutFreq.setReadOnly(true);
 
+    // WINDOWING METHODS
+    addAndMakeVisible(winMethodList);
+    auto winNode = tree.getChildWithName(anyMidi::ALL_WIN_ID);
+    for (int i = 0; i < winNode.getNumChildren(); ++i)
+    {
+        auto& method = winNode.getChild(i).getProperty(anyMidi::WIN_NAME_ID);
+
+        if (!method.toString().isEmpty())
+        {
+            winMethodList.addItem(method, i+1);
+        }
+    }
+    winMethodList.setSelectedId((int) tree.getProperty(anyMidi::CURRENT_WIN_ID) + 1);
+
+    winMethodList.onChange = [this]
+    {
+        tree.setProperty(anyMidi::CURRENT_WIN_ID, winMethodList.getSelectedId() - 1, nullptr);
+    };
+
     // ATTACK THRESHOLD LABEL
     addAndMakeVisible(attThreshLabel);
     attThreshLabel.setText("Attack thresh.", juce::dontSendNotification);
@@ -180,6 +198,10 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
     // FILTER LABEL
     addAndMakeVisible(filterLabel);
     filterLabel.setText("Filter", juce::dontSendNotification);
+
+    // Windowing method label
+    addAndMakeVisible(winMethodLabel);
+    winMethodLabel.setText("Window", juce::dontSendNotification);
 }
 
 void AppSettingsPage::resized()
@@ -195,14 +217,16 @@ void AppSettingsPage::resized()
     relThreshLabel.setBounds(labelPad, yPad + 2 * buttonHeight, buttonWidth, buttonHeight);
     partialsLabel.setBounds(labelPad, yPad + 4 * buttonHeight, buttonWidth, buttonHeight);
     filterLabel.setBounds(labelPad, yPad + 6 * buttonHeight, buttonWidth, buttonHeight);
+    winMethodLabel.setBounds(labelPad, yPad + 9 * buttonHeight, buttonWidth * 2, buttonHeight);
 
 
     attThreshSlider.setBounds(valPad, yPad, buttonWidth, buttonHeight);
     relThreshSlider.setBounds(valPad, yPad + 2 * buttonHeight, buttonWidth, buttonHeight);
     partialsSlider.setBounds(valPad, yPad + 4 * buttonHeight, buttonWidth, buttonHeight);
-    filterSlider.setBounds(valPad, yPad + 6 * buttonHeight, buttonWidth*2, buttonHeight);
+    filterSlider.setBounds(valPad, yPad + 6 * buttonHeight, buttonWidth * 2, buttonHeight);
     loCutFreq.setBounds(valPad, yPad + 7.2 * buttonHeight, buttonWidth, buttonHeight);
     hiCutFreq.setBounds(valPad + buttonWidth, yPad + 7.2 * buttonHeight, buttonWidth, buttonHeight);
+    winMethodList.setBounds(valPad, yPad + 9 * buttonHeight, buttonWidth * 2, buttonHeight);
 }
 
 
@@ -223,6 +247,12 @@ DebugPage::DebugPage(juce::ValueTree v) :
     outputBox.setCaretVisible(false);
     outputBox.setPopupMenuEnabled(true); 
     outputBox.setComponentID("output");
+    auto existingLog = tree.getParent().getChildWithName(anyMidi::GUI_ID).getProperty(anyMidi::LOG_ID).toString();
+    if (!existingLog.isEmpty())
+    {
+        outputBox.moveCaretToEnd();
+        outputBox.insertTextAtCaret(existingLog + juce::newLine);
+    }
 
     addAndMakeVisible(outputBoxLabel);
     outputBoxLabel.setText("Output log:", juce::dontSendNotification);
@@ -260,6 +290,7 @@ DebugPage::DebugPage(juce::ValueTree v) :
         auto xml = tree.getRoot().toXmlString();
         juce::File::getCurrentWorkingDirectory().getChildFile("ValueTree.xml").replaceWithText(xml);
 
+        // Reset the altered nodes.
         audioProcNode.setProperty(anyMidi::DEVICE_MANAGER_ID, deviceManager, nullptr);
     };
 }

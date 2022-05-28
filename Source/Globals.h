@@ -29,6 +29,11 @@ namespace anyMidi
     static const juce::Identifier HI_CUT_ID             { "HighCutFrequenzy" };
     static const juce::Identifier LOG_ID                { "Log" };
 
+    static const juce::Identifier ALL_WIN_ID            { "AllWindowFunc" };
+    static const juce::Identifier CURRENT_WIN_ID        { "CurrentWindowFunc" };
+    static const juce::Identifier WIN_NODE_ID           { "Window" };
+    static const juce::Identifier WIN_NAME_ID           { "WindowName" };
+
 
     
     // Logs any non-object juce::var to output on the debug tab.

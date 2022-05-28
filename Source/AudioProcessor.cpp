@@ -16,7 +16,7 @@ using namespace anyMidi;
 
 //==============================================================================
 AudioProcessor::AudioProcessor(juce::ValueTree v) :
-    fft{ 48000 },
+    fft{ 48000, juce::dsp::WindowingFunction<float>::hamming },
     midiProc{ 48000, juce::Time::getMillisecondCounterHiRes() * 0.001 },
     tree{ v }
 {
@@ -64,7 +64,18 @@ AudioProcessor::AudioProcessor(juce::ValueTree v) :
     guiNode.setProperty(anyMidi::PARTIALS_ID, numPartials, nullptr);
     guiNode.setProperty(anyMidi::LO_CUT_ID, lowFilterFreq, nullptr);
     guiNode.setProperty(anyMidi::HI_CUT_ID, highFilterFreq, nullptr);
-    
+
+    guiNode.setProperty(anyMidi::CURRENT_WIN_ID, fft.getWindowingFunction(), nullptr);
+
+    juce::ValueTree winNode{ anyMidi::ALL_WIN_ID };
+    guiNode.addChild(winNode, -1, nullptr);
+
+    auto win = fft.getAvailableWindowingMethods();
+    for (auto& w : win)
+    {
+        winNode.addChild((new juce::ValueTree(anyMidi::WIN_NODE_ID))->setProperty(anyMidi::WIN_NAME_ID, w, nullptr), -1, nullptr);
+    }
+
     // Register this class as listener to ValueTree.
     tree.addListener(this);
 }
@@ -230,8 +241,12 @@ void AudioProcessor::valueTreePropertyChanged(juce::ValueTree& treeWhoseProperty
     else if (property == anyMidi::LO_CUT_ID)
     {
         double f = treeWhosePropertyHasChanged.getProperty(property);
-        auto test = deviceManager.get()->getAudioDeviceSetup().sampleRate;
         hiPassFilter.setCoefficients(juce::IIRCoefficients::makeHighPass(deviceManager.get()->getAudioDeviceSetup().sampleRate, f));
+    }
+    else if (property == anyMidi::CURRENT_WIN_ID)
+    {
+        int w = treeWhosePropertyHasChanged.getProperty(property);
+        fft.setWindowingFunction(w);
     }
 }
 

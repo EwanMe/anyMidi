@@ -20,13 +20,18 @@ namespace anyMidi {
         static constexpr unsigned int fftSize = 1 << fftOrder;
 
     public:
-        ForwardFFT(const double sampleRate);
+        ForwardFFT(const double sampleRate, const juce::dsp::WindowingFunction<float>::WindowingMethod windowingMethod);
 
         void pushNextSampleIntoFifo(float sample);
 
         // Returns the FFT data array.
         std::array<float, fftSize * 2> getFFTData() const;
         int getFFTSize() const;
+
+        int getWindowingFunction() const;
+        juce::Array<juce::String> getAvailableWindowingMethods() const;
+        void setWindowingFunction(const int &id);
+
 
         // Calculates the fundamental frequency of the current FFT data array.
         std::pair<double, double> calcFundamentalFreq() const;
@@ -54,18 +59,24 @@ namespace anyMidi {
         std::array<float, fftSize * 2> fftData;
 
         juce::dsp::WindowingFunction<float> window;
-        static constexpr float windowCompensation{ 1.85 }; // 1.85 for Hamming window.
+        juce::dsp::WindowingFunction<float>::WindowingMethod winMethod;
+        float windowCompensation;
         
         const double sampleRate;
 
-        const std::map<juce::dsp::WindowingFunction<float>::WindowingMethod, float> Window{
-            {juce::dsp::WindowingFunction<float>::WindowingMethod::rectangular, 1.0},
-            {juce::dsp::WindowingFunction<float>::WindowingMethod::hann, 2.0},
-            {juce::dsp::WindowingFunction<float>::WindowingMethod::hamming, 1.85},
-            {juce::dsp::WindowingFunction<float>::WindowingMethod::blackman, 2.8},
-            {juce::dsp::WindowingFunction<float>::WindowingMethod::flatTop, 4.18},
-            {juce::dsp::WindowingFunction<float>::WindowingMethod::kaiser, 2.49},
+        const std::map<juce::dsp::WindowingFunction<float>::WindowingMethod, float> windowCompensations
+        {
+            // Correction factor for triangular and blackman-harris not entered
+            // These will not be put in the dropdown selection.
+            {juce::dsp::WindowingFunction<float>::rectangular, 1.0},
+            {juce::dsp::WindowingFunction<float>::hann, 2.0},
+            {juce::dsp::WindowingFunction<float>::hamming, 1.85},
+            {juce::dsp::WindowingFunction<float>::blackman, 2.8},
+            {juce::dsp::WindowingFunction<float>::flatTop, 4.18},
+            {juce::dsp::WindowingFunction<float>::kaiser, 2.49},
         };
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ForwardFFT)
     };
 
     // Finds nearest note among the provided note frequencies.

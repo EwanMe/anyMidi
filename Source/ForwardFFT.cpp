@@ -9,15 +9,20 @@
 */
 
 #include "ForwardFFT.h"
+#include "Globals.h"
+
 using namespace anyMidi;
 
-ForwardFFT::ForwardFFT(const double sampleRate)
+ForwardFFT::ForwardFFT(const double sampleRate, const juce::dsp::WindowingFunction<float>::WindowingMethod windowingMethod)
     : forwardFFT{ fftOrder },
     sampleRate{ sampleRate },
     // When initialising the windowing function, consider using fftSize + 1, ref. https://artandlogic.com/2019/11/making-spectrograms-in-juce/amp/
-    window{ fftSize + 1, juce::dsp::WindowingFunction<float>::hamming }
+    window{ fftSize + 1, windowingMethod },
+    winMethod{ windowingMethod }
 {
-
+    fftData.fill(0.0);
+    fifo.fill(0.0);
+    windowCompensation = windowCompensations.at(windowingMethod);
 }
 
 std::array<float, ForwardFFT::fftSize * 2> ForwardFFT::getFFTData() const
@@ -86,6 +91,68 @@ std::vector<std::pair<int, double>> ForwardFFT::getHarmonics(const unsigned int&
     cleanUpBins(data);
     auto notes = mapBinsToNotes(noteFreq, data);
     return determineHarmonics(numPartials, notes);
+}
+
+int ForwardFFT::getWindowingFunction() const 
+{
+    return winMethod;
+}
+
+void ForwardFFT::setWindowingFunction(const int& id)
+{
+    auto winMethod = juce::dsp::WindowingFunction<float>::WindowingMethod(id);
+    
+    this->winMethod = winMethod;
+    this->windowCompensation = windowCompensations.at(winMethod);
+    this->window.fillWindowingTables(fftSize + 1, winMethod);     
+}
+
+juce::Array<juce::String> ForwardFFT::getAvailableWindowingMethods() const
+{
+    juce::Array<juce::String> windowStrings;
+    windowStrings.resize(juce::dsp::WindowingFunction<float>::WindowingMethod::numWindowingMethods);
+    windowStrings.fill("");
+    
+    // Fill array with existing window method enums.
+    for (auto &w : windowCompensations)
+    {
+        juce::dsp::WindowingFunction<float>::WindowingMethod method = juce::dsp::WindowingFunction<float>::WindowingMethod::numWindowingMethods;
+        switch (w.first)
+        {
+        case juce::dsp::WindowingFunction<float>::rectangular:
+            method = juce::dsp::WindowingFunction<float>::rectangular;
+            break;
+        case juce::dsp::WindowingFunction<float>::triangular:
+            method = juce::dsp::WindowingFunction<float>::triangular;
+            break;
+        case juce::dsp::WindowingFunction<float>::hann:
+            method = juce::dsp::WindowingFunction<float>::hann;
+            break;
+        case juce::dsp::WindowingFunction<float>::hamming:
+            method = juce::dsp::WindowingFunction<float>::hamming;
+            break;
+        case juce::dsp::WindowingFunction<float>::blackman:
+            method = juce::dsp::WindowingFunction<float>::blackman;
+            break;
+        case juce::dsp::WindowingFunction<float>::blackmanHarris:
+            method = juce::dsp::WindowingFunction<float>::blackmanHarris;
+            break;
+        case juce::dsp::WindowingFunction<float>::flatTop:
+            method = juce::dsp::WindowingFunction<float>::flatTop;
+            break;
+        case juce::dsp::WindowingFunction<float>::kaiser:
+            method = juce::dsp::WindowingFunction<float>::kaiser;
+            break;
+        default:
+            break;
+        }
+
+        if (method < juce::dsp::WindowingFunction<float>::numWindowingMethods) {
+            windowStrings.insert(method, juce::dsp::WindowingFunction<float>::getWindowingMethodName(method));
+        }
+    }
+    
+    return windowStrings;
 }
 
 void ForwardFFT::cleanUpBins(std::array<float, fftSize*2>& data)

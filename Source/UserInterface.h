@@ -63,11 +63,13 @@ namespace anyMidi {
         juce::Slider filterSlider;
         juce::TextEditor loCutFreq;
         juce::TextEditor hiCutFreq;
+        juce::ComboBox winMethodList;
 
         juce::Label attThreshLabel;
         juce::Label relThreshLabel;
         juce::Label partialsLabel;
         juce::Label filterLabel;
+        juce::Label winMethodLabel;
 
         juce::ValueTree tree;
 
