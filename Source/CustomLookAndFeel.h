@@ -24,5 +24,7 @@ namespace anyMidi {
         const juce::Colour lightGray    { juce::Colour(190, 190, 190) };
         const juce::Colour white        { juce::Colour(242, 242, 242) };
         const juce::Colour blue         { juce::Colour(97, 159, 209) };
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CustomLookaAndFeel)
     };
 }; // namespace anyMidi

@@ -81,7 +81,7 @@ std::pair<double, double> ForwardFFT::calcFundamentalFreq() const
     }
 
     // Calculates frequency from bin number and accesses amplitude at bin number.
-    auto fundamental = std::make_pair((double)targetBin * sampleRate / (fftSize * 2), (double)(data[targetBin] / fftSize));
+    auto fundamental = std::make_pair<double, double>((double)targetBin * sampleRate / (fftSize * 2), (double)(data[targetBin] / fftSize));
     return fundamental;
 }
 
@@ -155,7 +155,7 @@ juce::Array<juce::String> ForwardFFT::getAvailableWindowingMethods() const
     return windowStrings;
 }
 
-void ForwardFFT::cleanUpBins(std::array<float, fftSize*2>& data)
+void ForwardFFT::cleanUpBins(std::array<float, fftSize * 2>& data)
 {
     constexpr double threshold{ 1.0 };
 
@@ -202,7 +202,7 @@ void ForwardFFT::cleanUpBins(std::array<float, fftSize*2>& data)
     }
 }
 
-std::vector<double> ForwardFFT::mapBinsToNotes(const std::vector<double>& noteFreq, std::array<float, fftSize * 2>& data)
+std::vector<double> ForwardFFT::mapBinsToNotes(const std::vector<double>& noteFreq, const std::array<float, fftSize * 2>& data)
 {
     // Determines closest note to all bins in FFT and maps bins to their correct frequencies.
     // The amplitudes of each bin is added onto the notes amplitude.
@@ -241,7 +241,7 @@ std::vector<std::pair<int, double>> ForwardFFT::determineHarmonics(const unsigne
         }
     }
 
-    // Transforms the priority queue into a vector.
+    // Transforms the priority queue into a variable size vector, since the number of partials may change.
     int k = queue.size();
     std::vector<std::pair<int, double>> harmonics;
     for (int i = 0; i < k; ++i)

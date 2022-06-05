@@ -149,10 +149,11 @@ void AudioProcessor::calcNote()
 {
     auto noteInfo = analyzeHarmonics(); // Gets {note, amplitude}
     int note = noteInfo.first;
-    // auto noteInfo = fft.calcFundamentalFreq();
-    // int note = findNearestNote(noteInfo.first);
     double amp = noteInfo.second;
     int velocity = (int)std::round(amp * 127);
+    
+    // auto noteInfo = fft.calcFundamentalFreq();
+    // int note = findNearestNote(noteInfo.first);
 
     std::vector<std::pair<int, bool>> noteValues;
     if (midiProc.determineNoteValue(note, amp, noteValues))
@@ -177,6 +178,7 @@ std::pair<int, double> AudioProcessor::analyzeHarmonics()
 
     std::map<int, double> scores;
     double totalAmp{ 0.0 };
+
     for (int i = 0; i < numPartials; ++i)
     {
         double freq = noteFrequencies[harmonics[i].first];
@@ -195,9 +197,10 @@ std::pair<int, double> AudioProcessor::analyzeHarmonics()
         totalAmp += harmonics[i].second;
     }
 
-    // Finds note with highest score.
     int correctNote{ 0 };
     double maxScore{ 0.0 };
+
+    // Finds note with highest score.
     for (std::pair<int, double> s : scores)
     {
         if (s.second > maxScore)
@@ -215,7 +218,11 @@ void AudioProcessor::setAudioChannels(int numInputChannels, int numOutputChannel
 {
     juce::String audioError = deviceManager->initialise(numInputChannels, numOutputChannels, xml, true);
 
-    jassert(audioError.isEmpty());
+    // jassert(audioError.isEmpty());
+    if (audioError.isEmpty())
+    {
+        anyMidi::log(tree, audioError);
+    }
 
     deviceManager->addAudioCallback(&audioSourcePlayer);
     audioSourcePlayer.setSource(this);

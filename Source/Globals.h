@@ -1,12 +1,12 @@
-/*
-  ==============================================================================
-
-    Globals.h
-    Created: 1 Jul 2021 3:52:32pm
-    Author:  Hallvard Jensen
-
-  ==============================================================================
-*/
+/**
+ *
+ *  @file      Globals.h
+ *  @brief     Collection of global constants and functions.
+ *  @author    Hallvard Jensen
+ *  @date      1 Jul 2021 3:52:32pm
+ *  @copyright © Hallvard Jensen, 2021. All right reserved.
+ *
+ */
 
 #pragma once
 
@@ -36,7 +36,11 @@ namespace anyMidi
 
 
     
-    // Logs any non-object juce::var to output on the debug tab.
+    /**
+     *  @brief Logs any non-object juce::var to output on the debug tab.
+     *  @param tree    - A value tree which contains a child with the log-property to pass messages to.
+     *  @param message - The message to log. Cannot be a juce object.
+     */
     inline void log(juce::ValueTree tree, juce::var message)
     {
         if (message.isObject())
@@ -46,7 +50,12 @@ namespace anyMidi
         tree.getRoot().getChildWithName(anyMidi::GUI_ID).setProperty(anyMidi::LOG_ID, message, nullptr);
     }
     
-    // Logs any type with overloaded operator<< to debug tab.
+    /**
+     *  @brief  Logs any type with overloaded operator<< to debug tab.
+     *  @tparam T       - Type of the message to be logged. The operator<< has to be defined.
+     *  @param  tree    - A value tree which contains a child with the log-property to pass messages to.
+     *  @param  message - The message to log.
+     */
     template<typename T>
     inline void log(juce::ValueTree tree, const T& message)
     {
