@@ -1,8 +1,7 @@
 /**
  *
  *  @file      UserInterface.h
- *  @brief     
- *  @details   ~
+ *  @brief     Various components making up the GUI of the application.
  *  @author    Hallvard Jensen
  *  @date      15 Jun 2021 12:27:27pm
  *  @copyright © Hallvard Jensen, 2021. All right reserved.

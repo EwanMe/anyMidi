@@ -1,12 +1,12 @@
-/*
-  ==============================================================================
+/**
+ *
+ *  @file      UserInterface.cpp
+ *  @author    Hallvard Jensen
+ *  @date      15 Jun 2021 12:27:45pm
+ *  @copyright © Hallvard Jensen, 2021. All right reserved.
+ *
+ */
 
-    appGUI.cpp
-    Created: 15 Jun 2021 12:27:45pm
-    Author:  Hallvard Jensen
-
-  ==============================================================================
-*/
 
 #include "UserInterface.h"
 #include "Globals.h"
@@ -14,8 +14,6 @@
 
 using namespace anyMidi;
 
-// =============================================================================
-// TABBED COMPONENT
 
 TabbedComp::TabbedComp(juce::ValueTree v) :
     TabbedComponent(juce::TabbedButtonBar::TabsAtTop),
@@ -27,12 +25,11 @@ TabbedComp::TabbedComp(juce::ValueTree v) :
     addTab("Debug", color, new DebugPage(tree), true);
 }
 
-// =============================================================================
-// AUDIO SETUP PAGE
 
 AudioSetupPage::AudioSetupPage(juce::ValueTree v) :
     tree{ v }        
 {
+    // Fetch audio device manager from the value tree.
     auto deviceManager = dynamic_cast<anyMidi::AudioDeviceManagerRCO*>
         (
             tree.getParent().getChildWithName(anyMidi::AUDIO_PROC_ID).getProperty(anyMidi::DEVICE_MANAGER_ID).getObject()
@@ -54,6 +51,7 @@ AudioSetupPage::AudioSetupPage(juce::ValueTree v) :
     addAndMakeVisible(*audioSetupComp);
 }
 
+
 AudioSetupPage::~AudioSetupPage()
 {
     auto audioDeviceSettings = audioSetupComp->deviceManager.createStateXml();
@@ -66,18 +64,17 @@ AudioSetupPage::~AudioSetupPage()
     }
 }
 
+
 void AudioSetupPage::resized()
 {
     audioSetupComp->setBounds(getLocalBounds().withWidth(getWidth()));
 }
 
-// =============================================================================
-// APP SETTINGS PAGE
 
 AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
     tree{ v }
 {
-    // ATTACK THRESHOLD SLIDER
+    // Attack treshold slider
     addAndMakeVisible(attThreshSlider);
     attThreshSlider.setRange(0, 1, 0.001);
     attThreshSlider.setSliderStyle(juce::Slider::LinearBarVertical);
@@ -90,13 +87,13 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
         attThreshSlider.setValue(tree.getProperty(anyMidi::ATTACK_THRESH_ID));
     }
 
+    // Callback
     attThreshSlider.onValueChange = [this]
     {
-        // Callback
         tree.setProperty(anyMidi::ATTACK_THRESH_ID, attThreshSlider.getValue(), nullptr);
     };
 
-    // RELEASE THRESHOLD SLIDER
+    // Release threshold slider
     addAndMakeVisible(relThreshSlider);
     relThreshSlider.setRange(0, 1, 0.001);
     relThreshSlider.setSliderStyle(juce::Slider::LinearBarVertical);
@@ -109,13 +106,13 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
         relThreshSlider.setValue(tree.getProperty(anyMidi::RELEASE_THRESH_ID));
     }
 
+    // Callback
     relThreshSlider.onValueChange = [this]
     {
-        // Callback
         tree.setProperty(anyMidi::RELEASE_THRESH_ID, relThreshSlider.getValue(), nullptr);
     };
 
-    // PARTIALS SLIDER
+    // Partials slider
     addAndMakeVisible(partialsSlider);
     partialsSlider.setRange(1, 10, 1);
     partialsSlider.setSliderStyle(juce::Slider::LinearBarVertical);
@@ -128,13 +125,13 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
         partialsSlider.setValue(tree.getProperty(anyMidi::PARTIALS_ID));
     }
     
+    // Callback
     partialsSlider.onValueChange = [this]
     {
-        // Callback
         tree.setProperty(anyMidi::PARTIALS_ID, static_cast<int>(partialsSlider.getValue()), nullptr);
     };
 
-    // FILTER SLIDERS
+    // Filter sliders
     addAndMakeVisible(filterSlider);
     filterSlider.setRange(20, 20000, 1);
     filterSlider.setSliderStyle(juce::Slider::TwoValueHorizontal);
@@ -145,9 +142,9 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
         filterSlider.setMinAndMaxValues(tree.getProperty(anyMidi::LO_CUT_ID), tree.getProperty(anyMidi::HI_CUT_ID));
     }
 
+    // Callback
     filterSlider.onValueChange = [this]
     {
-        // Callback
         juce::Value& loVal = filterSlider.getMinValueObject();
         juce::Value& hival = filterSlider.getMaxValueObject();
 
@@ -164,7 +161,7 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
     addAndMakeVisible(hiCutFreq);
     hiCutFreq.setReadOnly(true);
 
-    // WINDOWING METHODS
+    // Windowing methods
     addAndMakeVisible(winMethodList);
     auto winNode = tree.getChildWithName(anyMidi::ALL_WIN_ID);
     for (int i = 0; i < winNode.getNumChildren(); ++i)
@@ -183,19 +180,19 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
         tree.setProperty(anyMidi::CURRENT_WIN_ID, winMethodList.getSelectedId() - 1, nullptr);
     };
 
-    // ATTACK THRESHOLD LABEL
+    // Attack threshold label
     addAndMakeVisible(attThreshLabel);
     attThreshLabel.setText("Attack thresh.", juce::dontSendNotification);
 
-    // RELEASE THRESHOLD LABEL
+    // Release threshold label
     addAndMakeVisible(relThreshLabel);
     relThreshLabel.setText("Release thresh.", juce::dontSendNotification);
 
-    // PARTIALS LABEL
+    // Partials label
     addAndMakeVisible(partialsLabel);
     partialsLabel.setText("Partials", juce::dontSendNotification);
 
-    // FILTER LABEL
+    // Filter label
     addAndMakeVisible(filterLabel);
     filterLabel.setText("Filter", juce::dontSendNotification);
 
@@ -203,6 +200,7 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
     addAndMakeVisible(winMethodLabel);
     winMethodLabel.setText("Window", juce::dontSendNotification);
 }
+
 
 void AppSettingsPage::resized()
 {
@@ -229,9 +227,6 @@ void AppSettingsPage::resized()
     winMethodList.setBounds(valPad, yPad + 9 * buttonHeight, buttonWidth * 2, buttonHeight);
 }
 
-
-// =============================================================================
-// DEBUG PAGE
 
 DebugPage::DebugPage(juce::ValueTree v) :
     tree{ v }
@@ -295,12 +290,14 @@ DebugPage::DebugPage(juce::ValueTree v) :
     };
 }
 
+
 void DebugPage::resized()
 {    
     outputBox.setBounds(10, 25, getWidth() - 20, getHeight() / 2);
     clearOutput.setBounds(10, getHeight() / 2 + 40, 100, 30);
     writeToXml.setBounds(10, getHeight() / 2 + 80, 100, 30);
 }
+
 
 void DebugPage::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
 {

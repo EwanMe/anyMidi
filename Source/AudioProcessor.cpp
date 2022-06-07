@@ -1,12 +1,11 @@
-/*
-  ==============================================================================
-
-    AudioProcessor.cpp
-    Created: 22 Jun 2021 11:41:47pm
-    Author:  Hallvard Jensen
-
-  ==============================================================================
-*/
+/**
+ *
+ *  @file      AudioProcessor.cpp
+ *  @author    Hallvard Jensen
+ *  @date      22 Jun 2021 11:41:47pm
+ *  @copyright © Hallvard Jensen, 2022. All right reserved.
+ *
+ */
 
 #include <JuceHeader.h>
 #include "AudioProcessor.h"
@@ -14,7 +13,7 @@
 
 using namespace anyMidi;
 
-//==============================================================================
+
 AudioProcessor::AudioProcessor(juce::ValueTree v) :
     fft{ 48000, juce::dsp::WindowingFunction<float>::hamming },
     midiProc{ 48000, juce::Time::getMillisecondCounterHiRes() * 0.001 },
@@ -22,7 +21,7 @@ AudioProcessor::AudioProcessor(juce::ValueTree v) :
 {
     deviceManager = new anyMidi::AudioDeviceManagerRCO();
 
-    // Some platforms require permissions to open input channels so request that here.
+    // Some platforms require permissions to open input channels so requesting this here.
     if (juce::RuntimePermissions::isRequired(juce::RuntimePermissions::recordAudio)
         && !juce::RuntimePermissions::isGranted(juce::RuntimePermissions::recordAudio))
     {
@@ -31,7 +30,6 @@ AudioProcessor::AudioProcessor(juce::ValueTree v) :
     }
     else
     {
-        // Should maybe be added to above scope too?
         juce::File deviceSettingsFile = juce::File::getCurrentWorkingDirectory().getChildFile(anyMidi::AUDIO_SETTINGS_FILENAME);
 
         if (deviceSettingsFile.existsAsFile())
@@ -80,6 +78,7 @@ AudioProcessor::AudioProcessor(juce::ValueTree v) :
     tree.addListener(this);
 }
 
+
 AudioProcessor::~AudioProcessor()
 {
     audioSourcePlayer.setSource(nullptr);
@@ -90,6 +89,7 @@ AudioProcessor::~AudioProcessor()
     jassert(audioSourcePlayer.getCurrentSource() == nullptr);
 }
 
+
 void AudioProcessor::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
     processingBuffer.setSize(numInputChannels, samplesPerBlockExpected, false, true);
@@ -99,6 +99,7 @@ void AudioProcessor::prepareToPlay(int samplesPerBlockExpected, double sampleRat
     hiPassFilter.setCoefficients(juce::IIRCoefficients::makeHighPass(sampleRate, lowFilterFreq));
     hiPassFilter.reset();
 }
+
 
 void AudioProcessor::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
@@ -140,10 +141,12 @@ void AudioProcessor::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffe
     midiProc.pushBufferToOutput();
 }
 
+
 void AudioProcessor::releaseResources()
 {
     midiProc.turnOffAllMessages();
 }
+
 
 void AudioProcessor::calcNote()
 {
@@ -171,6 +174,7 @@ void AudioProcessor::calcNote()
         }
     }
 }
+
 
 std::pair<int, double> AudioProcessor::analyzeHarmonics()
 {
@@ -214,6 +218,7 @@ std::pair<int, double> AudioProcessor::analyzeHarmonics()
     return analyzedNote;
 }
 
+
 void AudioProcessor::setAudioChannels(int numInputChannels, int numOutputChannels, const juce::XmlElement* const xml)
 {
     juce::String audioError = deviceManager->initialise(numInputChannels, numOutputChannels, xml, true);
@@ -227,6 +232,7 @@ void AudioProcessor::setAudioChannels(int numInputChannels, int numOutputChannel
     deviceManager->addAudioCallback(&audioSourcePlayer);
     audioSourcePlayer.setSource(this);
 }
+
 
 void AudioProcessor::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
 {
@@ -256,6 +262,7 @@ void AudioProcessor::valueTreePropertyChanged(juce::ValueTree& treeWhoseProperty
         fft.setWindowingFunction(w);
     }
 }
+
 
 void AudioProcessor::setNumPartials(int& n)
 {

@@ -1,3 +1,13 @@
+/**
+ *
+ *  @file      MainComponent.h
+ *  @brief     Main GUI component of the applocation.
+ *  @author    Hallvard Jensen
+ *  @date      13 Feb 2021 8:29:21 pm
+ *  @copyright © Hallvard Jensen, 2021. All right reserved.
+ *
+ */
+
 #pragma once
 
 #include <JuceHeader.h>

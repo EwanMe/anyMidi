@@ -1,10 +1,13 @@
-/*
-  ==============================================================================
+/**
+ *
+ *  @file      Main.cpp
+ *  @brief     Start-up code for JUCE application.
+ *  @author    Hallvard Jensen
+ *  @date      13 Feb 2021 8:29:21 pm
+ *  @copyright © Hallvard Jensen, 2021. All right reserved.
+ *
+ */
 
-    This file contains the basic startup code for a JUCE application.
-
-  ==============================================================================
-*/
 
 #include <JuceHeader.h>
 #include "MainComponent.h"

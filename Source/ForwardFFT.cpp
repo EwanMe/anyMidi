@@ -1,17 +1,17 @@
-/*
-  ==============================================================================
-
-    ForwardFFT.cpp
-    Created: 3 Mar 2021 12:55:26pm
-    Author:  Hallvard Jensen
-
-  ==============================================================================
-*/
+/**
+ *
+ *  @file      ForwardFFT.cpp
+ *  @author    Hallvard Jensen
+ *  @date      3 Mar 2021 12:55:26pm
+ *  @copyright © Hallvard Jensen, 2021. All right reserved.
+ *
+ */
 
 #include "ForwardFFT.h"
 #include "Globals.h"
 
 using namespace anyMidi;
+
 
 ForwardFFT::ForwardFFT(const double sampleRate, const juce::dsp::WindowingFunction<float>::WindowingMethod windowingMethod)
     : forwardFFT{ fftOrder },
@@ -25,6 +25,7 @@ ForwardFFT::ForwardFFT(const double sampleRate, const juce::dsp::WindowingFuncti
     windowCompensation = windowCompensations.at(windowingMethod);
 }
 
+
 std::array<float, ForwardFFT::fftSize * 2> ForwardFFT::getFFTData() const
 {
     return fftData;
@@ -36,85 +37,24 @@ int ForwardFFT::getFFTSize() const
     return fftSize;
 }
 
-void ForwardFFT::pushNextSampleIntoFifo(float sample)
-{
-    // When fifo contains enough data, flag is set to say next frame should be rendered.
-    if (fifoIndex == fftSize)
-    {
-        if (!nextFFTBlockReady)
-        {
-            // Initializes fftData with zeroes.
-            std::fill(fftData.begin(), fftData.end(), 0.0f);
-            // Copies the data from the fifo into fftData.
-            std::copy(fifo.begin(), fifo.end(), fftData.begin());
-            // Sets flag.
-            nextFFTBlockReady = true;
-
-            // Perform windowing and forward FFT.
-            window.multiplyWithWindowingTable(fftData.data(), fftSize);
-            forwardFFT.performFrequencyOnlyForwardTransform(fftData.data());
-            
-            // Amplitude compensation for window function.
-            juce::detail::FloatVectorOperationsBase<float, size_t>::multiply(fftData.data(), windowCompensation, fftSize);
-        }
-
-        fifoIndex = 0;
-    }
-
-    fifo[fifoIndex++] = sample;
-}
-
-std::pair<double, double> ForwardFFT::calcFundamentalFreq() const
-{
-    double max{ 0 };
-    unsigned int targetBin{ 0 }; // Location of fund. freq. will be stored here.
-    auto data = getFFTData();
-
-    // Finds fft bin with most energy.
-    for (unsigned int i = 0; i < getFFTSize(); ++i)
-    {
-        if (max < data[i])
-        {
-            max = data[i];
-            targetBin = i;
-        }
-    }
-
-    // Calculates frequency from bin number and accesses amplitude at bin number.
-    auto fundamental = std::make_pair<double, double>((double)targetBin * sampleRate / (fftSize * 2), (double)(data[targetBin] / fftSize));
-    return fundamental;
-}
-
-std::vector<std::pair<int, double>> ForwardFFT::getHarmonics(const unsigned int& numPartials, const std::vector<double>& noteFreq)
-{
-    auto data = getFFTData();
-    cleanUpBins(data);
-    auto notes = mapBinsToNotes(noteFreq, data);
-    return determineHarmonics(numPartials, notes);
-}
-
-int ForwardFFT::getWindowingFunction() const 
-{
-    return winMethod;
-}
-
 void ForwardFFT::setWindowingFunction(const int& id)
 {
     auto winMethod = juce::dsp::WindowingFunction<float>::WindowingMethod(id);
-    
+
     this->winMethod = winMethod;
     this->windowCompensation = windowCompensations.at(winMethod);
-    this->window.fillWindowingTables(fftSize + 1, winMethod);     
+    this->window.fillWindowingTables(fftSize + 1, winMethod);
 }
+
 
 juce::Array<juce::String> ForwardFFT::getAvailableWindowingMethods() const
 {
     juce::Array<juce::String> windowStrings;
     windowStrings.resize(juce::dsp::WindowingFunction<float>::WindowingMethod::numWindowingMethods);
     windowStrings.fill("");
-    
+
     // Fill array with existing window method enums.
-    for (auto &w : windowCompensations)
+    for (auto& w : windowCompensations)
     {
         juce::dsp::WindowingFunction<float>::WindowingMethod method = juce::dsp::WindowingFunction<float>::WindowingMethod::numWindowingMethods;
         switch (w.first)
@@ -151,9 +91,76 @@ juce::Array<juce::String> ForwardFFT::getAvailableWindowingMethods() const
             windowStrings.insert(method, juce::dsp::WindowingFunction<float>::getWindowingMethodName(method));
         }
     }
-    
+
     return windowStrings;
 }
+
+
+void ForwardFFT::pushNextSampleIntoFifo(float sample)
+{
+    // When fifo contains enough data, flag is set to say next frame should be rendered.
+    if (fifoIndex == fftSize)
+    {
+        if (!nextFFTBlockReady)
+        {
+            // Initializes fftData with zeroes.
+            std::fill(fftData.begin(), fftData.end(), 0.0f);
+            // Copies the data from the fifo into fftData.
+            std::copy(fifo.begin(), fifo.end(), fftData.begin());
+            // Sets flag.
+            nextFFTBlockReady = true;
+
+            // Perform windowing and forward FFT.
+            window.multiplyWithWindowingTable(fftData.data(), fftSize);
+            forwardFFT.performFrequencyOnlyForwardTransform(fftData.data());
+            
+            // Amplitude compensation for window function.
+            juce::detail::FloatVectorOperationsBase<float, size_t>::multiply(fftData.data(), windowCompensation, fftSize);
+        }
+
+        fifoIndex = 0;
+    }
+
+    fifo[fifoIndex++] = sample;
+}
+
+
+std::pair<double, double> ForwardFFT::calcFundamentalFreq() const
+{
+    double max{ 0 };
+    unsigned int targetBin{ 0 }; // Location of fund. freq. will be stored here.
+    auto data = getFFTData();
+
+    // Finds fft bin with most energy.
+    for (unsigned int i = 0; i < getFFTSize(); ++i)
+    {
+        if (max < data[i])
+        {
+            max = data[i];
+            targetBin = i;
+        }
+    }
+
+    // Calculates frequency from bin number and accesses amplitude at bin number.
+    auto fundamental = std::make_pair<double, double>((double)targetBin * sampleRate / (fftSize * 2), (double)(data[targetBin] / fftSize));
+    return fundamental;
+}
+
+
+std::vector<std::pair<int, double>> ForwardFFT::getHarmonics(const unsigned int& numPartials, const std::vector<double>& noteFreq)
+{
+    auto data = getFFTData();
+    cleanUpBins(data);
+    auto notes = mapBinsToNotes(noteFreq, data);
+    return determineHarmonics(numPartials, notes);
+}
+
+
+int ForwardFFT::getWindowingFunction() const 
+{
+    return winMethod;
+}
+
 
 void ForwardFFT::cleanUpBins(std::array<float, fftSize * 2>& data)
 {
@@ -202,6 +209,7 @@ void ForwardFFT::cleanUpBins(std::array<float, fftSize * 2>& data)
     }
 }
 
+
 std::vector<double> ForwardFFT::mapBinsToNotes(const std::vector<double>& noteFreq, const std::array<float, fftSize * 2>& data)
 {
     // Determines closest note to all bins in FFT and maps bins to their correct frequencies.
@@ -218,6 +226,7 @@ std::vector<double> ForwardFFT::mapBinsToNotes(const std::vector<double>& noteFr
 
     return amps;
 }
+
 
 std::vector<std::pair<int, double>> ForwardFFT::determineHarmonics(const unsigned int& numPartials, std::vector<double>& amps) const
 {
@@ -261,6 +270,7 @@ std::vector<std::pair<int, double>> ForwardFFT::determineHarmonics(const unsigne
 
     return harmonics;
 }
+
 
 int anyMidi::findNearestNote(const double& target, const std::vector<double>& noteFrequencies)
 {

@@ -1,16 +1,16 @@
-/*
-  ==============================================================================
-
-    CustomLookAndFeel.cpp
-    Created: 8 Aug 2021 3:09:40pm
-    Author:  Hallvard Jensen
-
-  ==============================================================================
-*/
+/**
+ *
+ *  @file      CustomLookAndFeel.cpp
+ *  @author    Hallvard Jensen
+ *  @date      8 Aug 2021 3:09:40pm
+ *  @copyright © Hallvard Jensen, 2021. All right reserved.
+ *
+ */
 
 #include "CustomLookAndFeel.h"
 
 using namespace anyMidi;
+
 
 CustomLookaAndFeel::CustomLookaAndFeel()
 {    

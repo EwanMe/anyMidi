@@ -52,7 +52,7 @@ namespace anyMidi {
          *  @param  note       - Midi note value.
          *  @param  amp        - Amplitude of the midi note.
          *  @param  noteValues - A return vector in which determined midi notes are placed.
-         *  @retval            - Signals if there is need to create new midi messages.
+         *  @retval            - Flag signaling if there is need to create new midi messages.
          */
         bool determineNoteValue(const unsigned int& note, const double& amp, std::vector<std::pair<int, bool>>& noteValues);
 
