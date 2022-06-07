@@ -1,0 +1,44 @@
+name: CI
+
+env:
+  DOCS_FOLDER: "doxygen/docs/html"
+  BRANCH: "master"
+
+on:
+  push:
+    branches: [ $BRANCH ]
+
+  workflow_dispatch:
+  
+permissions: create
+
+jobs:
+  docs:
+    name: Building Doxygen documentation
+    concurrency: ci-${{ github.ref }}
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+      - uses: actions/checkout@v3
+      
+      - name: Install Doxygen
+        run: sudo apt-get install doxygen -y
+        shell: bash
+
+      - name: Build Doxygen documentation
+        run: |
+          cd doxygen
+          doxygen Doxyfile
+        shell: bash
+        
+      - name: Create .nojekyll
+        run: touch ${{ env.DOCS_FOLDER }}/.nojekyll
+        shell: bash
+        
+      - name: Deploy to Github pages
+        uses: JamesIves/github-pages-deploy-action@4.3.3
+        with:
+          branch: ${{ env.BRANCH }}
+          folder: ${{ env.DOCS_FOLDER }}
+
