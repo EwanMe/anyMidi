@@ -19,7 +19,7 @@ TabbedComp::TabbedComp(juce::ValueTree v) :
     TabbedComponent(juce::TabbedButtonBar::TabsAtTop),
     tree{ v }
 {
-    auto color = findColour(juce::TabbedComponent::backgroundColourId);
+    auto color = getLookAndFeel().findColour(juce::TabbedComponent::backgroundColourId);
     addTab("App Settings", color, new AppSettingsPage(tree), true);
     addTab("Audio Settings", color, new AudioSetupPage(tree), true);
     addTab("Debug", color, new DebugPage(tree), true);
@@ -156,10 +156,19 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
     };
 
     addAndMakeVisible(loCutFreq);
-    loCutFreq.setReadOnly(true);
-
+    loCutFreq.setInputRestrictions(10, "0123456789.");
+    loCutFreq.onReturnKey = [this]
+    {
+        double val = std::stod(loCutFreq.getTextValue().toString().toStdString());
+        anyMidi::log(tree, val);
+    };
+    /*loCutFreq.focusGained() = [this]
+    {
+        loCutFreq.setHighlightedRegion(juce::Range<int>(0, loCutFreq.getText().length()));
+    };*/
+    
     addAndMakeVisible(hiCutFreq);
-    hiCutFreq.setReadOnly(true);
+    //hiCutFreq.setReadOnly(true);
 
     // Windowing methods
     addAndMakeVisible(winMethodList);
@@ -204,27 +213,27 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
 
 void AppSettingsPage::resized()
 {
-    constexpr int buttonWidth = 100;
-    constexpr int buttonHeight = 20;
+    constexpr int elementWidth = 100;
+    constexpr int elementHeight = 20;
     constexpr int yPad = 40;
-    const int xPad = 20;
+    constexpr int xPad = 20;
     const int labelPad = xPad;
     const int valPad = getWidth() / 3;
 
-    attThreshLabel.setBounds(labelPad, yPad, buttonWidth, buttonHeight);
-    relThreshLabel.setBounds(labelPad, yPad + 2 * buttonHeight, buttonWidth, buttonHeight);
-    partialsLabel.setBounds(labelPad, yPad + 4 * buttonHeight, buttonWidth, buttonHeight);
-    filterLabel.setBounds(labelPad, yPad + 6 * buttonHeight, buttonWidth, buttonHeight);
-    winMethodLabel.setBounds(labelPad, yPad + 9 * buttonHeight, buttonWidth * 2, buttonHeight);
+    attThreshLabel.setBounds(labelPad, yPad, elementWidth, elementHeight);
+    relThreshLabel.setBounds(labelPad, yPad + 2 * elementHeight, elementWidth, elementHeight);
+    partialsLabel.setBounds(labelPad, yPad + 4 * elementHeight, elementWidth, elementHeight);
+    filterLabel.setBounds(labelPad, yPad + 6 * elementHeight, elementWidth, elementHeight);
+    winMethodLabel.setBounds(labelPad, yPad + 9 * elementHeight, elementWidth * 2, elementHeight);
 
 
-    attThreshSlider.setBounds(valPad, yPad, buttonWidth, buttonHeight);
-    relThreshSlider.setBounds(valPad, yPad + 2 * buttonHeight, buttonWidth, buttonHeight);
-    partialsSlider.setBounds(valPad, yPad + 4 * buttonHeight, buttonWidth, buttonHeight);
-    filterSlider.setBounds(valPad, yPad + 6 * buttonHeight, buttonWidth * 2, buttonHeight);
-    loCutFreq.setBounds(valPad, yPad + 7.2 * buttonHeight, buttonWidth, buttonHeight);
-    hiCutFreq.setBounds(valPad + buttonWidth, yPad + 7.2 * buttonHeight, buttonWidth, buttonHeight);
-    winMethodList.setBounds(valPad, yPad + 9 * buttonHeight, buttonWidth * 2, buttonHeight);
+    attThreshSlider.setBounds(valPad, yPad, elementWidth, elementHeight);
+    relThreshSlider.setBounds(valPad, yPad + 2 * elementHeight, elementWidth, elementHeight);
+    partialsSlider.setBounds(valPad, yPad + 4 * elementHeight, elementWidth, elementHeight);
+    filterSlider.setBounds(valPad, yPad + 6 * elementHeight, elementWidth * 2, elementHeight);
+    loCutFreq.setBounds(valPad, yPad + 7.2 * elementHeight, elementWidth, elementHeight);
+    hiCutFreq.setBounds(valPad + elementWidth, yPad + 7.2 * elementHeight, elementWidth, elementHeight);
+    winMethodList.setBounds(valPad, yPad + 9 * elementHeight, elementWidth * 2, elementHeight);
 }
 
 
@@ -241,7 +250,7 @@ DebugPage::DebugPage(juce::ValueTree v) :
     outputBox.setScrollbarsShown(true);
     outputBox.setCaretVisible(false);
     outputBox.setPopupMenuEnabled(true); 
-    outputBox.setComponentID("output");
+    //outputBox.setComponentID("output");
     auto existingLog = tree.getParent().getChildWithName(anyMidi::GUI_ID).getProperty(anyMidi::LOG_ID).toString();
     if (!existingLog.isEmpty())
     {
@@ -303,6 +312,9 @@ void DebugPage::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasCh
 {
     if (property == anyMidi::LOG_ID)
     {
+        // TODO: NOT WORKING!!!
+        outputBox.applyColourToAllText(getLookAndFeel().findColour(juce::TextEditor::textColourId), true);
+
         juce::String message = treeWhosePropertyHasChanged.getProperty(property).toString();
         outputBox.moveCaretToEnd();
         outputBox.insertTextAtCaret(message + juce::newLine);

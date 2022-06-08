@@ -13,7 +13,7 @@ using namespace anyMidi;
 
 
 CustomLookaAndFeel::CustomLookaAndFeel()
-{    
+{
     // Tabs
     setColour(juce::TabbedComponent::ColourIds::outlineColourId, white);
     setColour(juce::TabbedComponent::ColourIds::backgroundColourId, white);
@@ -23,14 +23,14 @@ CustomLookaAndFeel::CustomLookaAndFeel()
     setColour(juce::TabbedButtonBar::ColourIds::frontTextColourId, black);
 
     // Label
-    setColour(juce::Label::textColourId, black);
+    setColour(juce::Label::ColourIds::textColourId, black);
 
     // Slider
     setColour(juce::Slider::ColourIds::textBoxTextColourId, black); // Text sliders / boxes
-    setColour(juce::Slider::ColourIds::trackColourId, gray);
+    setColour(juce::Slider::ColourIds::trackColourId, blue);
     setColour(juce::Slider::ColourIds::backgroundColourId, lightGray);
     setColour(juce::Slider::ColourIds::textBoxOutlineColourId, gray);
-    setColour(juce::Slider::ColourIds::thumbColourId, gray);
+    setColour(juce::Slider::ColourIds::thumbColourId, blue);
 
     // Button
     setColour(juce::TextButton::ColourIds::textColourOffId, black);
@@ -58,9 +58,11 @@ CustomLookaAndFeel::CustomLookaAndFeel()
     setColour(juce::ToggleButton::ColourIds::tickDisabledColourId, gray);
 
     // Text box
-    setColour(juce::TextEditor::ColourIds::textColourId, black);
     setColour(juce::TextEditor::ColourIds::backgroundColourId, white);
     setColour(juce::TextEditor::ColourIds::outlineColourId, gray);
-    setColour(juce::TextEditor::ColourIds::highlightColourId, black);
+    setColour(juce::TextEditor::ColourIds::highlightColourId, blue);
     setColour(juce::TextEditor::ColourIds::highlightedTextColourId, white);
+    setColour(juce::TextEditor::ColourIds::textColourId, black);
+
+    setColour(juce::CaretComponent::ColourIds::caretColourId, blue);
 }
