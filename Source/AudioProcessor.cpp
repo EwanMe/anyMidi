@@ -69,9 +69,10 @@ AudioProcessor::AudioProcessor(juce::ValueTree v) :
     guiNode.addChild(winNode, -1, nullptr);
 
     auto win = fft.getAvailableWindowingMethods();
-    for (auto& w : win)
+    for (juce::String w : win)
     {
-        winNode.addChild((new juce::ValueTree(anyMidi::WIN_NODE_ID))->setProperty(anyMidi::WIN_NAME_ID, w, nullptr), -1, nullptr);
+        juce::ValueTree winItemNode{ anyMidi::WIN_NODE_ID };
+        winNode.addChild(winItemNode.setProperty(anyMidi::WIN_NAME_ID, w, nullptr), -1, nullptr);
     }
 
     // Register this class as listener to ValueTree.
