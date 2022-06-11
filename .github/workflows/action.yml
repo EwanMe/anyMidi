@@ -10,7 +10,8 @@ on:
 
   workflow_dispatch:
 
-# permissions: create
+permissions: 
+  contents: write
 
 jobs:
   docs:
@@ -37,7 +38,7 @@ jobs:
         shell: bash
 
       - name: Deploy to Github pages
-        uses: JamesIves/github-pages-deploy-action@4.3.3
+        uses: JamesIves/github-pages-deploy-action@v4.3.3
         with:
           branch: ${{ env.BRANCH }}
           folder: ${{ env.DOCS_FOLDER }}
