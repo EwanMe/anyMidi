@@ -119,12 +119,12 @@ namespace anyMidi {
         {
             // Correction factor for triangular and blackman-harris not entered
             // These will not be put in the dropdown selection.
-            {juce::dsp::WindowingFunction<float>::rectangular, 1.0},
-            {juce::dsp::WindowingFunction<float>::hann, 2.0},
-            {juce::dsp::WindowingFunction<float>::hamming, 1.85},
-            {juce::dsp::WindowingFunction<float>::blackman, 2.8},
-            {juce::dsp::WindowingFunction<float>::flatTop, 4.18},
-            {juce::dsp::WindowingFunction<float>::kaiser, 2.49},
+            { juce::dsp::WindowingFunction<float>::rectangular, 1.0 },
+            { juce::dsp::WindowingFunction<float>::hann, 2.0 },
+            { juce::dsp::WindowingFunction<float>::hamming, 1.85 },
+            { juce::dsp::WindowingFunction<float>::blackman, 2.8 },
+            { juce::dsp::WindowingFunction<float>::flatTop, 4.18 },
+            { juce::dsp::WindowingFunction<float>::kaiser, 2.49 },
         };
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ForwardFFT)

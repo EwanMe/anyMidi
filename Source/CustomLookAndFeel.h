@@ -27,14 +27,34 @@ namespace anyMidi {
 
         CustomLookaAndFeel();
 
+        enum ColorGroup
+        {
+            BackgroundPrimary,
+            BackgroundSecondary,
+            TextPrimary,
+            TextSecondary,
+            Outline,
+            Active
+        };
+
 
     private:
 
         const juce::Colour black        { juce::Colour(10, 10, 10) };
-        const juce::Colour gray         { juce::Colour(41, 41, 41) };
-        const juce::Colour lightGray    { juce::Colour(71, 71, 71) };
-        const juce::Colour white        { juce::Colour(251, 255, 254) };
-        const juce::Colour blue         { juce::Colour(68, 157, 209) };
+        const juce::Colour gray         { juce::Colour(33, 33, 36) };
+        const juce::Colour lightGray    { juce::Colour(100, 100, 100) };
+        const juce::Colour white        { juce::Colour(241, 241, 241) };
+        const juce::Colour blue         { juce::Colour(5, 151, 250) };
+
+        const std::map<ColorGroup, juce::Colour> palette = std::map<ColorGroup, juce::Colour>
+        {
+            { ColorGroup::BackgroundPrimary, gray },
+            { ColorGroup::BackgroundSecondary, black },
+            { ColorGroup::TextPrimary, white },
+            { ColorGroup::TextSecondary, lightGray },
+            { ColorGroup::Outline, lightGray },
+            { ColorGroup::Active, blue }
+        };
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CustomLookaAndFeel)
 
