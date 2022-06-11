@@ -10,7 +10,7 @@ on:
 
   workflow_dispatch:
 
-permissions: create
+# permissions: create
 
 jobs:
   docs:
