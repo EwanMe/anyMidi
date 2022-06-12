@@ -1,32 +1,45 @@
+/**
+ *
+ *  @file      MainComponent.h
+ *  @brief     Main GUI component of the applocation.
+ *  @author    Hallvard Jensen
+ *  @date      13 Feb 2021 8:29:21 pm
+ *  @copyright © Hallvard Jensen, 2021. All right reserved.
+ *
+ */
+
 #pragma once
 
 #include <JuceHeader.h>
-#include <fstream>
-#include "appGUI.h"
+#include "CustomLookAndFeel.h"
+#include "UserInterface.h"
 
 namespace anyMidi {
-    //==============================================================================
+
+    /**
+     *
+     *  @class   MainComponent
+     *  @brief   Main manager for the applications graphical user interface.
+     *
+     */
     class MainComponent : public juce::Component
     {
-    public:
-        //==============================================================================
-        MainComponent(juce::ValueTree v);
 
-        //==============================================================================
+    public:
+        MainComponent(juce::ValueTree v);
+        
+        ~MainComponent() override;
+
         void paint(juce::Graphics& g) override;
+        
         void resized() override;
 
-        //==============================================================================
-        // Logging function for debugging purposes.
-        void log(const juce::MidiMessage& midiMessage);
-
-        template<typename T>
-        void log(T msg);
 
     private:
-        //==============================================================================
+
         juce::ValueTree tree;
-        std::unique_ptr<anyMidi::TabbedComp> gui;
+        anyMidi::CustomLookaAndFeel layout;
+        anyMidi::TabbedComp gui;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
     };
