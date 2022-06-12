@@ -2,9 +2,6 @@
 
 This project aims to convert audio into MIDI notes with the help of FFT and harmonics analysis. Work on this project started as a part of my bachelor thesis in the field of music technology at the [Norwegian University of Science and Technology (NTNU)](https://www.ntnu.edu/), Trondheim, Norway. Basic functionality was achieved for the presentation of my thesis in June 2021. After that, work has continued on the project at a slower pace, seeking to improve upon the achievements of my thesis.
 
-## :goal_net: Current goal
-Create a better GUI which lets users test different settings for FFT and MIDI, among other things.
-
 ## :computer: How to get the project running
 
 ### :books: Requirements
