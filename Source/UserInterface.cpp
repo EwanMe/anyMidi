@@ -155,20 +155,55 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
         hiCutFreq.setText(hival.toString() + " Hz");
     };
 
+    // Low cut frequency
     addAndMakeVisible(loCutFreq);
     loCutFreq.setInputRestrictions(10, "0123456789.");
+    loCutFreq.setSelectAllWhenFocused(true);
+    
     loCutFreq.onReturnKey = [this]
     {
-        double val = std::stod(loCutFreq.getTextValue().toString().toStdString());
-        anyMidi::log(tree, val);
+        double newValue = std::stod(loCutFreq.getTextValue().toString().toStdString());
+
+        std::stringstream ss;
+        ss << std::fixed << std::setprecision(1);
+        if (newValue <= filterSlider.getMaxValue())
+        {
+            filterSlider.setMinValue(newValue);
+
+            ss << newValue << " Hz";
+            loCutFreq.setText(ss.str());
+        }
+        else
+        {
+            ss << filterSlider.getMinValue() << " Hz";
+            loCutFreq.setText(ss.str());
+        }
     };
-    /*loCutFreq.focusGained() = [this]
-    {
-        loCutFreq.setHighlightedRegion(juce::Range<int>(0, loCutFreq.getText().length()));
-    };*/
     
+    // High cut frequency
     addAndMakeVisible(hiCutFreq);
-    //hiCutFreq.setReadOnly(true);
+    hiCutFreq.setInputRestrictions(10, "0123456789.");
+    hiCutFreq.setSelectAllWhenFocused(true);
+
+    hiCutFreq.onReturnKey = [this]
+    {
+        double newValue = std::stod(hiCutFreq.getTextValue().toString().toStdString());
+
+        std::stringstream ss;
+        ss << std::fixed << std::setprecision(1);
+        if (newValue >= filterSlider.getMinValue())
+        {
+            filterSlider.setMaxValue(newValue);
+
+            ss << newValue << " Hz";
+            hiCutFreq.setText(ss.str());
+        }
+        else
+        {
+            ss << filterSlider.getMaxValue() << " Hz";
+            hiCutFreq.setText(ss.str());
+        }
+    };
 
     // Windowing methods
     addAndMakeVisible(winMethodList);
@@ -312,7 +347,7 @@ void DebugPage::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasCh
 {
     if (property == anyMidi::LOG_ID)
     {
-        // TODO: NOT WORKING!!!
+        // TODO: Color is not applied here, default color is used.
         outputBox.applyColourToAllText(getLookAndFeel().findColour(juce::TextEditor::textColourId), true);
 
         juce::String message = treeWhosePropertyHasChanged.getProperty(property).toString();

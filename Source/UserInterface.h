@@ -12,6 +12,7 @@
 
 #include <JuceHeader.h>
 
+
 namespace anyMidi {
 
     /**
@@ -81,7 +82,6 @@ namespace anyMidi {
 
 
         juce::TextEditor output;
-
 
     private:
 
