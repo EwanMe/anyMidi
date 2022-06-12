@@ -2,11 +2,11 @@ name: CI
 
 env:
   DOCS_FOLDER: 'doxygen/docs/html'
-  BRANCH: 'master'
+  TARGET_BRANCH: 'doxygen_pages'
 
 on:
   push:
-    branches: [$BRANCH]
+    branches: 'master'
 
   workflow_dispatch:
 
@@ -40,5 +40,5 @@ jobs:
       - name: Deploy to Github pages
         uses: JamesIves/github-pages-deploy-action@v4.3.3
         with:
-          branch: ${{ env.BRANCH }}
+          branch: ${{ env.TARGET_BRANCH }}
           folder: ${{ env.DOCS_FOLDER }}
