@@ -2,6 +2,10 @@
 
 This project aims to convert audio into MIDI notes with the help of FFT and harmonics analysis. Work on this project started as a part of my bachelor thesis in the field of music technology at the [Norwegian University of Science and Technology (NTNU)](https://www.ntnu.edu/), Trondheim, Norway. Basic functionality was achieved for the presentation of my thesis in June 2021. After that, work has continued on the project at a slower pace, seeking to improve upon the achievements of my thesis.
 
+## :memo: Documentation
+
+Doxygen documentation is built to the branch [doxygen_pages](https://github.com/EwanMe/anyMidi/tree/doxygen_pages), and can be view at [ewanme.github.io/anymidi](https://ewanme.github.io/anyMidi).
+
 ## :computer: How to get the project running
 
 ### :books: Requirements
