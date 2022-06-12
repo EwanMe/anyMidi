@@ -21,7 +21,7 @@ MainComponent::MainComponent(juce::ValueTree v) :
 { 
     addAndMakeVisible(gui);
     setLookAndFeel(&layout);
-    setSize(400, 300);
+    setSize(400, 290);
 }
 
 

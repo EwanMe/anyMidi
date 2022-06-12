@@ -61,7 +61,7 @@ namespace anyMidi
     {
         std::stringstream ss;
         ss << message;
-        juce::var msgVar = ss.str();
+        juce::var msgVar = juce::String(ss.str());
         anyMidi::log(tree, msgVar);
     }
 };

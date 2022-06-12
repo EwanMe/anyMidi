@@ -16,6 +16,19 @@
 namespace anyMidi {
 
     /**
+     * User interface constants.
+    */
+
+    constexpr int elementWidth = 100;
+    constexpr int elementHeight = 20;
+    constexpr int buttonWidth = elementWidth;
+    constexpr int buttonHeight = 30;
+    constexpr int yPad = 30;
+    constexpr int xPad = 20;
+    constexpr int labelPad = xPad;
+    
+
+    /**
      *
      *  @class   TabbedComp
      *  @brief   Main UI component of the application, providing different tabs

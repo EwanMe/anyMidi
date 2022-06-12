@@ -160,6 +160,7 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
     loCutFreq.setInputRestrictions(10, "0123456789.");
     loCutFreq.setSelectAllWhenFocused(true);
     
+    // Update min slider and format text on Enter
     loCutFreq.onReturnKey = [this]
     {
         double newValue = std::stod(loCutFreq.getTextValue().toString().toStdString());
@@ -185,6 +186,7 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
     hiCutFreq.setInputRestrictions(10, "0123456789.");
     hiCutFreq.setSelectAllWhenFocused(true);
 
+    // Update max slider and format text on Enter
     hiCutFreq.onReturnKey = [this]
     {
         double newValue = std::stod(hiCutFreq.getTextValue().toString().toStdString());
@@ -248,11 +250,6 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) :
 
 void AppSettingsPage::resized()
 {
-    constexpr int elementWidth = 100;
-    constexpr int elementHeight = 20;
-    constexpr int yPad = 40;
-    constexpr int xPad = 20;
-    const int labelPad = xPad;
     const int valPad = getWidth() / 3;
 
     attThreshLabel.setBounds(labelPad, yPad, elementWidth, elementHeight);
@@ -262,9 +259,9 @@ void AppSettingsPage::resized()
     winMethodLabel.setBounds(labelPad, yPad + 9 * elementHeight, elementWidth * 2, elementHeight);
 
 
-    attThreshSlider.setBounds(valPad, yPad, elementWidth, elementHeight);
-    relThreshSlider.setBounds(valPad, yPad + 2 * elementHeight, elementWidth, elementHeight);
-    partialsSlider.setBounds(valPad, yPad + 4 * elementHeight, elementWidth, elementHeight);
+    attThreshSlider.setBounds(valPad + elementWidth / 2, yPad, elementWidth, elementHeight);
+    relThreshSlider.setBounds(valPad + elementWidth / 2, yPad + 2 * elementHeight, elementWidth, elementHeight);
+    partialsSlider.setBounds(valPad + elementWidth / 2, yPad + 4 * elementHeight, elementWidth, elementHeight);
     filterSlider.setBounds(valPad, yPad + 6 * elementHeight, elementWidth * 2, elementHeight);
     loCutFreq.setBounds(valPad, yPad + 7.2 * elementHeight, elementWidth, elementHeight);
     hiCutFreq.setBounds(valPad + elementWidth, yPad + 7.2 * elementHeight, elementWidth, elementHeight);
@@ -305,7 +302,7 @@ DebugPage::DebugPage(juce::ValueTree v) :
     };
 
     addAndMakeVisible(writeToXml);
-    writeToXml.setButtonText("Write ValueTree to file");
+    writeToXml.setButtonText("Write state to file");
     writeToXml.onClick = [this]
     {
         // Reference Counted Objects can't be serialized into XML.
@@ -315,8 +312,8 @@ DebugPage::DebugPage(juce::ValueTree v) :
         auto deviceManager = dynamic_cast<anyMidi::AudioDeviceManagerRCO*>
             (
                 audioProcNode.getProperty(anyMidi::DEVICE_MANAGER_ID).getObject()
-            );
-        
+                );
+
         if (deviceManager != nullptr)
         {
             audioProcNode.setProperty(anyMidi::DEVICE_MANAGER_ID, "Audio device manager exists, settings in separate file.", nullptr);
@@ -327,7 +324,18 @@ DebugPage::DebugPage(juce::ValueTree v) :
         }
 
         auto xml = tree.getRoot().toXmlString();
-        juce::File::getCurrentWorkingDirectory().getChildFile("ValueTree.xml").replaceWithText(xml);
+        
+        // This holy mess to get a simple timestamp.
+        std::chrono::time_point time_point(std::chrono::system_clock::now());
+        auto day_point = std::chrono::floor<std::chrono::days>(time_point);
+        std::chrono::year_month_day ymd(day_point);
+        std::chrono::hh_mm_ss hms(std::chrono::floor<std::chrono::milliseconds>(time_point - day_point));
+
+        std::stringstream timestamp;
+        timestamp << std::format("{:%Y-%m-%d}", ymd) << "_" << std::format("{:%H-%M-%OS}", hms);
+        
+        // Save state as xml file to local dir.
+        juce::File::getCurrentWorkingDirectory().getChildFile("anyMidi_state_" + timestamp.str() + ".xml").replaceWithText(xml);
 
         // Reset the altered nodes.
         audioProcNode.setProperty(anyMidi::DEVICE_MANAGER_ID, deviceManager, nullptr);
@@ -337,9 +345,12 @@ DebugPage::DebugPage(juce::ValueTree v) :
 
 void DebugPage::resized()
 {    
-    outputBox.setBounds(10, 25, getWidth() - 20, getHeight() / 2);
-    clearOutput.setBounds(10, getHeight() / 2 + 40, 100, 30);
-    writeToXml.setBounds(10, getHeight() / 2 + 80, 100, 30);
+    const int outputWidth = getWidth() - 2 * xPad;
+    const int outputHeight = (getHeight() / 3) * 2;
+
+    outputBox.setBounds(xPad, yPad, outputWidth, outputHeight);
+    clearOutput.setBounds(xPad + (outputWidth / 2 - elementWidth) / 2, (int)(1.5 * yPad) + outputHeight, buttonWidth, buttonHeight);
+    writeToXml.setBounds(xPad + outputWidth / 2 + (outputWidth / 2 - elementWidth) / 2, (int)(1.5 * yPad) + outputHeight, buttonWidth, buttonHeight);
 }
 
 
