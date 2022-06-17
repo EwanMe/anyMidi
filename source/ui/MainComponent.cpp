@@ -3,13 +3,13 @@
  *  @file      MainComponent.cpp
  *  @author    Hallvard Jensen
  *  @date      13 Feb 2021 8:29:21 pm
- *  @copyright © Hallvard Jensen, 2021. All right reserved.
+ *  @copyright Â© Hallvard Jensen, 2021. All right reserved.
  *
  */
 
-#include "MainComponent.h"
-#include "AudioProcessor.h"
-#include "Globals.h"
+#include "../ui/MainComponent.h"
+#include "../core/AudioProcessor.h"
+#include "../util/Globals.h"
 #include "UserInterface.h"
 
 using namespace anyMidi;

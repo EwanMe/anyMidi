@@ -4,28 +4,37 @@
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" companyName="Hallvard Jensen"
               displaySplashScreen="1" cppLanguageStandard="latest" headerPath="D:\dev\asiosdk_2.3.3_2019-06-14\common&#10;C:\dev\asiosdk_2.3.3_2019-06-14\common&#10;C:\dev\sdk\asiosdk_2.3.3_2019-06-14\common">
   <MAINGROUP id="V3BKVY" name="anyMidiStandalone">
-    <GROUP id="{19E908DE-ABB1-AB26-675F-DD9CF27A73FB}" name="Source">
-      <FILE id="JiZj0Q" name="CustomLookAndFeel.cpp" compile="1" resource="0"
-            file="Source/CustomLookAndFeel.cpp"/>
-      <FILE id="ZRDu37" name="CustomLookAndFeel.h" compile="0" resource="0"
-            file="Source/CustomLookAndFeel.h"/>
-      <FILE id="cVm0IG" name="AudioProcessor.cpp" compile="1" resource="0"
-            file="Source/AudioProcessor.cpp"/>
-      <FILE id="PHqCgM" name="AudioProcessor.h" compile="0" resource="0"
-            file="Source/AudioProcessor.h"/>
-      <FILE id="xGXPCV" name="Globals.h" compile="0" resource="0" file="Source/Globals.h"/>
-      <FILE id="GgmVkv" name="UserInterface.cpp" compile="1" resource="0"
-            file="Source/UserInterface.cpp"/>
-      <FILE id="AXS3qG" name="UserInterface.h" compile="0" resource="0" file="Source/UserInterface.h"/>
-      <FILE id="lkCEqN" name="MidiProcessor.h" compile="0" resource="0" file="Source/MidiProcessor.h"/>
-      <FILE id="Oib2WI" name="MidiProcessor.cpp" compile="1" resource="0"
-            file="Source/MidiProcessor.cpp"/>
-      <FILE id="aAyN8P" name="ForwardFFT.h" compile="0" resource="0" file="Source/ForwardFFT.h"/>
-      <FILE id="HN2Pen" name="ForwardFFT.cpp" compile="1" resource="0" file="Source/ForwardFFT.cpp"/>
-      <FILE id="AjTRXO" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
-      <FILE id="htpC8Q" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
-      <FILE id="rspl5o" name="MainComponent.cpp" compile="1" resource="0"
-            file="Source/MainComponent.cpp"/>
+    <GROUP id="{68371F54-3FA3-CB39-C82C-9482359E1090}" name="resources">
+      <FILE id="Xvx7rX" name="midi.png" compile="0" resource="1" file="resources/midi.png"/>
+    </GROUP>
+    <GROUP id="{19E908DE-ABB1-AB26-675F-DD9CF27A73FB}" name="source">
+      <GROUP id="{8B39514B-2760-B3AA-D524-D18BB16F4ACA}" name="core">
+        <FILE id="ejy5H0" name="AudioProcessor.cpp" compile="1" resource="0"
+              file="source/core/AudioProcessor.cpp"/>
+        <FILE id="it4xJN" name="AudioProcessor.h" compile="0" resource="0"
+              file="source/core/AudioProcessor.h"/>
+        <FILE id="VL5ftJ" name="ForwardFFT.cpp" compile="1" resource="0" file="source/core/ForwardFFT.cpp"/>
+        <FILE id="e6IIHw" name="ForwardFFT.h" compile="0" resource="0" file="source/core/ForwardFFT.h"/>
+        <FILE id="rabswK" name="MidiProcessor.cpp" compile="1" resource="0"
+              file="source/core/MidiProcessor.cpp"/>
+        <FILE id="wERAUa" name="MidiProcessor.h" compile="0" resource="0" file="source/core/MidiProcessor.h"/>
+      </GROUP>
+      <GROUP id="{DD0EF984-58A2-D0DF-573F-BE43AF61946C}" name="ui">
+        <FILE id="PnvdOf" name="CustomLookAndFeel.cpp" compile="1" resource="0"
+              file="source/ui/CustomLookAndFeel.cpp"/>
+        <FILE id="YIKTkg" name="CustomLookAndFeel.h" compile="0" resource="0"
+              file="source/ui/CustomLookAndFeel.h"/>
+        <FILE id="cEFXGS" name="MainComponent.cpp" compile="1" resource="0"
+              file="source/ui/MainComponent.cpp"/>
+        <FILE id="QFYl6j" name="MainComponent.h" compile="0" resource="0" file="source/ui/MainComponent.h"/>
+        <FILE id="BIS2NY" name="UserInterface.cpp" compile="1" resource="0"
+              file="source/ui/UserInterface.cpp"/>
+        <FILE id="MaeQQv" name="UserInterface.h" compile="0" resource="0" file="source/ui/UserInterface.h"/>
+      </GROUP>
+      <GROUP id="{16BA4A03-4014-F7D1-64BC-9683B7445605}" name="util">
+        <FILE id="NRtuIW" name="Globals.h" compile="0" resource="0" file="source/util/Globals.h"/>
+      </GROUP>
+      <FILE id="YhPLwo" name="Main.cpp" compile="1" resource="0" file="source/Main.cpp"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_ASIO="1"/>

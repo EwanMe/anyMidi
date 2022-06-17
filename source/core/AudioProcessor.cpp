@@ -3,13 +3,13 @@
  *  @file      AudioProcessor.cpp
  *  @author    Hallvard Jensen
  *  @date      22 Jun 2021 11:41:47pm
- *  @copyright © Hallvard Jensen, 2022. All right reserved.
+ *  @copyright Â© Hallvard Jensen, 2022. All right reserved.
  *
  */
 
 #include <JuceHeader.h>
 #include "AudioProcessor.h"
-#include "Globals.h"
+#include "../util/Globals.h"
 
 using namespace anyMidi;
 

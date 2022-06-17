@@ -4,7 +4,7 @@
  *  @brief     Audio device interaction and aggregation of MIDI and FFT.
  *  @author    Hallvard Jensen
  *  @date      22.06.2021 11:41:47pm
- *  @copyright © Hallvard Jensen, 2021. All right reserved.
+ *  @copyright Â© Hallvard Jensen, 2021. All right reserved.
  *
  */
 

@@ -3,26 +3,36 @@
  *  @file      UserInterface.cpp
  *  @author    Hallvard Jensen
  *  @date      15 Jun 2021 12:27:45pm
- *  @copyright © Hallvard Jensen, 2021. All right reserved.
+ *  @copyright Â© Hallvard Jensen, 2021. All right reserved.
  *
  */
 
 
 #include "UserInterface.h"
-#include "Globals.h"
-#include "AudioProcessor.h"
+#include "../util/Globals.h"
+#include "../core/AudioProcessor.h"
 
 using namespace anyMidi;
 
 
 TabbedComp::TabbedComp(juce::ValueTree v) :
     TabbedComponent(juce::TabbedButtonBar::TabsAtTop),
-    tree{ v }
+    tree{ v },
+    audioSetupPage{ v },
+    appSettingsPage{ v },
+    debugPage{ v }
 {
+    //audioSetupViewport.setViewedComponent(&audioSetupPage, false);
+    //addAndMakeVisible(audioSetupPage);
+
     auto color = getLookAndFeel().findColour(juce::TabbedComponent::backgroundColourId);
-    addTab("App Settings", color, new AppSettingsPage(tree), true);
-    addTab("Audio Settings", color, new AudioSetupPage(tree), true);
-    addTab("Debug", color, new DebugPage(tree), true);
+
+    addTab("App Settings", color, &appSettingsPage, true);
+    addTab("Audio Settings", color, &audioSetupPage, true);
+    addTab("Debug", color, &debugPage, true);   
+
+    //audioSetupViewport.setBounds(getLocalBounds());
+    //audioSetupPage.setBounds(0, 0, 400, 290);
 }
 
 

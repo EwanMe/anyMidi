@@ -4,7 +4,7 @@
  *  @brief     Processing and spectral analysis of FFT data.
  *  @author    Hallvard Jensen
  *  @date      3 Mar 2021 12:55:10pm
- *  @copyright © Hallvard Jensen, 2021. All right reserved.
+ *  @copyright Â© Hallvard Jensen, 2021. All right reserved.
  *
  */
 

@@ -4,15 +4,15 @@
  *  @brief     Start-up code for JUCE application.
  *  @author    Hallvard Jensen
  *  @date      13 Feb 2021 8:29:21 pm
- *  @copyright © Hallvard Jensen, 2021. All right reserved.
+ *  @copyright Â© Hallvard Jensen, 2021. All right reserved.
  *
  */
 
 
 #include <JuceHeader.h>
-#include "MainComponent.h"
-#include "AudioProcessor.h"
-#include "Globals.h"
+#include "./ui/MainComponent.h"
+#include "./core/AudioProcessor.h"
+#include "./util/Globals.h"
 
 class anyMidiStandaloneApplication : public juce::JUCEApplication
 {
@@ -36,13 +36,12 @@ public:
 
         audioProcessor = std::make_unique<anyMidi::AudioProcessor>(tree);
         mainWindow.reset(new MainWindow(getApplicationName(), guiNode));
+        tray = std::make_unique<anyMidi::TrayIcon>(mainWindow.get());
     }
 
 
     void shutdown() override
     {
-        // Add your application's shutdown code here..
-
         mainWindow = nullptr; // (deletes our window)
     }
 
@@ -75,10 +74,11 @@ public:
         MainWindow(juce::String name, juce::ValueTree v)
             : DocumentWindow(name,
                 juce::Desktop::getInstance().getDefaultLookAndFeel()
-                .findColour(juce::ResizableWindow::backgroundColourId),
+                .findColour(juce::DocumentWindow::backgroundColourId),
                 DocumentWindow::minimiseButton | DocumentWindow::closeButton)
         {
-            setUsingNativeTitleBar(true);
+            setUsingNativeTitleBar(false);
+            setTitleBarTextCentred(false);
             setContentOwned(new anyMidi::MainComponent(v), true);
 
 #if JUCE_IOS || JUCE_ANDROID
@@ -100,6 +100,11 @@ public:
             JUCEApplication::getInstance()->systemRequestedQuit();
         }
 
+        void minimiseButtonPressed() override
+        {
+            this->removeFromDesktop();
+        }
+
         /* Note: Be careful if you override any DocumentWindow methods - the base
            class uses a lot of them, so by overriding you might break its functionality.
            It's best to do all your work in your content component instead, but if
@@ -116,9 +121,9 @@ public:
 
 
 private:
-
     std::unique_ptr<anyMidi::AudioProcessor> audioProcessor;
-    std::unique_ptr<MainWindow> mainWindow;
+    std::shared_ptr<MainWindow> mainWindow;
+    std::unique_ptr<anyMidi::TrayIcon> tray;
     juce::ValueTree tree;
 
 

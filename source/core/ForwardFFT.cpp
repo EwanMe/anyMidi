@@ -3,12 +3,12 @@
  *  @file      ForwardFFT.cpp
  *  @author    Hallvard Jensen
  *  @date      3 Mar 2021 12:55:26pm
- *  @copyright © Hallvard Jensen, 2021. All right reserved.
+ *  @copyright Â© Hallvard Jensen, 2021. All right reserved.
  *
  */
 
 #include "ForwardFFT.h"
-#include "Globals.h"
+#include "../util/Globals.h"
 
 using namespace anyMidi;
 

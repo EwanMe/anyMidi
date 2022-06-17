@@ -4,7 +4,7 @@
  *  @brief     Collection of global constants and functions.
  *  @author    Hallvard Jensen
  *  @date      1 Jul 2021 3:52:32pm
- *  @copyright © Hallvard Jensen, 2021. All right reserved.
+ *  @copyright Â© Hallvard Jensen, 2021. All right reserved.
  *
  */
 

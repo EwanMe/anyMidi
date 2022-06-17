@@ -4,7 +4,7 @@
  *  @brief     Managing MIDI device interactions.
  *  @author    Hallvard Jensen
  *  @date      8 Apr 2021 3:10:50pm
- *  @copyright © Hallvard Jensen, 2021. All right reserved.
+ *  @copyright Â© Hallvard Jensen, 2021. All right reserved.
  *
  */
 

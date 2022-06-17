@@ -4,7 +4,7 @@
  *  @brief     Main GUI component of the applocation.
  *  @author    Hallvard Jensen
  *  @date      13 Feb 2021 8:29:21 pm
- *  @copyright © Hallvard Jensen, 2021. All right reserved.
+ *  @copyright Â© Hallvard Jensen, 2021. All right reserved.
  *
  */
 
@@ -15,6 +15,9 @@
 #include "UserInterface.h"
 
 namespace anyMidi {
+
+    // TODO:
+    // MAKE MAINCOMPONENT A TABBED COMPONENT.
 
     /**
      *

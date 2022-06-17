@@ -3,7 +3,7 @@
  *  @file      CustomLookAndFeel.cpp
  *  @author    Hallvard Jensen
  *  @date      8 Aug 2021 3:09:40pm
- *  @copyright © Hallvard Jensen, 2021. All right reserved.
+ *  @copyright Â© Hallvard Jensen, 2021. All right reserved.
  *
  */
 
@@ -14,6 +14,8 @@ using namespace anyMidi;
 
 CustomLookaAndFeel::CustomLookaAndFeel()
 {
+
+    setColour(juce::DocumentWindow::backgroundColourId, juce::Colours::red);
     // Tabs
     setColour(juce::TabbedComponent::ColourIds::outlineColourId, palette.at(ColorGroup::BackgroundPrimary));
     setColour(juce::TabbedComponent::ColourIds::backgroundColourId, palette.at(ColorGroup::BackgroundPrimary));

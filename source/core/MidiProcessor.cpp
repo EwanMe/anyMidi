@@ -3,7 +3,7 @@
  *  @file      MidiProcessor.cpp
  *  @author    Hallvard Jensen
  *  @date      8 Apr 2021 3:10:32pm
- *  @copyright © Hallvard Jensen, 2021. All right reserved.
+ *  @copyright Â© Hallvard Jensen, 2021. All right reserved.
  *
  */
 
