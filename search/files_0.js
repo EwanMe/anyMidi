@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['main_2ecpp_5',['Main.cpp',['../_main_8cpp.html',1,'']]]
+  ['audioprocessor_2ecpp_74',['AudioProcessor.cpp',['../_audio_processor_8cpp.html',1,'']]],
+  ['audioprocessor_2eh_75',['AudioProcessor.h',['../_audio_processor_8h.html',1,'']]]
 ];

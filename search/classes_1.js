@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['mainwindow_4',['MainWindow',['../classany_midi_standalone_application_1_1_main_window.html',1,'anyMidiStandaloneApplication']]]
+  ['customlookaandfeel_66',['CustomLookaAndFeel',['../classany_midi_1_1_custom_looka_and_feel.html',1,'anyMidi']]]
 ];
