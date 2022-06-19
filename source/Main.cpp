@@ -122,6 +122,8 @@ public:
 
         void minimiseButtonPressed() override
         {
+            // The application is completely removed from the desktop and task bar,
+            // leaving only the system tray icon accessible.
             setVisible(false);
         }
 

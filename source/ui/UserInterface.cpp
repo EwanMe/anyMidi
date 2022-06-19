@@ -397,6 +397,7 @@ void TrayIcon::mouseDown(const juce::MouseEvent&)
 
     menu.setLookAndFeel(&(mainWindow->getLookAndFeel()));
 
+    // Reopens the application window.
     menu.addItem("Open anyMidi", [=]
         {
             mainWindow->setVisible(true);

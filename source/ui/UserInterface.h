@@ -159,6 +159,12 @@ namespace anyMidi {
     };
 
 
+    /**
+     *
+     *  @class   TrayIcon
+     *  @brief   Icon that sits in the system tray, giving access to the controls of the application.
+     *
+     */
     class TrayIcon : public juce::SystemTrayIconComponent
     {
         
@@ -167,6 +173,11 @@ namespace anyMidi {
         
         TrayIcon(juce::DocumentWindow* mainWindow);
 
+
+        /**
+         *  @brief Opens a popup menu for application interaction when tray icon is clicked.
+         *  @param  - Mouse event, unused.
+         */
         void mouseDown(const juce::MouseEvent&) override;
     };
 
