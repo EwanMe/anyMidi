@@ -11,6 +11,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "CustomLookAndFeel.h"
 #include "../util/Globals.h"
 
 
@@ -41,6 +42,7 @@ namespace anyMidi {
     public:
 
         AudioSetupPage(juce::ValueTree v);
+
         ~AudioSetupPage();
 
         void resized() override;
@@ -156,44 +158,16 @@ namespace anyMidi {
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TabbedComp)
     };
 
+
     class TrayIcon : public juce::SystemTrayIconComponent
     {
         
     public:
         juce::DocumentWindow* mainWindow;
-        TrayIcon(juce::DocumentWindow* mainWindow) : mainWindow{ mainWindow }
-        {
-            juce::Image icon = juce::ImageCache::getFromMemory(BinaryData::midi_png, BinaryData::midi_pngSize);
-            juce::Graphics g{ icon };
-            g.drawImage(icon, juce::Rectangle<float>(8, 8));
-            setIconImage(icon, icon);
-            setIconTooltip("anyMidi");
-        }
-
-        static void menuInvocationCallback(int chosenItemID, anyMidi::TrayIcon*)
-        {
-            /*if (chosenItemID == 1)
-                juce::JUCEApplication::getInstance()->systemRequestedQuit();*/
-        }
-
-        void mouseDown(const juce::MouseEvent&) override
-        {
-            juce::PopupMenu menu;
-            
-            menu.addItem("Open anyMidi", [=]
-                {
-                    mainWindow->addToDesktop();
-                });
-
-            menu.addItem("Quit", [=]
-                {
-                    juce::JUCEApplication::getInstance()->systemRequestedQuit();
-                });
-
-            menu.showMenuAsync(juce::PopupMenu::Options());
-        }
-
         
+        TrayIcon(juce::DocumentWindow* mainWindow);
+
+        void mouseDown(const juce::MouseEvent&) override;
     };
 
 }; // namespace anyMidi

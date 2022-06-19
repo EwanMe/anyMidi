@@ -20,14 +20,7 @@ MainComponent::MainComponent(juce::ValueTree v) :
     gui{ v }
 { 
     addAndMakeVisible(gui);
-    setLookAndFeel(&layout);
     setSize(400, 290);
-}
-
-
-MainComponent::~MainComponent()
-{
-    setLookAndFeel(nullptr);
 }
 
 

@@ -16,8 +16,6 @@
 
 namespace anyMidi {
 
-    // TODO:
-    // MAKE MAINCOMPONENT A TABBED COMPONENT.
 
     /**
      *
@@ -31,8 +29,6 @@ namespace anyMidi {
     public:
         MainComponent(juce::ValueTree v);
         
-        ~MainComponent() override;
-
         void paint(juce::Graphics& g) override;
         
         void resized() override;
@@ -41,9 +37,9 @@ namespace anyMidi {
     private:
 
         juce::ValueTree tree;
-        anyMidi::CustomLookaAndFeel layout;
         anyMidi::TabbedComp gui;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
     };
+
 };// namespace anyMidi

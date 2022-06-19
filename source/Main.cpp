@@ -13,6 +13,7 @@
 #include "./ui/MainComponent.h"
 #include "./core/AudioProcessor.h"
 #include "./util/Globals.h"
+#include "./ui/CustomLookAndFeel.h"
 
 class anyMidiStandaloneApplication : public juce::JUCEApplication
 {
@@ -28,6 +29,7 @@ public:
 
     void initialise(const juce::String& commandLine) override
     {
+
         juce::ValueTree audioProcNode(anyMidi::AUDIO_PROC_ID);
         tree.addChild(audioProcNode, -1, nullptr);
         
@@ -35,21 +37,22 @@ public:
         tree.addChild(guiNode, -1, nullptr);
 
         audioProcessor = std::make_unique<anyMidi::AudioProcessor>(tree);
-        mainWindow.reset(new MainWindow(getApplicationName(), guiNode));
+        mainWindow.reset(new MainWindow(getApplicationName(), &layout, guiNode));
         tray = std::make_unique<anyMidi::TrayIcon>(mainWindow.get());
+        
+
+        
     }
 
 
     void shutdown() override
     {
-        mainWindow = nullptr; // (deletes our window)
+        mainWindow = nullptr;
     }
 
 
     void systemRequestedQuit() override
     {
-        // This is called when the app is being asked to quit: you can ignore this
-        // request and let the app carry on running, or call quit() to allow the app to close.
         quit();
     }
 
@@ -64,23 +67,24 @@ public:
 
     /*
         This class implements the desktop window that contains an instance of
-        our MainComponent class.
+        the MainComponent class.
     */
     class MainWindow : public juce::DocumentWindow
     {
 
     public:
 
-        MainWindow(juce::String name, juce::ValueTree v)
-            : DocumentWindow(name,
-                juce::Desktop::getInstance().getDefaultLookAndFeel()
-                .findColour(juce::DocumentWindow::backgroundColourId),
-                DocumentWindow::minimiseButton | DocumentWindow::closeButton)
+        MainWindow(juce::String name, anyMidi::CustomLookaAndFeel* layout, juce::ValueTree v)
+            : DocumentWindow
+            (
+                name,
+                layout->findColour(juce::DocumentWindow::backgroundColourId),
+                DocumentWindow::minimiseButton | DocumentWindow::closeButton
+            )
         {
             setUsingNativeTitleBar(false);
             setTitleBarTextCentred(false);
             setContentOwned(new anyMidi::MainComponent(v), true);
-
 #if JUCE_IOS || JUCE_ANDROID
             setFullScreen(true);
 #else
@@ -88,29 +92,46 @@ public:
             centreWithSize(getWidth(), getHeight());
 #endif
 
+            setLookAndFeel(layout);
+
+            // Draw task bar icon
+            juce::Image largeIcon = juce::ImageCache::getFromMemory(BinaryData::anyMidiLogo_png, BinaryData::anyMidiLogo_pngSize);
+            juce::Graphics gL{ largeIcon };
+            gL.drawImage(largeIcon, juce::Rectangle<float>(470, 470));
+            getPeer()->setIcon(largeIcon);
+
+            // Draw window title header icon
+            juce::Image smallIcon = juce::ImageCache::getFromMemory(BinaryData::anyMidiLogoSmall_png, BinaryData::anyMidiLogoSmall_pngSize);
+            juce::Graphics gS{ smallIcon };
+            gS.drawImage(smallIcon, juce::Rectangle<float>(16, 16));
+            setIcon(smallIcon);
+
             setVisible(true);
+        }
+
+        ~MainWindow()
+        {
+            setLookAndFeel(nullptr);
         }
 
 
         void closeButtonPressed() override
         {
-            // This is called when the user tries to close this window. Here, we'll just
-            // ask the app to quit when this happens, but you can change this to do
-            // whatever you need.
             JUCEApplication::getInstance()->systemRequestedQuit();
         }
 
         void minimiseButtonPressed() override
         {
-            this->removeFromDesktop();
+            setVisible(false);
         }
 
-        /* Note: Be careful if you override any DocumentWindow methods - the base
-           class uses a lot of them, so by overriding you might break its functionality.
-           It's best to do all your work in your content component instead, but if
-           you really have to override any DocumentWindow methods, make sure your
-           subclass also calls the superclass's method.
-        */
+        //int getDesktopWindowStyleFlags() const override
+        //{
+        //    int styleFlags = ResizableWindow::getDesktopWindowStyleFlags();
+
+        //    // Removes application from taskbar.
+        //    return styleFlags ^ juce::ComponentPeer::StyleFlags::windowAppearsOnTaskbar;
+        //}
 
 
     private:
@@ -121,6 +142,8 @@ public:
 
 
 private:
+    anyMidi::CustomLookaAndFeel layout;
+
     std::unique_ptr<anyMidi::AudioProcessor> audioProcessor;
     std::shared_ptr<MainWindow> mainWindow;
     std::unique_ptr<anyMidi::TrayIcon> tray;

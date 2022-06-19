@@ -5,7 +5,9 @@
               displaySplashScreen="1" cppLanguageStandard="latest" headerPath="D:\dev\asiosdk_2.3.3_2019-06-14\common&#10;C:\dev\asiosdk_2.3.3_2019-06-14\common&#10;C:\dev\sdk\asiosdk_2.3.3_2019-06-14\common">
   <MAINGROUP id="V3BKVY" name="anyMidiStandalone">
     <GROUP id="{68371F54-3FA3-CB39-C82C-9482359E1090}" name="resources">
-      <FILE id="Xvx7rX" name="midi.png" compile="0" resource="1" file="resources/midi.png"/>
+      <FILE id="o3cOYi" name="anyMidiLogo.png" compile="0" resource="1" file="resources/anyMidiLogo.png"/>
+      <FILE id="izrZ0g" name="anyMidiLogoSmall.png" compile="0" resource="1"
+            file="resources/anyMidiLogoSmall.png"/>
     </GROUP>
     <GROUP id="{19E908DE-ABB1-AB26-675F-DD9CF27A73FB}" name="source">
       <GROUP id="{8B39514B-2760-B3AA-D524-D18BB16F4ACA}" name="core">

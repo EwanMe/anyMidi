@@ -15,7 +15,9 @@ using namespace anyMidi;
 CustomLookaAndFeel::CustomLookaAndFeel()
 {
 
-    setColour(juce::DocumentWindow::backgroundColourId, juce::Colours::red);
+    setColour(juce::DocumentWindow::ColourIds::textColourId, palette.at(ColorGroup::TextPrimary));
+    setColour(juce::DocumentWindow::backgroundColourId, palette.at(ColorGroup::BackgroundPrimary));
+
     // Tabs
     setColour(juce::TabbedComponent::ColourIds::outlineColourId, palette.at(ColorGroup::BackgroundPrimary));
     setColour(juce::TabbedComponent::ColourIds::backgroundColourId, palette.at(ColorGroup::BackgroundPrimary));
@@ -66,5 +68,13 @@ CustomLookaAndFeel::CustomLookaAndFeel()
     setColour(juce::TextEditor::ColourIds::highlightedTextColourId, palette.at(ColorGroup::BackgroundPrimary));
     setColour(juce::TextEditor::ColourIds::textColourId, palette.at(ColorGroup::TextPrimary));
 
+    // Caret
     setColour(juce::CaretComponent::ColourIds::caretColourId, palette.at(ColorGroup::Active));
+
+    // Popup menu
+    setColour(juce::PopupMenu::ColourIds::backgroundColourId, palette.at(ColorGroup::BackgroundPrimary));
+    setColour(juce::PopupMenu::ColourIds::textColourId, palette.at(ColorGroup::TextPrimary));
+    setColour(juce::PopupMenu::ColourIds::highlightedBackgroundColourId, palette.at(ColorGroup::Active));
+    setColour(juce::PopupMenu::ColourIds::highlightedTextColourId, palette.at(ColorGroup::BackgroundPrimary));
+    setColour(juce::PopupMenu::ColourIds::headerTextColourId, juce::Colours::red);
 }

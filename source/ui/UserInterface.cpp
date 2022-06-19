@@ -273,8 +273,8 @@ void AppSettingsPage::resized()
     relThreshSlider.setBounds(valPad + elementWidth / 2, yPad + 2 * elementHeight, elementWidth, elementHeight);
     partialsSlider.setBounds(valPad + elementWidth / 2, yPad + 4 * elementHeight, elementWidth, elementHeight);
     filterSlider.setBounds(valPad, yPad + 6 * elementHeight, elementWidth * 2, elementHeight);
-    loCutFreq.setBounds(valPad, yPad + 7.2 * elementHeight, elementWidth, elementHeight);
-    hiCutFreq.setBounds(valPad + elementWidth, yPad + 7.2 * elementHeight, elementWidth, elementHeight);
+    loCutFreq.setBounds(valPad, static_cast<int>((double) yPad + 7.2) * elementHeight, elementWidth, elementHeight);
+    hiCutFreq.setBounds(valPad + elementWidth, static_cast<int>((double) yPad + 7.2) * elementHeight, elementWidth, elementHeight);
     winMethodList.setBounds(valPad, yPad + 9 * elementHeight, elementWidth * 2, elementHeight);
 }
 
@@ -375,4 +375,37 @@ void DebugPage::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasCh
         outputBox.moveCaretToEnd();
         outputBox.insertTextAtCaret(message + juce::newLine);
     }
+}
+
+
+TrayIcon::TrayIcon(juce::DocumentWindow* mainWindow) : mainWindow{ mainWindow }
+{
+    juce::Image icon = juce::ImageCache::getFromMemory(BinaryData::anyMidiLogo_png, BinaryData::anyMidiLogo_pngSize);
+    juce::Graphics g{ icon };
+    g.drawImage(icon, juce::Rectangle<float>(8, 8));
+    
+    setIconImage(icon, icon);
+    
+    setIconTooltip("anyMidi");
+
+}
+
+
+void TrayIcon::mouseDown(const juce::MouseEvent&)
+{
+    juce::PopupMenu menu;
+
+    menu.setLookAndFeel(&(mainWindow->getLookAndFeel()));
+
+    menu.addItem("Open anyMidi", [=]
+        {
+            mainWindow->setVisible(true);
+        });
+
+    menu.addItem("Quit", [=]
+        {
+            juce::JUCEApplication::getInstance()->systemRequestedQuit();
+        });
+
+    menu.showMenuAsync(juce::PopupMenu::Options());
 }
