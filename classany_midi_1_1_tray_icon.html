@@ -74,6 +74,11 @@ $(function() {
 <div class="title">anyMidi::TrayIcon Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>Icon that sits in the system tray, giving access to the controls of the application.  
+ <a href="classany_midi_1_1_tray_icon.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="_user_interface_8h_source.html">UserInterface.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for anyMidi::TrayIcon:</div>
 <div class="dyncontent">
@@ -86,8 +91,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a61b4d5406576bb867c7c7306888ec85c"><td class="memItemLeft" align="right" valign="top"><a id="a61b4d5406576bb867c7c7306888ec85c"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>TrayIcon</b> (juce::DocumentWindow *mainWindow)</td></tr>
 <tr class="separator:a61b4d5406576bb867c7c7306888ec85c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abd91c05ba796e9240afbf572adae8077"><td class="memItemLeft" align="right" valign="top"><a id="abd91c05ba796e9240afbf572adae8077"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>mouseDown</b> (const juce::MouseEvent &amp;) override</td></tr>
+<tr class="memitem:abd91c05ba796e9240afbf572adae8077"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classany_midi_1_1_tray_icon.html#abd91c05ba796e9240afbf572adae8077">mouseDown</a> (const juce::MouseEvent &amp;) override</td></tr>
+<tr class="memdesc:abd91c05ba796e9240afbf572adae8077"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opens a popup menu for application interaction when tray icon is clicked.  <a href="classany_midi_1_1_tray_icon.html#abd91c05ba796e9240afbf572adae8077">More...</a><br /></td></tr>
 <tr class="separator:abd91c05ba796e9240afbf572adae8077"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
@@ -96,6 +101,43 @@ Public Attributes</h2></td></tr>
 juce::DocumentWindow *&#160;</td><td class="memItemRight" valign="bottom"><b>mainWindow</b></td></tr>
 <tr class="separator:a531a7c4f4e6cb9459c11b39cfe8a11ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Icon that sits in the system tray, giving access to the controls of the application. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="abd91c05ba796e9240afbf572adae8077"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd91c05ba796e9240afbf572adae8077">&#9670;&nbsp;</a></span>mouseDown()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void TrayIcon::mouseDown </td>
+          <td>(</td>
+          <td class="paramtype">const juce::MouseEvent &amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Opens a popup menu for application interaction when tray icon is clicked. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">-</td><td>Mouse event, unused. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>/home/runner/work/anyMidi/anyMidi/source/ui/<a class="el" href="_user_interface_8h_source.html">UserInterface.h</a></li>
 <li>/home/runner/work/anyMidi/anyMidi/source/ui/<a class="el" href="_user_interface_8cpp.html">UserInterface.cpp</a></li>
