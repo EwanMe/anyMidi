@@ -273,8 +273,8 @@ void AppSettingsPage::resized()
     relThreshSlider.setBounds(valPad + elementWidth / 2, yPad + 2 * elementHeight, elementWidth, elementHeight);
     partialsSlider.setBounds(valPad + elementWidth / 2, yPad + 4 * elementHeight, elementWidth, elementHeight);
     filterSlider.setBounds(valPad, yPad + 6 * elementHeight, elementWidth * 2, elementHeight);
-    loCutFreq.setBounds(valPad, static_cast<int>((double) yPad + 7.2) * elementHeight, elementWidth, elementHeight);
-    hiCutFreq.setBounds(valPad + elementWidth, static_cast<int>((double) yPad + 7.2) * elementHeight, elementWidth, elementHeight);
+    loCutFreq.setBounds(valPad, yPad + 7.2 * elementHeight, elementWidth, elementHeight);
+    hiCutFreq.setBounds(valPad + elementWidth, yPad + 7.2 * elementHeight, elementWidth, elementHeight);
     winMethodList.setBounds(valPad, yPad + 9 * elementHeight, elementWidth * 2, elementHeight);
 }
 
