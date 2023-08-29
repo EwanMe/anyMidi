@@ -1,4 +1,4 @@
-name: CI
+name: Doxygen
 
 env:
   DOCS_FOLDER: 'doxygen/docs/html'

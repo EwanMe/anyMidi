@@ -2,65 +2,65 @@
 
 <JUCERPROJECT id="xHuwhM" name="anyMidiStandalone" projectType="guiapp" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" companyName="Hallvard Jensen"
-              displaySplashScreen="1" cppLanguageStandard="latest" headerPath="D:\dev\asiosdk_2.3.3_2019-06-14\common&#10;C:\dev\asiosdk_2.3.3_2019-06-14\common&#10;C:\dev\sdk\asiosdk_2.3.3_2019-06-14\common">
+              displaySplashScreen="1" cppLanguageStandard="latest" headerPath="D:\dev\asiosdk_2.3.3_2019-06-14\common&#10;C:\dev\asiosdk_2.3.3_2019-06-14\common&#10;C:\dev\sdk\asiosdk_2.3.3_2019-06-14\common&#10;C:\lib\asiosdk_2.3.3_2019-06-14\common">
   <MAINGROUP id="V3BKVY" name="anyMidiStandalone">
     <GROUP id="{68371F54-3FA3-CB39-C82C-9482359E1090}" name="resources">
       <FILE id="o3cOYi" name="anyMidiLogo.png" compile="0" resource="1" file="resources/anyMidiLogo.png"/>
       <FILE id="izrZ0g" name="anyMidiLogoSmall.png" compile="0" resource="1"
             file="resources/anyMidiLogoSmall.png"/>
     </GROUP>
-    <GROUP id="{19E908DE-ABB1-AB26-675F-DD9CF27A73FB}" name="source">
-      <GROUP id="{8B39514B-2760-B3AA-D524-D18BB16F4ACA}" name="core">
-        <FILE id="ejy5H0" name="AudioProcessor.cpp" compile="1" resource="0"
-              file="source/core/AudioProcessor.cpp"/>
-        <FILE id="it4xJN" name="AudioProcessor.h" compile="0" resource="0"
-              file="source/core/AudioProcessor.h"/>
-        <FILE id="VL5ftJ" name="ForwardFFT.cpp" compile="1" resource="0" file="source/core/ForwardFFT.cpp"/>
-        <FILE id="e6IIHw" name="ForwardFFT.h" compile="0" resource="0" file="source/core/ForwardFFT.h"/>
-        <FILE id="rabswK" name="MidiProcessor.cpp" compile="1" resource="0"
-              file="source/core/MidiProcessor.cpp"/>
-        <FILE id="wERAUa" name="MidiProcessor.h" compile="0" resource="0" file="source/core/MidiProcessor.h"/>
+    <GROUP id="{19E908DE-ABB1-AB26-675F-DD9CF27A73FB}" name="src">
+      <GROUP id="{18B91AC9-0272-F752-0D26-1F686FC7DBA5}" name="core">
+        <FILE id="O1MKYu" name="AudioProcessor.cpp" compile="1" resource="0"
+              file="src/core/AudioProcessor.cpp"/>
+        <FILE id="qsukDV" name="AudioProcessor.h" compile="0" resource="0"
+              file="src/core/AudioProcessor.h"/>
+        <FILE id="vHDnV6" name="ForwardFFT.cpp" compile="1" resource="0" file="src/core/ForwardFFT.cpp"/>
+        <FILE id="UnwA53" name="ForwardFFT.h" compile="0" resource="0" file="src/core/ForwardFFT.h"/>
+        <FILE id="L6itiL" name="MidiProcessor.cpp" compile="1" resource="0"
+              file="src/core/MidiProcessor.cpp"/>
+        <FILE id="xKFFUl" name="MidiProcessor.h" compile="0" resource="0" file="src/core/MidiProcessor.h"/>
       </GROUP>
-      <GROUP id="{DD0EF984-58A2-D0DF-573F-BE43AF61946C}" name="ui">
-        <FILE id="PnvdOf" name="CustomLookAndFeel.cpp" compile="1" resource="0"
-              file="source/ui/CustomLookAndFeel.cpp"/>
-        <FILE id="YIKTkg" name="CustomLookAndFeel.h" compile="0" resource="0"
-              file="source/ui/CustomLookAndFeel.h"/>
-        <FILE id="cEFXGS" name="MainComponent.cpp" compile="1" resource="0"
-              file="source/ui/MainComponent.cpp"/>
-        <FILE id="QFYl6j" name="MainComponent.h" compile="0" resource="0" file="source/ui/MainComponent.h"/>
-        <FILE id="BIS2NY" name="UserInterface.cpp" compile="1" resource="0"
-              file="source/ui/UserInterface.cpp"/>
-        <FILE id="MaeQQv" name="UserInterface.h" compile="0" resource="0" file="source/ui/UserInterface.h"/>
+      <GROUP id="{7451F6B4-D7BC-39B2-56DA-EF0F2CA1FAB8}" name="ui">
+        <FILE id="IL2A5I" name="CustomLookAndFeel.cpp" compile="1" resource="0"
+              file="src/ui/CustomLookAndFeel.cpp"/>
+        <FILE id="y83kp5" name="CustomLookAndFeel.h" compile="0" resource="0"
+              file="src/ui/CustomLookAndFeel.h"/>
+        <FILE id="iNbSjr" name="MainComponent.cpp" compile="1" resource="0"
+              file="src/ui/MainComponent.cpp"/>
+        <FILE id="LTIM4J" name="MainComponent.h" compile="0" resource="0" file="src/ui/MainComponent.h"/>
+        <FILE id="GsfEQt" name="UserInterface.cpp" compile="1" resource="0"
+              file="src/ui/UserInterface.cpp"/>
+        <FILE id="kFsXTc" name="UserInterface.h" compile="0" resource="0" file="src/ui/UserInterface.h"/>
       </GROUP>
-      <GROUP id="{16BA4A03-4014-F7D1-64BC-9683B7445605}" name="util">
-        <FILE id="NRtuIW" name="Globals.h" compile="0" resource="0" file="source/util/Globals.h"/>
+      <GROUP id="{7899CD42-C353-40A6-5EB4-DE05D8362C8A}" name="util">
+        <FILE id="DYTVJj" name="Globals.h" compile="0" resource="0" file="src/util/Globals.h"/>
       </GROUP>
-      <FILE id="YhPLwo" name="Main.cpp" compile="1" resource="0" file="source/Main.cpp"/>
+      <FILE id="ltdCc7" name="Main.cpp" compile="1" resource="0" file="src/Main.cpp"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_ASIO="1"/>
   <EXPORTFORMATS>
-    <VS2019 targetFolder="Builds/VisualStudio2019">
+    <VS2022 targetFolder="Builds/VisualStudio2022">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" targetName="anyMidiStandalone"/>
-        <CONFIGURATION isDebug="0" name="Release" targetName="anyMidiStandalone"/>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_audio_basics" path="../../Program Files/JUCE/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../../Program Files/JUCE/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../../Program Files/JUCE/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../../Program Files/JUCE/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_utils" path="../../Program Files/JUCE/JUCE/modules"/>
-        <MODULEPATH id="juce_core" path="../../Program Files/JUCE/JUCE/modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../Program Files/JUCE/JUCE/modules"/>
-        <MODULEPATH id="juce_dsp" path="../../Program Files/JUCE/JUCE/modules"/>
-        <MODULEPATH id="juce_events" path="../../Program Files/JUCE/JUCE/modules"/>
-        <MODULEPATH id="juce_graphics" path="../../Program Files/JUCE/JUCE/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../Program Files/JUCE/JUCE/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../Program Files/JUCE/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="C:\lib\juce-7.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_devices" path="C:\lib\juce-7.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_formats" path="C:\lib\juce-7.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_processors" path="C:\lib\juce-7.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_utils" path="C:\lib\juce-7.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_core" path="C:\lib\juce-7.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_data_structures" path="C:\lib\juce-7.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_dsp" path="C:\lib\juce-7.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_events" path="C:\lib\juce-7.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_graphics" path="C:\lib\juce-7.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_basics" path="C:\lib\juce-7.0.4-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_extra" path="C:\lib\juce-7.0.4-windows\JUCE\modules"/>
       </MODULEPATHS>
-    </VS2019>
+    </VS2022>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>

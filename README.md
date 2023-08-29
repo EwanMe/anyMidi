@@ -7,7 +7,7 @@ This project aims to convert audio into MIDI notes with the help of FFT and harm
 
 ## :memo: Documentation
 
-Doxygen documentation is built to the branch [doxygen_pages](https://github.com/EwanMe/anyMidi/tree/doxygen_pages), and can be view at [ewanme.github.io/anymidi](https://ewanme.github.io/anyMidi).
+Doxygen documentation is built to the branch [doxygen_pages](https://github.com/EwanMe/anyMidi/tree/doxygen_pages), and can be viewed at [ewanme.github.io/anymidi](https://ewanme.github.io/anyMidi).
 
 ## :computer: How to get the project running
 
