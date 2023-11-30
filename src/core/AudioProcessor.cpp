@@ -7,15 +7,12 @@
  *
  */
 
-#include "AudioProcessor.h"
-
 #include <JuceHeader.h>
 
 #include "../util/Globals.h"
+#include "AudioProcessor.h"
 
-using namespace anyMidi;
-
-AudioProcessor::AudioProcessor(juce::ValueTree v)
+anyMidi::AudioProcessor::AudioProcessor(juce::ValueTree v)
     : fft{48000, juce::dsp::WindowingFunction<float>::hamming},
       midiProc{48000, juce::Time::getMillisecondCounterHiRes() * 0.001},
       tree{v} {
@@ -90,7 +87,7 @@ AudioProcessor::AudioProcessor(juce::ValueTree v)
     tree.addListener(this);
 }
 
-AudioProcessor::~AudioProcessor() {
+anyMidi::AudioProcessor::~AudioProcessor() {
     audioSourcePlayer.setSource(nullptr);
     deviceManager->removeAudioCallback(&audioSourcePlayer);
     deviceManager = nullptr;
@@ -99,8 +96,8 @@ AudioProcessor::~AudioProcessor() {
     jassert(audioSourcePlayer.getCurrentSource() == nullptr);
 }
 
-void AudioProcessor::prepareToPlay(int samplesPerBlockExpected,
-                                   double sampleRate) {
+void anyMidi::AudioProcessor::prepareToPlay(int samplesPerBlockExpected,
+                                            double sampleRate) {
     processingBuffer.setSize(numInputChannels, samplesPerBlockExpected, false,
                              true);
     midiProc.setMidiOutput(deviceManager->getDefaultMidiOutput());
@@ -111,7 +108,7 @@ void AudioProcessor::prepareToPlay(int samplesPerBlockExpected,
     hiPassFilter.reset();
 }
 
-void AudioProcessor::getNextAudioBlock(
+void anyMidi::AudioProcessor::getNextAudioBlock(
     const juce::AudioSourceChannelInfo &bufferToFill) {
     if (bufferToFill.buffer->getNumChannels() > 0) {
         int numSamples =
@@ -151,9 +148,11 @@ void AudioProcessor::getNextAudioBlock(
     midiProc.pushBufferToOutput();
 }
 
-void AudioProcessor::releaseResources() { midiProc.turnOffAllMessages(); }
+void anyMidi::AudioProcessor::releaseResources() {
+    midiProc.turnOffAllMessages();
+}
 
-void AudioProcessor::calcNote() {
+void anyMidi::AudioProcessor::calcNote() {
     auto noteInfo = analyzeHarmonics(); // Gets {note, amplitude}
     int note = noteInfo.first;
     double amp = noteInfo.second;
@@ -174,7 +173,7 @@ void AudioProcessor::calcNote() {
     }
 }
 
-std::pair<int, double> AudioProcessor::analyzeHarmonics() {
+std::pair<int, double> anyMidi::AudioProcessor::analyzeHarmonics() {
     auto harmonics = fft.getHarmonics(numPartials, noteFrequencies);
 
     std::map<int, double> scores;
@@ -214,9 +213,9 @@ std::pair<int, double> AudioProcessor::analyzeHarmonics() {
     return analyzedNote;
 }
 
-void AudioProcessor::setAudioChannels(int numInputChannels,
-                                      int numOutputChannels,
-                                      const juce::XmlElement *const xml) {
+void anyMidi::AudioProcessor::setAudioChannels(
+    int numInputChannels, int numOutputChannels,
+    const juce::XmlElement *const xml) {
     juce::String audioError = deviceManager->initialise(
         numInputChannels, numOutputChannels, xml, true);
 
@@ -229,7 +228,7 @@ void AudioProcessor::setAudioChannels(int numInputChannels,
     audioSourcePlayer.setSource(this);
 }
 
-void AudioProcessor::valueTreePropertyChanged(
+void anyMidi::AudioProcessor::valueTreePropertyChanged(
     juce::ValueTree &treeWhosePropertyHasChanged,
     const juce::Identifier &property) {
     if (property == anyMidi::ATTACK_THRESH_ID) {
@@ -251,4 +250,4 @@ void AudioProcessor::valueTreePropertyChanged(
     }
 }
 
-void AudioProcessor::setNumPartials(int &n) { numPartials = n; }
+void anyMidi::AudioProcessor::setNumPartials(int &n) { numPartials = n; }

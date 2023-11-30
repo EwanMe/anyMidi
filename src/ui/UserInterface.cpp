@@ -7,17 +7,14 @@
  *
  */
 
-#include "UserInterface.h"
-
 #include <chrono>
 #include <format>
 
 #include "../core/AudioProcessor.h"
 #include "../util/Globals.h"
+#include "UserInterface.h"
 
-using namespace anyMidi;
-
-TabbedComp::TabbedComp(juce::ValueTree v)
+anyMidi::TabbedComp::TabbedComp(juce::ValueTree v)
     : TabbedComponent(juce::TabbedButtonBar::TabsAtTop), tree{v},
       audioSetupPage{v}, appSettingsPage{v}, debugPage{v} {
     // audioSetupViewport.setViewedComponent(&audioSetupPage, false);
@@ -34,7 +31,7 @@ TabbedComp::TabbedComp(juce::ValueTree v)
     // audioSetupPage.setBounds(0, 0, 400, 290);
 }
 
-AudioSetupPage::AudioSetupPage(juce::ValueTree v) : tree{v} {
+anyMidi::AudioSetupPage::AudioSetupPage(juce::ValueTree v) : tree{v} {
     // Fetch audio device manager from the value tree.
     auto deviceManager = dynamic_cast<anyMidi::AudioDeviceManagerRCO *>(
         tree.getParent()
@@ -57,7 +54,7 @@ AudioSetupPage::AudioSetupPage(juce::ValueTree v) : tree{v} {
     addAndMakeVisible(*audioSetupComp);
 }
 
-AudioSetupPage::~AudioSetupPage() {
+anyMidi::AudioSetupPage::~AudioSetupPage() {
     auto audioDeviceSettings = audioSetupComp->deviceManager.createStateXml();
 
     if (audioDeviceSettings != nullptr) {
@@ -69,11 +66,11 @@ AudioSetupPage::~AudioSetupPage() {
     }
 }
 
-void AudioSetupPage::resized() {
+void anyMidi::AudioSetupPage::resized() {
     audioSetupComp->setBounds(getLocalBounds().withWidth(getWidth()));
 }
 
-AppSettingsPage::AppSettingsPage(juce::ValueTree v) : tree{v} {
+anyMidi::AppSettingsPage::AppSettingsPage(juce::ValueTree v) : tree{v} {
     // Attack treshold slider
     addAndMakeVisible(attThreshSlider);
     attThreshSlider.setRange(0, 1, 0.001);
@@ -240,7 +237,7 @@ AppSettingsPage::AppSettingsPage(juce::ValueTree v) : tree{v} {
     winMethodLabel.setText("Window", juce::dontSendNotification);
 }
 
-void AppSettingsPage::resized() {
+void anyMidi::AppSettingsPage::resized() {
     const int valPad = getWidth() / 3;
 
     attThreshLabel.setBounds(labelPad, yPad, elementWidth, elementHeight);
@@ -271,7 +268,7 @@ void AppSettingsPage::resized() {
                             elementHeight);
 }
 
-DebugPage::DebugPage(juce::ValueTree v) : tree{v} {
+anyMidi::DebugPage::DebugPage(juce::ValueTree v) : tree{v} {
     tree.addListener(this);
 
     // Output box, used for debugging.
@@ -347,7 +344,7 @@ DebugPage::DebugPage(juce::ValueTree v) : tree{v} {
     };
 }
 
-void DebugPage::resized() {
+void anyMidi::DebugPage::resized() {
     const int outputWidth = getWidth() - 2 * xPad;
     const int outputHeight = (getHeight() / 3) * 2;
 
@@ -360,7 +357,7 @@ void DebugPage::resized() {
         (int)(1.5 * yPad) + outputHeight, buttonWidth, buttonHeight);
 }
 
-void DebugPage::valueTreePropertyChanged(
+void anyMidi::DebugPage::valueTreePropertyChanged(
     juce::ValueTree &treeWhosePropertyHasChanged,
     const juce::Identifier &property) {
     if (property == anyMidi::LOG_ID) {
@@ -375,7 +372,8 @@ void DebugPage::valueTreePropertyChanged(
     }
 }
 
-TrayIcon::TrayIcon(juce::DocumentWindow *mainWindow) : mainWindow{mainWindow} {
+anyMidi::TrayIcon::TrayIcon(juce::DocumentWindow *mainWindow)
+    : mainWindow{mainWindow} {
     juce::Image icon = juce::ImageCache::getFromMemory(
         BinaryData::anyMidiLogo_png, BinaryData::anyMidiLogo_pngSize);
     juce::Graphics g{icon};
@@ -386,7 +384,7 @@ TrayIcon::TrayIcon(juce::DocumentWindow *mainWindow) : mainWindow{mainWindow} {
     setIconTooltip("anyMidi");
 }
 
-void TrayIcon::mouseDown(const juce::MouseEvent &) {
+void anyMidi::TrayIcon::mouseDown(const juce::MouseEvent &) {
     juce::PopupMenu menu;
 
     menu.setLookAndFeel(&(mainWindow->getLookAndFeel()));

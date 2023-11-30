@@ -9,25 +9,31 @@
 
 #include "MidiProcessor.h"
 
-using namespace anyMidi;
-
-MidiProcessor::MidiProcessor(const unsigned int &sampleRate,
-                             const double &startTime)
+anyMidi::MidiProcessor::MidiProcessor(const unsigned int &sampleRate,
+                                      const double &startTime)
     : sampleRate{sampleRate}, startTime{startTime}, midiOut{nullptr} {}
 
-void MidiProcessor::setMidiOutput(juce::MidiOutput *output) {
+void anyMidi::MidiProcessor::setMidiOutput(juce::MidiOutput *output) {
     midiOut = output;
 }
 
-double MidiProcessor::getAttackThreshold() const { return attackThreshold; }
+double anyMidi::MidiProcessor::getAttackThreshold() const {
+    return attackThreshold;
+}
 
-double MidiProcessor::getReleaseThreshold() const { return releaseThreshold; }
+double anyMidi::MidiProcessor::getReleaseThreshold() const {
+    return releaseThreshold;
+}
 
-void MidiProcessor::setAttackThreshold(double &t) { attackThreshold = t; }
+void anyMidi::MidiProcessor::setAttackThreshold(double &t) {
+    attackThreshold = t;
+}
 
-void MidiProcessor::setReleaseThreshold(double &t) { releaseThreshold = t; }
+void anyMidi::MidiProcessor::setReleaseThreshold(double &t) {
+    releaseThreshold = t;
+}
 
-bool MidiProcessor::determineNoteValue(
+bool anyMidi::MidiProcessor::determineNoteValue(
     const unsigned int &note, const double &amp,
     std::vector<std::pair<int, bool>> &noteValues) {
     // Ensures that notes are within midi range.
@@ -86,9 +92,9 @@ bool MidiProcessor::determineNoteValue(
     return false;
 }
 
-void MidiProcessor::createMidiMsg(const unsigned int &noteNum,
-                                  const juce::uint8 &velocity,
-                                  const bool noteOn) {
+void anyMidi::MidiProcessor::createMidiMsg(const unsigned int &noteNum,
+                                           const juce::uint8 &velocity,
+                                           const bool noteOn) {
     juce::MidiMessage midiMessage;
     unsigned int scaledNoteNum =
         noteNum + 12; // Juce is one octave off for some reason.
@@ -106,14 +112,15 @@ void MidiProcessor::createMidiMsg(const unsigned int &noteNum,
     }
 }
 
-void MidiProcessor::addMessageToBuffer(const juce::MidiMessage &message) {
+void anyMidi::MidiProcessor::addMessageToBuffer(
+    const juce::MidiMessage &message) {
     double timestamp = message.getTimeStamp();
     int sampleNumber = (int)(timestamp * sampleRate);
 
     midiBuffer.addEvent(message, sampleNumber);
 }
 
-void MidiProcessor::pushBufferToOutput() {
+void anyMidi::MidiProcessor::pushBufferToOutput() {
     if (midiOut) {
         midiOut->startBackgroundThread();
     }
@@ -124,7 +131,7 @@ void MidiProcessor::pushBufferToOutput() {
     }
 }
 
-void MidiProcessor::turnOffAllMessages() {
+void anyMidi::MidiProcessor::turnOffAllMessages() {
     if (midiOut) {
         midiOut->sendMessageNow(juce::MidiMessage::allNotesOff(midiChannel));
     }

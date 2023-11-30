@@ -9,9 +9,7 @@
 
 #include "CustomLookAndFeel.h"
 
-using namespace anyMidi;
-
-CustomLookaAndFeel::CustomLookaAndFeel() {
+anyMidi::CustomLookaAndFeel::CustomLookaAndFeel() {
     setColour(juce::DocumentWindow::ColourIds::textColourId,
               palette.at(ColorGroup::TextPrimary));
     setColour(juce::DocumentWindow::backgroundColourId,

@@ -11,9 +11,7 @@
 
 #include "../util/Globals.h"
 
-using namespace anyMidi;
-
-ForwardFFT::ForwardFFT(
+anyMidi::ForwardFFT::ForwardFFT(
     const double sampleRate,
     const juce::dsp::WindowingFunction<float>::WindowingMethod windowingMethod)
     : forwardFFT{fftOrder}, sampleRate{sampleRate},
@@ -25,13 +23,14 @@ ForwardFFT::ForwardFFT(
     windowCompensation = windowCompensations.at(windowingMethod);
 }
 
-std::array<float, ForwardFFT::fftSize * 2> ForwardFFT::getFFTData() const {
+std::array<float, anyMidi::ForwardFFT::fftSize * 2>
+anyMidi::ForwardFFT::getFFTData() const {
     return fftData;
 }
 
-int ForwardFFT::getFFTSize() const { return fftSize; }
+int anyMidi::ForwardFFT::getFFTSize() const { return fftSize; }
 
-void ForwardFFT::setWindowingFunction(const int &id) {
+void anyMidi::ForwardFFT::setWindowingFunction(const int &id) {
     auto winMethod = juce::dsp::WindowingFunction<float>::WindowingMethod(id);
 
     this->winMethod = winMethod;
@@ -39,7 +38,8 @@ void ForwardFFT::setWindowingFunction(const int &id) {
     this->window.fillWindowingTables(fftSize + 1, winMethod);
 }
 
-juce::Array<juce::String> ForwardFFT::getAvailableWindowingMethods() const {
+juce::Array<juce::String>
+anyMidi::ForwardFFT::getAvailableWindowingMethods() const {
     juce::Array<juce::String> windowStrings;
     windowStrings.resize(juce::dsp::WindowingFunction<
                          float>::WindowingMethod::numWindowingMethods);
@@ -90,7 +90,7 @@ juce::Array<juce::String> ForwardFFT::getAvailableWindowingMethods() const {
     return windowStrings;
 }
 
-void ForwardFFT::pushNextSampleIntoFifo(float sample) {
+void anyMidi::ForwardFFT::pushNextSampleIntoFifo(float sample) {
     // When fifo contains enough data, flag is set to say next frame should be
     // rendered.
     if (fifoIndex == fftSize) {
@@ -117,7 +117,7 @@ void ForwardFFT::pushNextSampleIntoFifo(float sample) {
     fifo[fifoIndex++] = sample;
 }
 
-std::pair<double, double> ForwardFFT::calcFundamentalFreq() const {
+std::pair<double, double> anyMidi::ForwardFFT::calcFundamentalFreq() const {
     double max{0};
     unsigned int targetBin{0}; // Location of fund. freq. will be stored here.
     auto data = getFFTData();
@@ -139,17 +139,17 @@ std::pair<double, double> ForwardFFT::calcFundamentalFreq() const {
 }
 
 std::vector<std::pair<int, double>>
-ForwardFFT::getHarmonics(const unsigned int &numPartials,
-                         const std::vector<double> &noteFreq) {
+anyMidi::ForwardFFT::getHarmonics(const unsigned int &numPartials,
+                                  const std::vector<double> &noteFreq) {
     auto data = getFFTData();
     cleanUpBins(data);
     auto notes = mapBinsToNotes(noteFreq, data);
     return determineHarmonics(numPartials, notes);
 }
 
-int ForwardFFT::getWindowingFunction() const { return winMethod; }
+int anyMidi::ForwardFFT::getWindowingFunction() const { return winMethod; }
 
-void ForwardFFT::cleanUpBins(std::array<float, fftSize * 2> &data) {
+void anyMidi::ForwardFFT::cleanUpBins(std::array<float, fftSize * 2> &data) {
     constexpr double threshold{1.0};
 
     std::vector<int> lobes;
@@ -186,9 +186,9 @@ void ForwardFFT::cleanUpBins(std::array<float, fftSize * 2> &data) {
     }
 }
 
-std::vector<double>
-ForwardFFT::mapBinsToNotes(const std::vector<double> &noteFreq,
-                           const std::array<float, fftSize * 2> &data) {
+std::vector<double> anyMidi::ForwardFFT::mapBinsToNotes(
+    const std::vector<double> &noteFreq,
+    const std::array<float, fftSize * 2> &data) {
     // Determines closest note to all bins in FFT and maps bins to their correct
     // frequencies. The amplitudes of each bin is added onto the notes
     // amplitude.
@@ -205,8 +205,8 @@ ForwardFFT::mapBinsToNotes(const std::vector<double> &noteFreq,
 }
 
 std::vector<std::pair<int, double>>
-ForwardFFT::determineHarmonics(const unsigned int &numPartials,
-                               std::vector<double> &amps) const {
+anyMidi::ForwardFFT::determineHarmonics(const unsigned int &numPartials,
+                                        std::vector<double> &amps) const {
     // Thanks to
     // https://stackoverflow.com/questions/14902876/indices-of-the-k-largest-elements-in-an-unsorted-length-n-array/38391603#38391603
     // for inspiration for this algorithm.
