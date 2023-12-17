@@ -20,9 +20,9 @@ namespace anyMidi {
  *  @brief   Custom JUCE theme for application.
  *
  */
-class CustomLookaAndFeel : public juce::LookAndFeel_V4 {
+class CustomLookAndFeel : public juce::LookAndFeel_V4 {
 public:
-    CustomLookaAndFeel();
+    CustomLookAndFeel();
 
     enum ColorGroup {
         BackgroundPrimary,
@@ -34,21 +34,21 @@ public:
     };
 
 private:
-    const juce::Colour black{juce::Colour(10, 10, 10)};
-    const juce::Colour gray{juce::Colour(33, 33, 36)};
-    const juce::Colour lightGray{juce::Colour(100, 100, 100)};
-    const juce::Colour white{juce::Colour(241, 241, 241)};
-    const juce::Colour blue{juce::Colour(5, 151, 250)};
+    const juce::Colour black_{juce::Colour(10, 10, 10)};
+    const juce::Colour gray_{juce::Colour(33, 33, 36)};
+    const juce::Colour lightGray_{juce::Colour(100, 100, 100)};
+    const juce::Colour white_{juce::Colour(241, 241, 241)};
+    const juce::Colour blue_{juce::Colour(5, 151, 250)};
 
-    const std::map<ColorGroup, juce::Colour> palette =
+    const std::map<ColorGroup, juce::Colour> palette_ =
         std::map<ColorGroup, juce::Colour>{
-            {ColorGroup::BackgroundPrimary, gray},
-            {ColorGroup::BackgroundSecondary, black},
-            {ColorGroup::TextPrimary, white},
-            {ColorGroup::TextSecondary, lightGray},
-            {ColorGroup::Outline, lightGray},
-            {ColorGroup::Active, blue}};
+            {ColorGroup::BackgroundPrimary, gray_},
+            {ColorGroup::BackgroundSecondary, black_},
+            {ColorGroup::TextPrimary, white_},
+            {ColorGroup::TextSecondary, lightGray_},
+            {ColorGroup::Outline, lightGray_},
+            {ColorGroup::Active, blue_}};
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CustomLookaAndFeel)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CustomLookAndFeel)
 };
 }; // namespace anyMidi

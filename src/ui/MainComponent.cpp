@@ -12,9 +12,10 @@
 #include "../util/Globals.h"
 #include "UserInterface.h"
 
-anyMidi::MainComponent::MainComponent(juce::ValueTree v) : tree{v}, gui{v} {
-    addAndMakeVisible(gui);
-    setSize(400, 290);
+anyMidi::MainComponent::MainComponent(const juce::ValueTree &v)
+    : tree_{v}, gui_{v} {
+    addAndMakeVisible(gui_);
+    setSize(width, height);
 }
 
 void anyMidi::MainComponent::paint(juce::Graphics &g) {
@@ -24,4 +25,4 @@ void anyMidi::MainComponent::paint(juce::Graphics &g) {
         getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
 }
 
-void anyMidi::MainComponent::resized() { gui.setBounds(getLocalBounds()); }
+void anyMidi::MainComponent::resized() { gui_.setBounds(getLocalBounds()); }

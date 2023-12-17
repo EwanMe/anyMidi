@@ -11,128 +11,133 @@
 
 anyMidi::MidiProcessor::MidiProcessor(const unsigned int &sampleRate,
                                       const double &startTime)
-    : sampleRate{sampleRate}, startTime{startTime}, midiOut{nullptr} {}
+    : sampleRate_{sampleRate}, startTime_{startTime} {}
 
 void anyMidi::MidiProcessor::setMidiOutput(juce::MidiOutput *output) {
-    midiOut = output;
+    midiOut_ = output;
 }
 
-double anyMidi::MidiProcessor::getAttackThreshold() const {
-    return attackThreshold;
+auto anyMidi::MidiProcessor::getAttackThreshold() const -> double {
+    return attackThreshold_;
 }
 
-double anyMidi::MidiProcessor::getReleaseThreshold() const {
-    return releaseThreshold;
+auto anyMidi::MidiProcessor::getReleaseThreshold() const -> double {
+    return releaseThreshold_;
 }
 
 void anyMidi::MidiProcessor::setAttackThreshold(double &t) {
-    attackThreshold = t;
+    attackThreshold_ = t;
 }
 
 void anyMidi::MidiProcessor::setReleaseThreshold(double &t) {
-    releaseThreshold = t;
+    releaseThreshold_ = t;
 }
 
-bool anyMidi::MidiProcessor::determineNoteValue(
-    const unsigned int &note, const double &amp,
-    std::vector<std::pair<int, bool>> &noteValues) {
+auto anyMidi::MidiProcessor::determineNoteValue(
+    const int &note, const double &amp,
+    std::vector<std::pair<int, bool>> &noteValues) -> bool {
     // Ensures that notes are within midi range.
-    if (note >= 0 && note < 128) {
+    constexpr std::pair<int, int> kMidiRange{0, 128};
+    if (note >= kMidiRange.first && note < kMidiRange.second) {
         // When there's no note currently playing, and the note
         // surpasses the threshold.
-        if (!midiNoteCurrentlyOn && amp > attackThreshold) {
-            noteValues.push_back(std::make_pair(note, true)); // Note on
-            midiNoteCurrentlyOn = true;
-            lastNote = note;
-            lastAmp = amp;
+        if (!midiNoteCurrentlyOn_ && amp > attackThreshold_) {
+            noteValues.emplace_back(note, true); // Note on
+            midiNoteCurrentlyOn_ = true;
+            lastNote_ = note;
+            lastAmp_ = amp;
             return true;
         }
         // When another note is currently playing.
-        if (midiNoteCurrentlyOn) {
+        if (midiNoteCurrentlyOn_) {
             // When new note is different from the last note.
-            if (note != lastNote) {
+            if (note != lastNote_) {
                 // When new, different note surpasses threshold.
                 // Last note is turned off before new note is turned on.
-                if (amp > attackThreshold) {
-                    noteValues.push_back(
-                        std::make_pair(lastNote, false)); // Note off
-                    noteValues.push_back(std::make_pair(note, true)); // Note on
-                    midiNoteCurrentlyOn = true;
-                    lastNote = note;
-                    lastAmp = amp;
+                if (amp > attackThreshold_) {
+                    noteValues.emplace_back(lastNote_, false); // Note off
+                    noteValues.emplace_back(note, true);       // Note on
+                    midiNoteCurrentlyOn_ = true;
+                    lastNote_ = note;
+                    lastAmp_ = amp;
                     return true;
                 }
                 return false;
             }
             // When new note is the same as last note,
             // it has to be sufficiently louder to retrigger.
-            if (amp > lastAmp * 3) {
-                if (amp > attackThreshold) {
-                    noteValues.push_back(
-                        std::make_pair(lastNote, false)); // Note off
-                    noteValues.push_back(std::make_pair(note, true)); // Note on
-                    midiNoteCurrentlyOn = true;
-                    lastNote = note;
-                    lastAmp = amp;
+            if (amp > lastAmp_ * 3) {
+                if (amp > attackThreshold_) {
+                    noteValues.emplace_back(lastNote_, false); // Note off
+                    noteValues.emplace_back(note, true);       // Note on
+                    midiNoteCurrentlyOn_ = true;
+                    lastNote_ = note;
+                    lastAmp_ = amp;
                     return true;
                 }
                 return false;
             }
             // When new note is not different, nor louder than last
             // it's probably a releasing note and we check if it has rung out.
-            if (amp < releaseThreshold) {
-                noteValues.push_back(
-                    std::make_pair(lastNote, false)); // Note off
-                midiNoteCurrentlyOn = false;
+            if (amp < releaseThreshold_) {
+                noteValues.emplace_back(lastNote_, false); // Note off
+                midiNoteCurrentlyOn_ = false;
                 return true;
             }
-            lastAmp = amp;
+            lastAmp_ = amp;
         }
     }
     return false;
 }
 
-void anyMidi::MidiProcessor::createMidiMsg(const unsigned int &noteNum,
+void anyMidi::MidiProcessor::createMidiMsg(const int &noteNum,
                                            const juce::uint8 &velocity,
                                            const bool noteOn) {
     juce::MidiMessage midiMessage;
-    unsigned int scaledNoteNum =
-        noteNum + 12; // Juce is one octave off for some reason.
-    if (scaledNoteNum >= 40 && scaledNoteNum < 90) {
+
+    // JUCE is one octave off for some reason.
+    constexpr int juceOctaveOffset = 12;
+    const int scaledNoteNum = noteNum + juceOctaveOffset;
+    // Bounds represent note range of a typical guitar
+    constexpr int noteLowerBound{40};
+    constexpr int noteUpperBound{90};
+    if (scaledNoteNum >= noteLowerBound && scaledNoteNum < noteUpperBound) {
         if (noteOn) {
-            midiMessage =
-                juce::MidiMessage::noteOn(midiChannel, scaledNoteNum, velocity);
+            midiMessage = juce::MidiMessage::noteOn(midiChannel, scaledNoteNum,
+                                                    velocity);
         } else {
             midiMessage =
                 juce::MidiMessage::noteOff(midiChannel, scaledNoteNum);
         }
-        midiMessage.setTimeStamp(juce::Time::getMillisecondCounter() * 0.001 -
-                                 startTime);
+
+        constexpr double secondScale = 0.001;
+        midiMessage.setTimeStamp(
+            juce::Time::getMillisecondCounter() * secondScale - startTime_);
         addMessageToBuffer(midiMessage);
     }
 }
 
 void anyMidi::MidiProcessor::addMessageToBuffer(
     const juce::MidiMessage &message) {
-    double timestamp = message.getTimeStamp();
-    int sampleNumber = (int)(timestamp * sampleRate);
+    const double timestamp = message.getTimeStamp();
+    const int sampleNumber = static_cast<int>(timestamp * sampleRate_);
 
-    midiBuffer.addEvent(message, sampleNumber);
+    midiBuffer_.addEvent(message, sampleNumber);
 }
 
 void anyMidi::MidiProcessor::pushBufferToOutput() {
-    if (midiOut) {
-        midiOut->startBackgroundThread();
+    if (midiOut_) {
+        midiOut_->startBackgroundThread();
     }
 
-    if (midiOut != nullptr) {
-        midiOut->sendBlockOfMessagesNow(midiBuffer);
-        midiBuffer.clear();
+    if (midiOut_ != nullptr) {
+        midiOut_->sendBlockOfMessagesNow(midiBuffer_);
+        midiBuffer_.clear();
     }
 }
 
 void anyMidi::MidiProcessor::turnOffAllMessages() {
-    if (midiOut) {
-        midiOut->sendMessageNow(juce::MidiMessage::allNotesOff(midiChannel));
+    if (midiOut_) {
+        midiOut_->sendMessageNow(juce::MidiMessage::allNotesOff(midiChannel));
     }
 }

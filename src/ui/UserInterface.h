@@ -38,15 +38,14 @@ constexpr int labelPad = xPad;
  */
 class AudioSetupPage : public juce::Component {
 public:
-    AudioSetupPage(juce::ValueTree v);
-
-    ~AudioSetupPage();
+    explicit AudioSetupPage(const juce::ValueTree &v);
+    ~AudioSetupPage() override;
 
     void resized() override;
 
 private:
-    std::unique_ptr<juce::AudioDeviceSelectorComponent> audioSetupComp;
-    juce::ValueTree tree;
+    std::unique_ptr<juce::AudioDeviceSelectorComponent> audioSetupComp_;
+    juce::ValueTree tree_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioSetupPage)
 };
@@ -60,28 +59,30 @@ private:
  */
 class AppSettingsPage : public juce::Component {
 public:
-    AppSettingsPage(juce::ValueTree v);
+    explicit AppSettingsPage(const juce::ValueTree &v);
+    ~AppSettingsPage() override = default;
 
     void resized() override;
 
-    juce::TextEditor output;
-
 private:
-    juce::Slider attThreshSlider;
-    juce::Slider relThreshSlider;
-    juce::Slider partialsSlider;
-    juce::Slider filterSlider;
-    juce::TextEditor loCutFreq;
-    juce::TextEditor hiCutFreq;
-    juce::ComboBox winMethodList;
+    static constexpr double frequenzyLowerBound{20.0};
+    static constexpr double frequenzyUpperBound{20000.0};
 
-    juce::Label attThreshLabel;
-    juce::Label relThreshLabel;
-    juce::Label partialsLabel;
-    juce::Label filterLabel;
-    juce::Label winMethodLabel;
+    juce::Slider attThreshSlider_;
+    juce::Slider relThreshSlider_;
+    juce::Slider partialsSlider_;
+    juce::Slider filterSlider_;
+    juce::TextEditor loCutFreq_;
+    juce::TextEditor hiCutFreq_;
+    juce::ComboBox winMethodList_;
 
-    juce::ValueTree tree;
+    juce::Label attThreshLabel_;
+    juce::Label relThreshLabel_;
+    juce::Label partialsLabel_;
+    juce::Label filterLabel_;
+    juce::Label winMethodLabel_;
+
+    juce::ValueTree tree_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AppSettingsPage)
 };
@@ -95,7 +96,8 @@ private:
  */
 class DebugPage : public juce::Component, public juce::ValueTree::Listener {
 public:
-    DebugPage(juce::ValueTree v);
+    explicit DebugPage(const juce::ValueTree &v);
+    ~DebugPage() override = default;
 
     void resized() override;
 
@@ -103,12 +105,12 @@ public:
                                   const juce::Identifier &property) override;
 
 private:
-    juce::ValueTree tree;
-    juce::TextEditor outputBox;
-    juce::TextButton clearOutput;
-    juce::TextButton writeToXml;
+    juce::ValueTree tree_;
+    juce::TextEditor outputBox_;
+    juce::TextButton clearOutput_;
+    juce::TextButton writeToXml_;
 
-    juce::Label outputBoxLabel;
+    juce::Label outputBoxLabel_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DebugPage)
 };
@@ -122,15 +124,16 @@ private:
  */
 class TabbedComp : public juce::TabbedComponent {
 public:
-    TabbedComp(juce::ValueTree v);
+    explicit TabbedComp(const juce::ValueTree &v);
+    ~TabbedComp() override = default;
 
 private:
-    juce::ValueTree tree;
+    juce::ValueTree tree_;
 
-    juce::Viewport audioSetupViewport;
-    AudioSetupPage audioSetupPage;
-    AppSettingsPage appSettingsPage;
-    DebugPage debugPage;
+    juce::Viewport audioSetupViewport_;
+    AudioSetupPage audioSetupPage_;
+    AppSettingsPage appSettingsPage_;
+    DebugPage debugPage_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TabbedComp)
 };
@@ -146,14 +149,14 @@ class TrayIcon : public juce::SystemTrayIconComponent {
 public:
     juce::DocumentWindow *mainWindow;
 
-    TrayIcon(juce::DocumentWindow *mainWindow);
+    explicit TrayIcon(juce::DocumentWindow *mainWindow);
 
     /**
      *  @brief Opens a popup menu for application interaction when tray icon is
      *         clicked.
      *  @param  - Mouse event, unused.
      */
-    void mouseDown(const juce::MouseEvent &) override;
+    void mouseDown(const juce::MouseEvent &mouseEvent) override;
 };
 
 }; // namespace anyMidi

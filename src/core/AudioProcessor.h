@@ -40,9 +40,7 @@ public:
 class AudioProcessor : public juce::AudioSource,
                        public juce::ValueTree::Listener {
 public:
-    anyMidi::AudioDeviceManagerRCO::Ptr deviceManager;
-
-    AudioProcessor(juce::ValueTree v);
+    explicit AudioProcessor(double sampleRate, const juce::ValueTree &v);
 
     ~AudioProcessor() override;
 
@@ -70,12 +68,12 @@ public:
                                   const juce::Identifier &property) override;
 
 private:
-    juce::AudioSourcePlayer audioSourcePlayer;
-    anyMidi::ForwardFFT fft;
-    anyMidi::MidiProcessor midiProc;
-
-    juce::AudioSampleBuffer processingBuffer;
-    juce::IIRFilter hiPassFilter;
+    juce::AudioSourcePlayer audioSourcePlayer_;
+    anyMidi::ForwardFFT fft_;
+    anyMidi::MidiProcessor midiProc_;
+    anyMidi::AudioDeviceManagerRCO::Ptr deviceManager_;
+    juce::AudioSampleBuffer processingBuffer_;
+    juce::IIRFilter hiPassFilter_;
 
     static constexpr double lowFilterFreq{75.0}; // E5 on guitar ~82 Hz
     static constexpr double highFilterFreq{24000.0};
@@ -83,13 +81,11 @@ private:
     static constexpr unsigned int numInputChannels{1};
     static constexpr unsigned int numOutputChannels{0};
 
-    int numPartials{6};
-    std::vector<double> noteFrequencies; /// Lookup array to determine Midi
-                                         /// notes from frequencies.
-    static constexpr unsigned int tuning{
-        440}; /// Can't be changed due to the MIDI protocol.
+    int numPartials_{6};
+    std::vector<double> noteFrequencies_; /// Lookup array to determine Midi
+                                          /// notes from frequencies.
 
-    juce::ValueTree tree; /// Container for data shared with the GUI.
+    juce::ValueTree tree_; /// Container for data shared with the GUI.
 
     /**
      *  @brief Updates number of partials for harmonic analysis.

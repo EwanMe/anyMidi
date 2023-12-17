@@ -18,7 +18,7 @@ juce_add_binary_data(anyMidiAssets
 		"${CMAKE_SOURCE_DIR}/resources/anyMidiLogoSmall.png"
 )
 
-target_sources(anyMidi PRIVATE
+file(GLOB_RECURSE SRC_FILES
 	"src/core/AudioProcessor.cpp"
 	"src/core/ForwardFFT.cpp"
 	"src/core/MidiProcessor.cpp"
@@ -27,6 +27,12 @@ target_sources(anyMidi PRIVATE
 	"src/ui/UserInterface.cpp"
 	"src/Main.cpp"	
 )
+
+target_sources(anyMidi PRIVATE ${SRC_FILES})
+
+#set_target_properties(tidy PROPERTIES
+#    CXX_CLANG_TIDY "clang-tidy;--header-filter=^(!?${CMAKE_SOURCE_DIR}\\Builds|${CMAKE_PREFIX_PATH})"
+#)
 
 target_link_libraries(anyMidi
 	PRIVATE

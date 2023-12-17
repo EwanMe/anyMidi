@@ -15,9 +15,9 @@
 #include "./ui/MainComponent.h"
 #include "./util/Globals.h"
 
-class anyMidiStandaloneApplication : public juce::JUCEApplication {
+class AnyMidiStandaloneApplication : public juce::JUCEApplication {
 public:
-    anyMidiStandaloneApplication() : tree{anyMidi::ROOT_ID} {}
+    AnyMidiStandaloneApplication() = default;
 
     const juce::String getApplicationName() override {
         return ProjectInfo::projectName;
@@ -25,22 +25,24 @@ public:
     const juce::String getApplicationVersion() override {
         return ProjectInfo::versionString;
     }
+
     bool moreThanOneInstanceAllowed() override { return true; }
 
-    void initialise(const juce::String &commandLine) override {
-        juce::ValueTree audioProcNode(anyMidi::AUDIO_PROC_ID);
-        tree.addChild(audioProcNode, -1, nullptr);
+    void initialise([[maybe_unused]] const juce::String &commandLine) override {
+        const juce::ValueTree audioProcNode(anyMidi::AUDIO_PROC_ID);
+        tree_.addChild(audioProcNode, -1, nullptr);
 
-        juce::ValueTree guiNode{anyMidi::GUI_ID};
-        tree.addChild(guiNode, -1, nullptr);
+        const juce::ValueTree guiNode{anyMidi::GUI_ID};
+        tree_.addChild(guiNode, -1, nullptr);
 
-        audioProcessor = std::make_unique<anyMidi::AudioProcessor>(tree);
-        mainWindow.reset(
-            new MainWindow(getApplicationName(), &layout, guiNode));
-        tray = std::make_unique<anyMidi::TrayIcon>(mainWindow.get());
+        audioProcessor_ = std::make_unique<anyMidi::AudioProcessor>(
+            anyMidi::defaultSampleRate, tree_);
+        mainWindow_ = std::make_shared<MainWindow>(getApplicationName(),
+                                                   &layout_, guiNode);
+        tray_ = std::make_unique<anyMidi::TrayIcon>(mainWindow_.get());
     }
 
-    void shutdown() override { mainWindow = nullptr; }
+    void shutdown() override { mainWindow_ = nullptr; }
 
     void systemRequestedQuit() override { quit(); }
 
@@ -56,8 +58,8 @@ public:
     */
     class MainWindow : public juce::DocumentWindow {
     public:
-        MainWindow(juce::String name, anyMidi::CustomLookaAndFeel *layout,
-                   juce::ValueTree v)
+        MainWindow(const juce::String &name, anyMidi::CustomLookAndFeel *layout,
+                   const juce::ValueTree &v)
             : DocumentWindow(
                   name,
                   layout->findColour(juce::DocumentWindow::backgroundColourId),
@@ -65,35 +67,35 @@ public:
                       DocumentWindow::closeButton) {
             setUsingNativeTitleBar(false);
             setTitleBarTextCentred(false);
-            setContentOwned(new anyMidi::MainComponent(v), true);
-#if JUCE_IOS || JUCE_ANDROID
-            setFullScreen(true);
-#else
+            
+            // JUCE handles pointer safety
+            setContentOwned(new anyMidi::MainComponent(v), true); // NOLINT
+            
             setResizable(false, false);
             centreWithSize(getWidth(), getHeight());
-#endif
-
             setLookAndFeel(layout);
 
             // Draw task bar icon
-            juce::Image largeIcon = juce::ImageCache::getFromMemory(
+            const juce::Image largeIcon = juce::ImageCache::getFromMemory(
                 BinaryData::anyMidiLogo_png, BinaryData::anyMidiLogo_pngSize);
-            juce::Graphics gL{largeIcon};
-            gL.drawImage(largeIcon, juce::Rectangle<float>(470, 470));
+            const juce::Graphics gL{largeIcon};
+            gL.drawImage(largeIcon,
+                         juce::Rectangle<float>(LargeIconSize, LargeIconSize));
             getPeer()->setIcon(largeIcon);
 
             // Draw window title header icon
-            juce::Image smallIcon = juce::ImageCache::getFromMemory(
+            const juce::Image smallIcon = juce::ImageCache::getFromMemory(
                 BinaryData::anyMidiLogoSmall_png,
                 BinaryData::anyMidiLogoSmall_pngSize);
-            juce::Graphics gS{smallIcon};
-            gS.drawImage(smallIcon, juce::Rectangle<float>(16, 16));
+            const juce::Graphics gS{smallIcon};
+            gS.drawImage(smallIcon,
+                         juce::Rectangle<float>(SmallIconSize, SmallIconSize));
             setIcon(smallIcon);
 
             setVisible(true);
         }
 
-        ~MainWindow() { setLookAndFeel(nullptr); }
+        ~MainWindow() override { setLookAndFeel(nullptr); }
 
         void closeButtonPressed() override {
             JUCEApplication::getInstance()->systemRequestedQuit();
@@ -115,19 +117,22 @@ public:
         //}
 
     private:
+        static const int SmallIconSize{16};
+        static const int LargeIconSize{470};
+
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainWindow)
     };
 
 private:
-    anyMidi::CustomLookaAndFeel layout;
+    anyMidi::CustomLookAndFeel layout_;
 
-    std::unique_ptr<anyMidi::AudioProcessor> audioProcessor;
-    std::shared_ptr<MainWindow> mainWindow;
-    std::unique_ptr<anyMidi::TrayIcon> tray;
-    juce::ValueTree tree;
+    std::unique_ptr<anyMidi::AudioProcessor> audioProcessor_;
+    std::shared_ptr<MainWindow> mainWindow_;
+    std::unique_ptr<anyMidi::TrayIcon> tray_;
+    juce::ValueTree tree_{anyMidi::ROOT_ID};
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(anyMidiStandaloneApplication)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AnyMidiStandaloneApplication)
 };
 
 // This macro generates the main() routine that launches the app.
-START_JUCE_APPLICATION(anyMidiStandaloneApplication)
+START_JUCE_APPLICATION(AnyMidiStandaloneApplication)

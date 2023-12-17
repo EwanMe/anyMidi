@@ -14,28 +14,28 @@
 anyMidi::ForwardFFT::ForwardFFT(
     const double sampleRate,
     const juce::dsp::WindowingFunction<float>::WindowingMethod windowingMethod)
-    : forwardFFT{fftOrder}, sampleRate{sampleRate},
+    : forwardFFT_{fftOrder}, sampleRate_{sampleRate},
       // When initialising the windowing function, consider using fftSize + 1,
       // ref. https://artandlogic.com/2019/11/making-spectrograms-in-juce/amp/
-      window{fftSize + 1, windowingMethod}, winMethod{windowingMethod} {
-    fftData.fill(0.0);
-    fifo.fill(0.0);
-    windowCompensation = windowCompensations.at(windowingMethod);
+      window_{fftSize + 1, windowingMethod}, winMethod_{windowingMethod},
+      fftData_{}, fifo_{} {
+    windowCompensation_ = windowCompensations_.at(windowingMethod);
 }
 
 std::array<float, anyMidi::ForwardFFT::fftSize * 2>
 anyMidi::ForwardFFT::getFFTData() const {
-    return fftData;
+    return fftData_;
 }
 
-int anyMidi::ForwardFFT::getFFTSize() const { return fftSize; }
+int anyMidi::ForwardFFT::getFFTSize() { return fftSize; }
 
 void anyMidi::ForwardFFT::setWindowingFunction(const int &id) {
-    auto winMethod = juce::dsp::WindowingFunction<float>::WindowingMethod(id);
+    auto winMethod =
+        static_cast<juce::dsp::WindowingFunction<float>::WindowingMethod>(id);
 
-    this->winMethod = winMethod;
-    this->windowCompensation = windowCompensations.at(winMethod);
-    this->window.fillWindowingTables(fftSize + 1, winMethod);
+    this->winMethod_ = winMethod;
+    this->windowCompensation_ = windowCompensations_.at(winMethod);
+    this->window_.fillWindowingTables(fftSize + 1, winMethod);
 }
 
 juce::Array<juce::String>
@@ -46,7 +46,7 @@ anyMidi::ForwardFFT::getAvailableWindowingMethods() const {
     windowStrings.fill("");
 
     // Fill array with existing window method enums.
-    for (auto &w : windowCompensations) {
+    for (const auto &w : windowCompensations_) {
         juce::dsp::WindowingFunction<float>::WindowingMethod method =
             juce::dsp::WindowingFunction<
                 float>::WindowingMethod::numWindowingMethods;
@@ -93,28 +93,28 @@ anyMidi::ForwardFFT::getAvailableWindowingMethods() const {
 void anyMidi::ForwardFFT::pushNextSampleIntoFifo(float sample) {
     // When fifo contains enough data, flag is set to say next frame should be
     // rendered.
-    if (fifoIndex == fftSize) {
-        if (!nextFFTBlockReady) {
+    if (fifoIndex_ == fftSize) {
+        if (!nextFFTBlockReady_) {
             // Initializes fftData with zeroes.
-            std::fill(fftData.begin(), fftData.end(), 0.0f);
+            std::fill(fftData_.begin(), fftData_.end(), 0.0F);
             // Copies the data from the fifo into fftData.
-            std::copy(fifo.begin(), fifo.end(), fftData.begin());
+            std::copy(fifo_.begin(), fifo_.end(), fftData_.begin());
             // Sets flag.
-            nextFFTBlockReady = true;
+            nextFFTBlockReady_ = true;
 
             // Perform windowing and forward FFT.
-            window.multiplyWithWindowingTable(fftData.data(), fftSize);
-            forwardFFT.performFrequencyOnlyForwardTransform(fftData.data());
+            window_.multiplyWithWindowingTable(fftData_.data(), fftSize);
+            forwardFFT_.performFrequencyOnlyForwardTransform(fftData_.data());
 
             // Amplitude compensation for window function.
             juce::FloatVectorOperationsBase<float, size_t>::multiply(
-                fftData.data(), windowCompensation, fftSize);
+                fftData_.data(), windowCompensation_, fftSize);
         }
 
-        fifoIndex = 0;
+        fifoIndex_ = 0;
     }
 
-    fifo[fifoIndex++] = sample;
+    fifo_.at(fifoIndex_++) = sample;
 }
 
 std::pair<double, double> anyMidi::ForwardFFT::calcFundamentalFreq() const {
@@ -123,9 +123,9 @@ std::pair<double, double> anyMidi::ForwardFFT::calcFundamentalFreq() const {
     auto data = getFFTData();
 
     // Finds fft bin with most energy.
-    for (unsigned int i = 0; i < getFFTSize(); ++i) {
-        if (max < data[i]) {
-            max = data[i];
+    for (int i = 0; i < getFFTSize(); ++i) {
+        if (max < data.at(i)) {
+            max = data.at(i);
             targetBin = i;
         }
     }
@@ -133,52 +133,52 @@ std::pair<double, double> anyMidi::ForwardFFT::calcFundamentalFreq() const {
     // Calculates frequency from bin number and accesses amplitude at bin
     // number.
     auto fundamental = std::make_pair<double, double>(
-        (double)targetBin * sampleRate / (fftSize * 2),
-        (double)(data[targetBin] / fftSize));
+        static_cast<double>(targetBin * sampleRate_ / (fftSize * 2)),
+        static_cast<double>((data.at(targetBin) / fftSize)));
     return fundamental;
 }
 
 std::vector<std::pair<int, double>>
 anyMidi::ForwardFFT::getHarmonics(const unsigned int &numPartials,
-                                  const std::vector<double> &noteFreq) {
+                                  const std::vector<double> &noteFreq) const {
     auto data = getFFTData();
     cleanUpBins(data);
     auto notes = mapBinsToNotes(noteFreq, data);
     return determineHarmonics(numPartials, notes);
 }
 
-int anyMidi::ForwardFFT::getWindowingFunction() const { return winMethod; }
+int anyMidi::ForwardFFT::getWindowingFunction() const { return winMethod_; }
 
 void anyMidi::ForwardFFT::cleanUpBins(std::array<float, fftSize * 2> &data) {
-    constexpr double threshold{1.0};
+    constexpr double kThreshold{1.0};
 
     std::vector<int> lobes;
     for (int bin = 0; bin < getFFTSize(); ++bin) {
         // Clean up noise - acts like a gate.
-        if (data[bin] < threshold) {
-            data[bin] = 0;
+        if (data.at(bin) < kThreshold) {
+            data.at(bin) = 0;
         } else {
             // Adds bin as part of a lobe when above threshold.
             lobes.push_back(bin);
         }
 
         // When bin is zero, we've moved past the lobe and it can be analyzed.
-        // Squeezes lobe into a sigle bin, being the center bin of the lobe.
-        if (lobes.size() > 0 && data[bin] == 0) {
+        // Squeezes lobe into a single bin, being the center bin of the lobe.
+        if (!lobes.empty() && data.at(bin) == 0) {
             float maxLobe{0.0};
             int ctrBin{0};
-            for (int i : lobes) {
-                if (data[i] > maxLobe) {
+            for (const int i : lobes) {
+                if (data.at(i) > maxLobe) {
                     ctrBin = i;
-                    maxLobe = data[i];
+                    maxLobe = data.at(i);
                 }
             }
 
-            for (int i : lobes) {
+            for (const int i : lobes) {
                 // Adds all amplitudes to center bin.
                 if (i != ctrBin) {
-                    data[ctrBin] += data[i];
-                    data[i] = 0;
+                    data.at(ctrBin) += data.at(i);
+                    data.at(i) = 0;
                 }
             }
             lobes.clear();
@@ -188,17 +188,17 @@ void anyMidi::ForwardFFT::cleanUpBins(std::array<float, fftSize * 2> &data) {
 
 std::vector<double> anyMidi::ForwardFFT::mapBinsToNotes(
     const std::vector<double> &noteFreq,
-    const std::array<float, fftSize * 2> &data) {
+    const std::array<float, fftSize * 2ULL> &data) const {
     // Determines closest note to all bins in FFT and maps bins to their correct
     // frequencies. The amplitudes of each bin is added onto the notes
     // amplitude.
     std::vector<double> amps(noteFreq.size());
-    int i = 0;
     for (int bin = 1; bin < getFFTSize(); ++bin) {
-        double freq = (double)bin * sampleRate / (fftSize * 2);
-        int note = anyMidi::findNearestNote(freq, noteFreq);
+        const auto freq =
+            static_cast<double>(bin * sampleRate_ / (fftSize * 2));
+        auto note = anyMidi::findNearestNote(freq, noteFreq);
 
-        amps[note] += data[bin];
+        amps[note] += data.at(bin);
     }
 
     return amps;
@@ -206,36 +206,34 @@ std::vector<double> anyMidi::ForwardFFT::mapBinsToNotes(
 
 std::vector<std::pair<int, double>>
 anyMidi::ForwardFFT::determineHarmonics(const unsigned int &numPartials,
-                                        std::vector<double> &amps) const {
+                                        std::vector<double> &amps) {
     // Thanks to
     // https://stackoverflow.com/questions/14902876/indices-of-the-k-largest-elements-in-an-unsorted-length-n-array/38391603#38391603
     // for inspiration for this algorithm.
 
     // Stores bin index and value for the n loudest partials.
     std::priority_queue<std::pair<double, int>,
-                        std::vector<std::pair<double, int>>,
-                        std::greater<std::pair<double, int>>>
+                        std::vector<std::pair<double, int>>, std::greater<>>
         queue;
 
     // Puts the loudest bins into the priority queue, storing the amplitude and
     // the index.
     for (int i = 0; i < amps.size(); ++i) {
         if (queue.size() < numPartials) {
-            queue.push(std::pair<double, int>{amps[i], i});
+            queue.emplace(amps[i], i);
         } else if (queue.top().first < amps[i]) {
             queue.pop();
-            queue.push(std::pair<double, int>{amps[i], i});
+            queue.emplace(amps[i], i);
         }
     }
 
     // Transforms the priority queue into a variable size vector, since the
     // number of partials may change.
-    int k = queue.size();
+    auto k = queue.size();
     std::vector<std::pair<int, double>> harmonics;
     for (int i = 0; i < k; ++i) {
         // Creates pair of {frequenzy, amplitude}.
-        harmonics.push_back(
-            std::make_pair(queue.top().second, queue.top().first / fftSize));
+        harmonics.emplace_back(queue.top().second, queue.top().first / fftSize);
         queue.pop();
     }
 
@@ -249,9 +247,9 @@ anyMidi::ForwardFFT::determineHarmonics(const unsigned int &numPartials,
 }
 
 int anyMidi::findNearestNote(const double &target,
-                             const std::vector<double> &noteFrequencies) {
-    unsigned int begin = 0;
-    unsigned int end = noteFrequencies.size();
+                                const std::vector<double> &noteFrequencies) {
+    int begin{0};
+    auto end = static_cast<int>(noteFrequencies.size());
 
     // When frequency is below or above highest midi note.
     if (target <= noteFrequencies[begin]) {
@@ -262,7 +260,7 @@ int anyMidi::findNearestNote(const double &target,
     }
 
     // Variation of binary search.
-    unsigned int mid;
+    int mid{0};
     while (end - begin > 1) {
         mid = begin + (end - begin) / 2;
 
@@ -279,7 +277,7 @@ int anyMidi::findNearestNote(const double &target,
     if (std::abs(target - noteFrequencies[begin]) <
         std::abs(target - noteFrequencies[end])) {
         return begin;
-    } else {
-        return end;
     }
+
+    return end;
 }

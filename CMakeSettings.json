@@ -15,6 +15,11 @@
           "name": "CMAKE_PREFIX_PATH",
           "value": "C:\\lib\\JUCEbuild",
           "type": "FILEPATH"
+        },
+        {
+          "name": "CMAKE_EXPORT_COMPILE_COMMANDS",
+          "value": "on",
+          "type": "BOOL"
         }
       ]
     }
