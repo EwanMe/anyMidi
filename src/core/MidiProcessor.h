@@ -54,7 +54,7 @@ public:
      *  @retval            - Flag signaling if there is need to create new midi
      *                       messages.
      */
-    bool determineNoteValue(const unsigned int &note, const double &amp,
+    bool determineNoteValue(const int &note, const double &amp,
                             std::vector<std::pair<int, bool>> &noteValues);
 
     /**
@@ -63,7 +63,7 @@ public:
      *  @param velocity - MIDI note velocity.
      *  @param noteOn   - Flag indicating if note is to be turned on or off.
      */
-    void createMidiMsg(const unsigned int &noteNum, const juce::uint8 &velocity,
+    void createMidiMsg(const int &noteNum, const juce::uint8 &velocity,
                        const bool noteOn);
 
     /**
@@ -73,23 +73,25 @@ public:
     void addMessageToBuffer(const juce::MidiMessage &message);
 
 private:
-    juce::MidiBuffer midiBuffer;
-    juce::MidiOutput *midiOut;
+    juce::MidiBuffer midiBuffer_;
+    juce::MidiOutput *midiOut_{nullptr};
 
     static constexpr int midiChannel{10};
-    const unsigned int sampleRate;
+    const unsigned int sampleRate_;
 
-    bool midiNoteCurrentlyOn{false}; /// Flag indicating if a MIDI note on has
-                                     /// been sent without being turned off yet.
-    int lastNote{-1};    /// Previous MIDI note, used to determine note change.
-    double lastAmp{0.0}; /// Previous amplitude of note, used to determine
-                         /// retrigger or ring out.
+    /// Flag indicating if a MIDI note on has been sent without being turned off
+    /// yet.
+    bool midiNoteCurrentlyOn_{false};
+    /// Previous MIDI note, used to determine note change.
+    int lastNote_{-1};
+    /// Previous amplitude of note, used to determine retrigger or ring out.
+    double lastAmp_{0.0};
 
-    double attackThreshold{0.1};
-    double releaseThreshold{0.001};
+    double attackThreshold_{0.1};
+    double releaseThreshold_{0.001};
 
     /// Audio app start time. Used to determine Midi message timestamp.
-    const double startTime;
+    const double startTime_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MidiProcessor)
 };

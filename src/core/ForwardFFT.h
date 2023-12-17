@@ -16,27 +16,31 @@ namespace anyMidi {
 
 class ForwardFFT {
 private:
-    static constexpr unsigned int fftOrder{
-        10}; /// Used as exponent of base 2 in FFT size.
-    static constexpr unsigned int fftSize =
-        1 << fftOrder; /// 2 to the power of FFT order.
+    /// Used as exponent of base 2 in FFT size.
+    static constexpr size_t fftOrder{10};
+    /// 2 to the power of FFT order.
+    static constexpr size_t fftSize = 1ULL << fftOrder;
+
+    /// Signals whether the FIFO has been copied into the FFT array.
+    bool nextFFTBlockReady_ = false;
 
 public:
-    bool nextFFTBlockReady =
-        false; /// Signals whether the FIFO has been copied into the FFT array.
-
     /**
      *  @brief ForwardFFT object constructor
      *  @param sampleRate      - Audio sample rate to use for the FFT.
      *  @param windowingMethod - Windowing method to use for the FFT.
      */
-    ForwardFFT(const double sampleRate,
-               const juce::dsp::WindowingFunction<float>::WindowingMethod
-                   windowingMethod);
+    ForwardFFT(
+        double sampleRate,
+        juce::dsp::WindowingFunction<float>::WindowingMethod windowingMethod);
 
-    int getFFTSize() const;
+    static int getFFTSize();
 
     std::array<float, fftSize * 2> getFFTData() const;
+
+    bool isNextFFTBlockReady() const { return nextFFTBlockReady_; }
+
+    void setNextFFTBlockReady(const bool ready) { nextFFTBlockReady_ = ready; }
 
     int getWindowingFunction() const;
 
@@ -74,14 +78,14 @@ public:
      */
     std::vector<std::pair<int, double>>
     getHarmonics(const unsigned int &numPartials,
-                 const std::vector<double> &noteFreq);
+                 const std::vector<double> &noteFreq) const;
 
     /**
      *  @brief Zeroes out all bins below a threshold. Lobes in the frequency
      *         spectrum are compressed into single bins.
      *  @param data - Bins of the FFT data.
      */
-    void cleanUpBins(std::array<float, fftSize * 2> &data);
+    static void cleanUpBins(std::array<float, fftSize * 2> &data);
 
     /**
      *  @brief  Maps all bins to the closest frequency corresponding to a note
@@ -93,7 +97,7 @@ public:
      */
     std::vector<double>
     mapBinsToNotes(const std::vector<double> &noteFreq,
-                   const std::array<float, fftSize * 2> &data);
+                   const std::array<float, fftSize * 2UL> &data) const;
 
     /**
      *  @brief  Finds the note values with largest amplitudes, determining them
@@ -104,27 +108,26 @@ public:
      *  @retval             - Frequencies and amplitudes of the partials found,
      *                        sorted by frequencies in ascending order.
      */
-    std::vector<std::pair<int, double>>
-    determineHarmonics(const unsigned int &numPartials,
-                       std::vector<double> &amps) const;
+    std::vector<std::pair<int, double>> static determineHarmonics(
+        const unsigned int &numPartials, std::vector<double> &amps);
 
 private:
-    std::array<float, fftSize * 2> fftData;
-    std::array<float, fftSize> fifo; /// Next block to be loaded into FFT.
-    int fifoIndex = 0;               /// Iterator for FIFO.
+    std::array<float, fftSize * 2ULL> fftData_;
+    std::array<float, fftSize> fifo_; /// Next block to be loaded into FFT.
+    int fifoIndex_ = 0;               /// Iterator for FIFO.
 
-    const double sampleRate;
+    const double sampleRate_;
 
-    juce::dsp::FFT forwardFFT;
-    juce::dsp::WindowingFunction<float> window;
-    juce::dsp::WindowingFunction<float>::WindowingMethod winMethod;
+    juce::dsp::FFT forwardFFT_;
+    juce::dsp::WindowingFunction<float> window_;
+    juce::dsp::WindowingFunction<float>::WindowingMethod winMethod_;
 
-    float windowCompensation; /// Factor to compensate windowed FFT amplitudes
-                              /// with.
+    float windowCompensation_; /// Factor to compensate windowed FFT amplitudes
+                               /// with.
 
     /// Mappings of windowing methods to amplitude compensation factor.
     const std::map<juce::dsp::WindowingFunction<float>::WindowingMethod, float>
-        windowCompensations{
+        windowCompensations_{
             // Correction factor for triangular and blackman-harris not entered
             // These will not be put in the dropdown selection.
             {juce::dsp::WindowingFunction<float>::rectangular, 1.0},

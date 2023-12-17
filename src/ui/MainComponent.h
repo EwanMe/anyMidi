@@ -25,15 +25,18 @@ namespace anyMidi {
  */
 class MainComponent : public juce::Component {
 public:
-    MainComponent(juce::ValueTree v);
+    explicit MainComponent(const juce::ValueTree &v);
 
     void paint(juce::Graphics &g) override;
 
     void resized() override;
 
 private:
-    juce::ValueTree tree;
-    anyMidi::TabbedComp gui;
+    juce::ValueTree tree_;
+    anyMidi::TabbedComp gui_;
+
+    static constexpr unsigned int width = 400;
+    static constexpr unsigned int height = 290;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

@@ -12,12 +12,25 @@
 #include "../util/Globals.h"
 #include "AudioProcessor.h"
 
-anyMidi::AudioProcessor::AudioProcessor(juce::ValueTree v)
-    : fft{48000, juce::dsp::WindowingFunction<float>::hamming},
-      midiProc{48000, juce::Time::getMillisecondCounterHiRes() * 0.001},
-      tree{v} {
-    deviceManager = new anyMidi::AudioDeviceManagerRCO();
+namespace {
+double midiToFrequency(const int &note) {
+    // Tuning is unchangeable due to the MIDI protocol.
+    constexpr double tuning{440.0};
+    constexpr double a4{69.0};
+    constexpr double octave{12.0};
 
+    // Based on MIDI tuning standard
+    return std::pow(2, (note - a4) / octave) * tuning;
+}
+} // namespace
+
+anyMidi::AudioProcessor::AudioProcessor(double sampleRate,
+                                        const juce::ValueTree &v)
+    : fft_{sampleRate, juce::dsp::WindowingFunction<float>::hamming},
+      deviceManager_{new anyMidi::AudioDeviceManagerRCO()},
+      midiProc_{static_cast<unsigned int>(sampleRate),
+                juce::Time::getMillisecondCounterHiRes() * msToSec},
+      tree_{v} {
     // Some platforms require permissions to open input channels so requesting
     // this here.
     if (juce::RuntimePermissions::isRequired(
@@ -30,7 +43,7 @@ anyMidi::AudioProcessor::AudioProcessor(juce::ValueTree v)
                                  numOutputChannels);
             });
     } else {
-        juce::File deviceSettingsFile =
+        const juce::File deviceSettingsFile =
             juce::File::getCurrentWorkingDirectory().getChildFile(
                 anyMidi::AUDIO_SETTINGS_FILENAME);
 
@@ -44,39 +57,36 @@ anyMidi::AudioProcessor::AudioProcessor(juce::ValueTree v)
         }
     }
 
-    // Generates a list of frequencies corresponding to the 128 Midi notes
-    // based on the global tuning.
-    // Thanks to http://subsynth.sourceforge.net/midinote2freq.html for this
-    // snippet.
-    for (int i = 0; i < 140; ++i) {
-        noteFrequencies.push_back((tuning / 32.0) *
-                                  std::pow(2, (i - 9.0) / 12.0));
+    // Generate a list of frequencies corresponding to the 128 Midi notes
+    constexpr int midiUpperBound{140};
+    for (int i = 0; i < midiUpperBound; ++i) {
+        noteFrequencies_.push_back(midiToFrequency(i));
     }
 
     // Adding device manager to ValueTree so AudioDeviceSelectorComponent in GUI
     // can access it. No listeners needed since pointer to device manager is
     // received by GUI.
-    tree.getChildWithName(anyMidi::AUDIO_PROC_ID)
-        .setProperty(anyMidi::DEVICE_MANAGER_ID, deviceManager.getObject(),
+    tree_.getChildWithName(anyMidi::AUDIO_PROC_ID)
+        .setProperty(anyMidi::DEVICE_MANAGER_ID, deviceManager_.getObject(),
                      nullptr);
 
-    auto guiNode = tree.getChildWithName(anyMidi::GUI_ID);
+    auto guiNode = tree_.getChildWithName(anyMidi::GUI_ID);
     guiNode.setProperty(anyMidi::ATTACK_THRESH_ID,
-                        midiProc.getAttackThreshold(), nullptr);
+                        midiProc_.getAttackThreshold(), nullptr);
     guiNode.setProperty(anyMidi::RELEASE_THRESH_ID,
-                        midiProc.getReleaseThreshold(), nullptr);
-    guiNode.setProperty(anyMidi::PARTIALS_ID, numPartials, nullptr);
+                        midiProc_.getReleaseThreshold(), nullptr);
+    guiNode.setProperty(anyMidi::PARTIALS_ID, numPartials_, nullptr);
     guiNode.setProperty(anyMidi::LO_CUT_ID, lowFilterFreq, nullptr);
     guiNode.setProperty(anyMidi::HI_CUT_ID, highFilterFreq, nullptr);
 
-    guiNode.setProperty(anyMidi::CURRENT_WIN_ID, fft.getWindowingFunction(),
+    guiNode.setProperty(anyMidi::CURRENT_WIN_ID, fft_.getWindowingFunction(),
                         nullptr);
 
     juce::ValueTree winNode{anyMidi::ALL_WIN_ID};
     guiNode.addChild(winNode, -1, nullptr);
 
-    auto win = fft.getAvailableWindowingMethods();
-    for (juce::String w : win) {
+    auto win = fft_.getAvailableWindowingMethods();
+    for (const auto &w : win) {
         juce::ValueTree winItemNode{anyMidi::WIN_NODE_ID};
         winNode.addChild(
             winItemNode.setProperty(anyMidi::WIN_NAME_ID, w, nullptr), -1,
@@ -84,47 +94,44 @@ anyMidi::AudioProcessor::AudioProcessor(juce::ValueTree v)
     }
 
     // Register this class as listener to ValueTree.
-    tree.addListener(this);
+    tree_.addListener(this);
 }
 
 anyMidi::AudioProcessor::~AudioProcessor() {
-    audioSourcePlayer.setSource(nullptr);
-    deviceManager->removeAudioCallback(&audioSourcePlayer);
-    deviceManager = nullptr;
-
-    // Maybe superfluous?
-    jassert(audioSourcePlayer.getCurrentSource() == nullptr);
+    audioSourcePlayer_.setSource(nullptr);
+    deviceManager_->removeAudioCallback(&audioSourcePlayer_);
+    deviceManager_ = nullptr;
 }
 
 void anyMidi::AudioProcessor::prepareToPlay(int samplesPerBlockExpected,
                                             double sampleRate) {
-    processingBuffer.setSize(numInputChannels, samplesPerBlockExpected, false,
-                             true);
-    midiProc.setMidiOutput(deviceManager->getDefaultMidiOutput());
+    processingBuffer_.setSize(numInputChannels, samplesPerBlockExpected, false,
+                              true);
+    midiProc_.setMidiOutput(deviceManager_->getDefaultMidiOutput());
 
     // Initializing highpass filter.
-    hiPassFilter.setCoefficients(
+    hiPassFilter_.setCoefficients(
         juce::IIRCoefficients::makeHighPass(sampleRate, lowFilterFreq));
-    hiPassFilter.reset();
+    hiPassFilter_.reset();
 }
 
 void anyMidi::AudioProcessor::getNextAudioBlock(
     const juce::AudioSourceChannelInfo &bufferToFill) {
     if (bufferToFill.buffer->getNumChannels() > 0) {
-        int numSamples =
+        const int numSamples =
             bufferToFill.buffer->getNumSamples(); // To make sure copied buffer
                                                   // size is the same.
 
         // Copies actual buffer into a buffer for processing.
-        for (int i = 0; i < processingBuffer.getNumChannels(); ++i) {
-            processingBuffer.copyFrom(
+        for (int i = 0; i < processingBuffer_.getNumChannels(); ++i) {
+            processingBuffer_.copyFrom(
                 i, 0, bufferToFill.buffer->getReadPointer(i), numSamples);
         }
 
-        auto *channelData =
-            processingBuffer.getReadPointer(0, bufferToFill.startSample);
+        const auto *channelData =
+            processingBuffer_.getReadPointer(0, bufferToFill.startSample);
         auto *outBuffer =
-            processingBuffer.getWritePointer(0, bufferToFill.startSample);
+            processingBuffer_.getWritePointer(0, bufferToFill.startSample);
 
         // Puts samples into non-const buffer.
         for (int i = 0; i < numSamples; ++i) {
@@ -132,61 +139,63 @@ void anyMidi::AudioProcessor::getNextAudioBlock(
         }
 
         // Applies filter.
-        hiPassFilter.processSamples(outBuffer, numSamples);
+        hiPassFilter_.processSamples(outBuffer, numSamples);
 
         // Puts samples into FFT fifo after processing.
         for (int i = 0; i < numSamples; ++i) {
-            fft.pushNextSampleIntoFifo(outBuffer[i]);
+            fft_.pushNextSampleIntoFifo(outBuffer[i]);
         }
     }
 
-    if (fft.nextFFTBlockReady) {
+    if (fft_.isNextFFTBlockReady()) {
         calcNote();
-        fft.nextFFTBlockReady = false;
+        fft_.setNextFFTBlockReady(false);
     }
 
-    midiProc.pushBufferToOutput();
+    midiProc_.pushBufferToOutput();
 }
 
 void anyMidi::AudioProcessor::releaseResources() {
-    midiProc.turnOffAllMessages();
+    midiProc_.turnOffAllMessages();
 }
 
 void anyMidi::AudioProcessor::calcNote() {
     auto noteInfo = analyzeHarmonics(); // Gets {note, amplitude}
-    int note = noteInfo.first;
-    double amp = noteInfo.second;
-    int velocity = (int)std::round(amp * 127);
+    const int note = noteInfo.first;
+    const double amp = noteInfo.second;
+    const int velocity = static_cast<int>(std::round(amp * 127));
 
     // auto noteInfo = fft.calcFundamentalFreq();
     // int note = findNearestNote(noteInfo.first);
 
     std::vector<std::pair<int, bool>> noteValues;
-    if (midiProc.determineNoteValue(note, amp, noteValues)) {
-        for (std::pair newNote : noteValues) {
-            if (newNote.second == true) {
-                midiProc.createMidiMsg(newNote.first, velocity, newNote.second);
+    if (midiProc_.determineNoteValue(note, amp, noteValues)) {
+        for (const auto &newNote : noteValues) {
+            if (newNote.second) {
+                midiProc_.createMidiMsg(newNote.first,
+                                        static_cast<juce::uint8>(velocity),
+                                        newNote.second);
             } else {
-                midiProc.createMidiMsg(newNote.first, 0, newNote.second);
+                midiProc_.createMidiMsg(newNote.first, 0, newNote.second);
             }
         }
     }
 }
 
 std::pair<int, double> anyMidi::AudioProcessor::analyzeHarmonics() {
-    auto harmonics = fft.getHarmonics(numPartials, noteFrequencies);
+    auto harmonics = fft_.getHarmonics(numPartials_, noteFrequencies_);
 
     std::map<int, double> scores;
     double totalAmp{0.0};
 
-    for (int i = 0; i < numPartials; ++i) {
-        double freq = noteFrequencies[harmonics[i].first];
+    for (int i = 0; i < numPartials_; ++i) {
+        const double freq = noteFrequencies_[harmonics[i].first];
 
         // Calculates fundamental frequency of partial based on index.
-        double fundamental = freq / (i + 1);
+        const double fundamental = freq / (i + 1);
 
         // Get nearest MIDI note value of frequency.
-        int note = anyMidi::findNearestNote(fundamental, noteFrequencies);
+        auto note = anyMidi::findNearestNote(fundamental, noteFrequencies_);
 
         // Scoring weighted based on log2 of freq. FFT bins are distributed
         // linearly and freqencies are percieved logarithmically. This aims to
@@ -202,30 +211,29 @@ std::pair<int, double> anyMidi::AudioProcessor::analyzeHarmonics() {
     double maxScore{0.0};
 
     // Finds note with highest score.
-    for (std::pair<int, double> s : scores) {
-        if (s.second > maxScore) {
-            correctNote = s.first;
-            maxScore = s.second;
+    for (const auto &score : scores) {
+        if (score.second > maxScore) {
+            correctNote = score.first;
+            maxScore = score.second;
         }
     }
 
-    std::pair<int, double> analyzedNote = std::make_pair(correctNote, totalAmp);
+    auto analyzedNote = std::make_pair(correctNote, totalAmp);
     return analyzedNote;
 }
 
 void anyMidi::AudioProcessor::setAudioChannels(
     int numInputChannels, int numOutputChannels,
-    const juce::XmlElement *const xml) {
-    juce::String audioError = deviceManager->initialise(
-        numInputChannels, numOutputChannels, xml, true);
+    const juce::XmlElement *const storedSettings) {
+    const juce::String audioError = deviceManager_->initialise(
+        numInputChannels, numOutputChannels, storedSettings, true);
 
-    // jassert(audioError.isEmpty());
     if (audioError.isEmpty()) {
-        anyMidi::log(tree, audioError);
+        anyMidi::log(tree_, audioError);
     }
 
-    deviceManager->addAudioCallback(&audioSourcePlayer);
-    audioSourcePlayer.setSource(this);
+    deviceManager_->addAudioCallback(&audioSourcePlayer_);
+    audioSourcePlayer_.setSource(this);
 }
 
 void anyMidi::AudioProcessor::valueTreePropertyChanged(
@@ -233,21 +241,21 @@ void anyMidi::AudioProcessor::valueTreePropertyChanged(
     const juce::Identifier &property) {
     if (property == anyMidi::ATTACK_THRESH_ID) {
         double t = treeWhosePropertyHasChanged.getProperty(property);
-        midiProc.setAttackThreshold(t);
+        midiProc_.setAttackThreshold(t);
     } else if (property == anyMidi::RELEASE_THRESH_ID) {
         double t = treeWhosePropertyHasChanged.getProperty(property);
-        midiProc.setReleaseThreshold(t);
+        midiProc_.setReleaseThreshold(t);
     } else if (property == anyMidi::PARTIALS_ID) {
         int n = treeWhosePropertyHasChanged.getProperty(property);
         setNumPartials(n);
     } else if (property == anyMidi::LO_CUT_ID) {
-        double f = treeWhosePropertyHasChanged.getProperty(property);
-        hiPassFilter.setCoefficients(juce::IIRCoefficients::makeHighPass(
-            deviceManager.get()->getAudioDeviceSetup().sampleRate, f));
+        const double f = treeWhosePropertyHasChanged.getProperty(property);
+        hiPassFilter_.setCoefficients(juce::IIRCoefficients::makeHighPass(
+            deviceManager_.get()->getAudioDeviceSetup().sampleRate, f));
     } else if (property == anyMidi::CURRENT_WIN_ID) {
-        int w = treeWhosePropertyHasChanged.getProperty(property);
-        fft.setWindowingFunction(w);
+        const int w = treeWhosePropertyHasChanged.getProperty(property);
+        fft_.setWindowingFunction(w);
     }
 }
 
-void anyMidi::AudioProcessor::setNumPartials(int &n) { numPartials = n; }
+void anyMidi::AudioProcessor::setNumPartials(int &n) { numPartials_ = n; }

@@ -13,7 +13,7 @@
 #include <JuceHeader.h>
 
 namespace anyMidi {
-constexpr char AUDIO_SETTINGS_FILENAME[]{"audio_device_settings.xml"};
+static const char* AUDIO_SETTINGS_FILENAME = "audio_device_settings.xml";
 
 static const juce::Identifier ROOT_ID{"App"};
 
@@ -32,6 +32,9 @@ static const juce::Identifier ALL_WIN_ID{"AllWindowFunc"};
 static const juce::Identifier CURRENT_WIN_ID{"CurrentWindowFunc"};
 static const juce::Identifier WIN_NODE_ID{"Window"};
 static const juce::Identifier WIN_NAME_ID{"WindowName"};
+
+constexpr double msToSec{0.001};
+constexpr double defaultSampleRate{48000};
 
 /**
  *  @brief Logs any non-object juce::var to output on the debug tab.

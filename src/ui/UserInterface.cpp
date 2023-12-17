@@ -7,6 +7,7 @@
  *
  */
 
+#include <BinaryData.h>
 #include <chrono>
 #include <format>
 
@@ -14,35 +15,35 @@
 #include "../util/Globals.h"
 #include "UserInterface.h"
 
-anyMidi::TabbedComp::TabbedComp(juce::ValueTree v)
-    : TabbedComponent(juce::TabbedButtonBar::TabsAtTop), tree{v},
-      audioSetupPage{v}, appSettingsPage{v}, debugPage{v} {
+anyMidi::TabbedComp::TabbedComp(const juce::ValueTree &v)
+    : TabbedComponent(juce::TabbedButtonBar::TabsAtTop), tree_{v},
+      audioSetupPage_{v}, appSettingsPage_{v}, debugPage_{v} {
     // audioSetupViewport.setViewedComponent(&audioSetupPage, false);
     // addAndMakeVisible(audioSetupPage);
 
     auto color =
         getLookAndFeel().findColour(juce::TabbedComponent::backgroundColourId);
 
-    addTab("App Settings", color, &appSettingsPage, true);
-    addTab("Audio Settings", color, &audioSetupPage, true);
-    addTab("Debug", color, &debugPage, true);
+    addTab("App Settings", color, &appSettingsPage_, true);
+    addTab("Audio Settings", color, &audioSetupPage_, true);
+    addTab("Debug", color, &debugPage_, true);
 
     // audioSetupViewport.setBounds(getLocalBounds());
     // audioSetupPage.setBounds(0, 0, 400, 290);
 }
 
-anyMidi::AudioSetupPage::AudioSetupPage(juce::ValueTree v) : tree{v} {
+anyMidi::AudioSetupPage::AudioSetupPage(const juce::ValueTree &v) : tree_{v} {
     // Fetch audio device manager from the value tree.
-    auto deviceManager = dynamic_cast<anyMidi::AudioDeviceManagerRCO *>(
-        tree.getParent()
+    auto *deviceManager = dynamic_cast<anyMidi::AudioDeviceManagerRCO *>(
+        tree_.getParent()
             .getChildWithName(anyMidi::AUDIO_PROC_ID)
             .getProperty(anyMidi::DEVICE_MANAGER_ID)
             .getObject());
 
-    audioSetupComp = std::make_unique<juce::AudioDeviceSelectorComponent>(
+    audioSetupComp_ = std::make_unique<juce::AudioDeviceSelectorComponent>(
         *deviceManager,
         0,     // min input ch
-        256,   // max input ch
+        256,   // max input ch // NOLINT
         0,     // min output ch
         0,     // max output ch
         false, // can select midi inputs?
@@ -51,15 +52,15 @@ anyMidi::AudioSetupPage::AudioSetupPage(juce::ValueTree v) : tree{v} {
         false  // hide advanced options?
     );
 
-    addAndMakeVisible(*audioSetupComp);
+    addAndMakeVisible(*audioSetupComp_);
 }
 
 anyMidi::AudioSetupPage::~AudioSetupPage() {
-    auto audioDeviceSettings = audioSetupComp->deviceManager.createStateXml();
+    auto audioDeviceSettings = audioSetupComp_->deviceManager.createStateXml();
 
     if (audioDeviceSettings != nullptr) {
         // Writes user settings to XML file for storage.
-        juce::File settingsFileName =
+        const juce::File settingsFileName =
             juce::File::getCurrentWorkingDirectory().getChildFile(
                 anyMidi::AUDIO_SETTINGS_FILENAME);
         settingsFileName.replaceWithText(audioDeviceSettings->toString());
@@ -67,246 +68,281 @@ anyMidi::AudioSetupPage::~AudioSetupPage() {
 }
 
 void anyMidi::AudioSetupPage::resized() {
-    audioSetupComp->setBounds(getLocalBounds().withWidth(getWidth()));
+    audioSetupComp_->setBounds(getLocalBounds().withWidth(getWidth()));
 }
 
-anyMidi::AppSettingsPage::AppSettingsPage(juce::ValueTree v) : tree{v} {
-    // Attack treshold slider
-    addAndMakeVisible(attThreshSlider);
-    attThreshSlider.setRange(0, 1, 0.001);
-    attThreshSlider.setSliderStyle(juce::Slider::LinearBarVertical);
-    attThreshSlider.setColour(juce::Slider::ColourIds::trackColourId,
-                              juce::Colours::transparentWhite);
-    attThreshSlider.setVelocityBasedMode(true);
-    attThreshSlider.setVelocityModeParameters(0.4, 1, 0.09, false);
+anyMidi::AppSettingsPage::AppSettingsPage(const juce::ValueTree &v) : tree_{v} {
+    constexpr double sliderSense{0.4};
+    constexpr double sliderVelThresh{1};
+    constexpr double sliderVelOffset{0.09};
 
-    if (tree.hasProperty(anyMidi::ATTACK_THRESH_ID)) {
-        attThreshSlider.setValue(tree.getProperty(anyMidi::ATTACK_THRESH_ID));
+    // Attack threshold slider
+    constexpr double attThreshMin{0};
+    constexpr double attThreshMax{1};
+    constexpr double attThreshIncr{0.001};
+    addAndMakeVisible(attThreshSlider_);
+    attThreshSlider_.setRange(attThreshMin, attThreshMax, attThreshIncr);
+    attThreshSlider_.setSliderStyle(juce::Slider::LinearBarVertical);
+    attThreshSlider_.setColour(juce::Slider::ColourIds::trackColourId,
+                               juce::Colours::transparentWhite);
+    attThreshSlider_.setVelocityBasedMode(true);
+    attThreshSlider_.setVelocityModeParameters(sliderSense, sliderVelThresh,
+                                               sliderVelOffset, false);
+
+    if (tree_.hasProperty(anyMidi::ATTACK_THRESH_ID)) {
+        attThreshSlider_.setValue(tree_.getProperty(anyMidi::ATTACK_THRESH_ID));
     }
 
     // Callback
-    attThreshSlider.onValueChange = [this] {
-        tree.setProperty(anyMidi::ATTACK_THRESH_ID, attThreshSlider.getValue(),
-                         nullptr);
+    attThreshSlider_.onValueChange = [this] {
+        tree_.setProperty(anyMidi::ATTACK_THRESH_ID,
+                          attThreshSlider_.getValue(), nullptr);
     };
 
     // Release threshold slider
-    addAndMakeVisible(relThreshSlider);
-    relThreshSlider.setRange(0, 1, 0.001);
-    relThreshSlider.setSliderStyle(juce::Slider::LinearBarVertical);
-    relThreshSlider.setColour(juce::Slider::ColourIds::trackColourId,
-                              juce::Colours::transparentWhite);
-    relThreshSlider.setVelocityBasedMode(true);
-    relThreshSlider.setVelocityModeParameters(0.4, 1, 0.09, false);
+    constexpr double relThreshMin{0};
+    constexpr double relThreshMax{1};
+    constexpr double relThreshIncr{0.001};
+    addAndMakeVisible(relThreshSlider_);
+    relThreshSlider_.setRange(relThreshMin, relThreshMax, relThreshIncr);
+    relThreshSlider_.setSliderStyle(juce::Slider::LinearBarVertical);
+    relThreshSlider_.setColour(juce::Slider::ColourIds::trackColourId,
+                               juce::Colours::transparentWhite);
+    relThreshSlider_.setVelocityBasedMode(true);
+    relThreshSlider_.setVelocityModeParameters(sliderSense, sliderVelThresh,
+                                               sliderVelOffset, false);
 
-    if (tree.hasProperty(anyMidi::RELEASE_THRESH_ID)) {
-        relThreshSlider.setValue(tree.getProperty(anyMidi::RELEASE_THRESH_ID));
+    if (tree_.hasProperty(anyMidi::RELEASE_THRESH_ID)) {
+        relThreshSlider_.setValue(
+            tree_.getProperty(anyMidi::RELEASE_THRESH_ID));
     }
 
     // Callback
-    relThreshSlider.onValueChange = [this] {
-        tree.setProperty(anyMidi::RELEASE_THRESH_ID, relThreshSlider.getValue(),
-                         nullptr);
+    relThreshSlider_.onValueChange = [this] {
+        tree_.setProperty(anyMidi::RELEASE_THRESH_ID,
+                          relThreshSlider_.getValue(), nullptr);
     };
 
     // Partials slider
-    addAndMakeVisible(partialsSlider);
-    partialsSlider.setRange(1, 10, 1);
-    partialsSlider.setSliderStyle(juce::Slider::LinearBarVertical);
-    partialsSlider.setColour(juce::Slider::ColourIds::trackColourId,
-                             juce::Colours::transparentWhite);
-    partialsSlider.setVelocityBasedMode(true);
-    partialsSlider.setVelocityModeParameters(0.4, 1, 0.09, false);
+    constexpr double partialsMin{1};
+    constexpr double partialsMax{10};
+    constexpr double partialsIncr{1};
+    addAndMakeVisible(partialsSlider_);
+    partialsSlider_.setRange(partialsMin, partialsMax, partialsIncr);
+    partialsSlider_.setSliderStyle(juce::Slider::LinearBarVertical);
+    partialsSlider_.setColour(juce::Slider::ColourIds::trackColourId,
+                              juce::Colours::transparentWhite);
+    partialsSlider_.setVelocityBasedMode(true);
+    partialsSlider_.setVelocityModeParameters(sliderSense, sliderVelThresh,
+                                              sliderVelOffset, false);
 
-    if (tree.hasProperty(anyMidi::PARTIALS_ID)) {
-        partialsSlider.setValue(tree.getProperty(anyMidi::PARTIALS_ID));
+    if (tree_.hasProperty(anyMidi::PARTIALS_ID)) {
+        partialsSlider_.setValue(tree_.getProperty(anyMidi::PARTIALS_ID));
     }
 
     // Callback
-    partialsSlider.onValueChange = [this] {
-        tree.setProperty(anyMidi::PARTIALS_ID,
-                         static_cast<int>(partialsSlider.getValue()), nullptr);
+    partialsSlider_.onValueChange = [this] {
+        tree_.setProperty(anyMidi::PARTIALS_ID,
+                          static_cast<int>(partialsSlider_.getValue()),
+                          nullptr);
     };
 
     // Filter sliders
-    addAndMakeVisible(filterSlider);
-    filterSlider.setRange(20, 20000, 1);
-    filterSlider.setSliderStyle(juce::Slider::TwoValueHorizontal);
-    filterSlider.setTextBoxStyle(juce::Slider::NoTextBox, true, 300, 1000);
+    constexpr int filterSliderWidth{300};
+    constexpr int filterSliderHeight{1000};
+    constexpr double frequenzyIncrement{1};
+    addAndMakeVisible(filterSlider_);
+    filterSlider_.setRange(frequenzyLowerBound, frequenzyUpperBound,
+                           frequenzyIncrement);
+    filterSlider_.setSliderStyle(juce::Slider::TwoValueHorizontal);
+    filterSlider_.setTextBoxStyle(juce::Slider::NoTextBox, true,
+                                  filterSliderWidth, filterSliderHeight);
 
-    if (tree.hasProperty(anyMidi::LO_CUT_ID) &&
-        tree.hasProperty(anyMidi::HI_CUT_ID)) {
-        filterSlider.setMinAndMaxValues(tree.getProperty(anyMidi::LO_CUT_ID),
-                                        tree.getProperty(anyMidi::HI_CUT_ID));
+    if (tree_.hasProperty(anyMidi::LO_CUT_ID) &&
+        tree_.hasProperty(anyMidi::HI_CUT_ID)) {
+        filterSlider_.setMinAndMaxValues(tree_.getProperty(anyMidi::LO_CUT_ID),
+                                         tree_.getProperty(anyMidi::HI_CUT_ID));
     }
 
     // Callback
-    filterSlider.onValueChange = [this] {
-        juce::Value &loVal = filterSlider.getMinValueObject();
-        juce::Value &hival = filterSlider.getMaxValueObject();
+    filterSlider_.onValueChange = [this] {
+        const juce::Value &loVal = filterSlider_.getMinValueObject();
+        const juce::Value &hiVal = filterSlider_.getMaxValueObject();
 
-        tree.setProperty(anyMidi::LO_CUT_ID, loVal.getValue(), nullptr);
-        tree.setProperty(anyMidi::HI_CUT_ID, hival.getValue(), nullptr);
+        tree_.setProperty(anyMidi::LO_CUT_ID, loVal.getValue(), nullptr);
+        tree_.setProperty(anyMidi::HI_CUT_ID, hiVal.getValue(), nullptr);
 
-        loCutFreq.setText(loVal.toString() + " Hz");
-        hiCutFreq.setText(hival.toString() + " Hz");
+        loCutFreq_.setText(loVal.toString() + " Hz");
+        hiCutFreq_.setText(hiVal.toString() + " Hz");
     };
+
+    constexpr int maxTextLength{10};
+    constexpr auto allowedCharacters = "0123456789.";
 
     // Low cut frequency
-    addAndMakeVisible(loCutFreq);
-    loCutFreq.setInputRestrictions(10, "0123456789.");
-    loCutFreq.setSelectAllWhenFocused(true);
+    addAndMakeVisible(loCutFreq_);
+    loCutFreq_.setInputRestrictions(maxTextLength, allowedCharacters);
+    loCutFreq_.setSelectAllWhenFocused(true);
 
     // Update min slider and format text on Enter
-    loCutFreq.onReturnKey = [this] {
-        double newValue =
-            std::stod(loCutFreq.getTextValue().toString().toStdString());
+    loCutFreq_.onReturnKey = [this] {
+        const double newValue =
+            std::stod(loCutFreq_.getTextValue().toString().toStdString());
 
         std::stringstream ss;
         ss << std::fixed << std::setprecision(1);
-        if (newValue <= filterSlider.getMaxValue()) {
-            filterSlider.setMinValue(newValue);
+        if (newValue <= filterSlider_.getMaxValue()) {
+            filterSlider_.setMinValue(newValue);
 
             ss << newValue << " Hz";
-            loCutFreq.setText(ss.str());
+            loCutFreq_.setText(ss.str());
         } else {
-            ss << filterSlider.getMinValue() << " Hz";
-            loCutFreq.setText(ss.str());
+            ss << filterSlider_.getMinValue() << " Hz";
+            loCutFreq_.setText(ss.str());
         }
     };
 
+    // TODO: slider box not showing
     // High cut frequency
-    addAndMakeVisible(hiCutFreq);
-    hiCutFreq.setInputRestrictions(10, "0123456789.");
-    hiCutFreq.setSelectAllWhenFocused(true);
+    addAndMakeVisible(hiCutFreq_);
+    hiCutFreq_.setInputRestrictions(maxTextLength, allowedCharacters);
+    hiCutFreq_.setSelectAllWhenFocused(true);
 
     // Update max slider and format text on Enter
-    hiCutFreq.onReturnKey = [this] {
-        double newValue =
-            std::stod(hiCutFreq.getTextValue().toString().toStdString());
+    hiCutFreq_.onReturnKey = [this] {
+        const double newValue =
+            std::stod(hiCutFreq_.getTextValue().toString().toStdString());
 
-        std::stringstream ss;
-        ss << std::fixed << std::setprecision(1);
-        if (newValue >= filterSlider.getMinValue()) {
-            filterSlider.setMaxValue(newValue);
+         std::stringstream ss;
+         ss << std::fixed << std::setprecision(1);
+         if (newValue >= filterSlider_.getMinValue()) {
+             filterSlider_.setMaxValue(newValue);
 
-            ss << newValue << " Hz";
-            hiCutFreq.setText(ss.str());
-        } else {
-            ss << filterSlider.getMaxValue() << " Hz";
-            hiCutFreq.setText(ss.str());
-        }
+             ss << newValue << " Hz";
+             hiCutFreq_.setText(ss.str());
+         } else {
+             ss << filterSlider_.getMaxValue() << " Hz";
+             hiCutFreq_.setText(ss.str());
+         }
     };
 
     // Windowing methods
-    addAndMakeVisible(winMethodList);
-    auto winNode = tree.getChildWithName(anyMidi::ALL_WIN_ID);
+    addAndMakeVisible(winMethodList_);
+    auto winNode = tree_.getChildWithName(anyMidi::ALL_WIN_ID);
     for (int i = 0; i < winNode.getNumChildren(); ++i) {
-        auto &method = winNode.getChild(i).getProperty(anyMidi::WIN_NAME_ID);
+        const auto &method = winNode.getChild(i).getProperty(anyMidi::WIN_NAME_ID);
 
         if (!method.toString().isEmpty()) {
-            winMethodList.addItem(method, i + 1);
+            winMethodList_.addItem(method, i + 1);
         }
     }
-    winMethodList.setSelectedId((int)tree.getProperty(anyMidi::CURRENT_WIN_ID) +
-                                1);
+    winMethodList_.setSelectedId((int)tree_.getProperty(anyMidi::CURRENT_WIN_ID) +
+                                 1);
 
-    winMethodList.onChange = [this] {
-        tree.setProperty(anyMidi::CURRENT_WIN_ID,
-                         winMethodList.getSelectedId() - 1, nullptr);
+    winMethodList_.onChange = [this] {
+        tree_.setProperty(anyMidi::CURRENT_WIN_ID,
+                          winMethodList_.getSelectedId() - 1, nullptr);
     };
 
     // Attack threshold label
-    addAndMakeVisible(attThreshLabel);
-    attThreshLabel.setText("Attack thresh.", juce::dontSendNotification);
+    addAndMakeVisible(attThreshLabel_);
+    attThreshLabel_.setText("Attack thresh.", juce::dontSendNotification);
 
     // Release threshold label
-    addAndMakeVisible(relThreshLabel);
-    relThreshLabel.setText("Release thresh.", juce::dontSendNotification);
+    addAndMakeVisible(relThreshLabel_);
+    relThreshLabel_.setText("Release thresh.", juce::dontSendNotification);
 
     // Partials label
-    addAndMakeVisible(partialsLabel);
-    partialsLabel.setText("Partials", juce::dontSendNotification);
+    addAndMakeVisible(partialsLabel_);
+    partialsLabel_.setText("Partials", juce::dontSendNotification);
 
     // Filter label
-    addAndMakeVisible(filterLabel);
-    filterLabel.setText("Filter", juce::dontSendNotification);
+    addAndMakeVisible(filterLabel_);
+    filterLabel_.setText("Filter", juce::dontSendNotification);
 
     // Windowing method label
-    addAndMakeVisible(winMethodLabel);
-    winMethodLabel.setText("Window", juce::dontSendNotification);
+    addAndMakeVisible(winMethodLabel_);
+    winMethodLabel_.setText("Window", juce::dontSendNotification);
 }
 
 void anyMidi::AppSettingsPage::resized() {
     const int valPad = getWidth() / 3;
 
-    attThreshLabel.setBounds(labelPad, yPad, elementWidth, elementHeight);
-    relThreshLabel.setBounds(labelPad, yPad + 2 * elementHeight, elementWidth,
-                             elementHeight);
-    partialsLabel.setBounds(labelPad, yPad + 4 * elementHeight, elementWidth,
-                            elementHeight);
-    filterLabel.setBounds(labelPad, yPad + 6 * elementHeight, elementWidth,
-                          elementHeight);
-    winMethodLabel.setBounds(labelPad, yPad + 9 * elementHeight,
-                             elementWidth * 2, elementHeight);
+    constexpr int yOffsetLevel1{2};
+    constexpr int yOffsetLevel2{4};
+    constexpr int yOffsetLevel3{6};
+    constexpr float yOffsetLevel4{7.2};
+    constexpr int yOffsetLevel5{9};
 
-    attThreshSlider.setBounds(valPad + elementWidth / 2, yPad, elementWidth,
-                              elementHeight);
-    relThreshSlider.setBounds(valPad + elementWidth / 2,
-                              yPad + 2 * elementHeight, elementWidth,
-                              elementHeight);
-    partialsSlider.setBounds(valPad + elementWidth / 2,
-                             yPad + 4 * elementHeight, elementWidth,
-                             elementHeight);
-    filterSlider.setBounds(valPad, yPad + 6 * elementHeight, elementWidth * 2,
-                           elementHeight);
-    loCutFreq.setBounds(valPad, yPad + 7.2 * elementHeight, elementWidth,
-                        elementHeight);
-    hiCutFreq.setBounds(valPad + elementWidth, yPad + 7.2 * elementHeight,
-                        elementWidth, elementHeight);
-    winMethodList.setBounds(valPad, yPad + 9 * elementHeight, elementWidth * 2,
-                            elementHeight);
+    attThreshLabel_.setBounds(labelPad, yPad, elementWidth, elementHeight);
+    relThreshLabel_.setBounds(labelPad, yPad + yOffsetLevel1 * elementHeight,
+                              elementWidth, elementHeight);
+    partialsLabel_.setBounds(labelPad, yPad + yOffsetLevel2 * elementHeight,
+                             elementWidth, elementHeight);
+    filterLabel_.setBounds(labelPad, yPad + yOffsetLevel3 * elementHeight,
+                           elementWidth, elementHeight);
+    winMethodLabel_.setBounds(labelPad, yPad + yOffsetLevel5 * elementHeight,
+                              elementWidth * 2, elementHeight);
+
+    attThreshSlider_.setBounds(valPad + elementWidth / 2, yPad, elementWidth,
+                               elementHeight);
+    relThreshSlider_.setBounds(valPad + elementWidth / 2,
+                               yPad + yOffsetLevel1 * elementHeight,
+                               elementWidth, elementHeight);
+    partialsSlider_.setBounds(valPad + elementWidth / 2,
+                              yPad + yOffsetLevel2 * elementHeight,
+                              elementWidth, elementHeight);
+    filterSlider_.setBounds(valPad, yPad + yOffsetLevel3 * elementHeight,
+                            elementWidth * 2, elementHeight);
+    loCutFreq_.setBounds(valPad,
+                         yPad + static_cast<int>(yOffsetLevel4 * elementHeight),
+                         elementWidth, elementHeight);
+    hiCutFreq_.setBounds(valPad + elementWidth,
+                         yPad + static_cast<int>(yOffsetLevel4 * elementHeight),
+                         elementWidth, elementHeight);
+    winMethodList_.setBounds(valPad, yPad + yOffsetLevel5 * elementHeight,
+                             elementWidth * 2, elementHeight);
 }
 
-anyMidi::DebugPage::DebugPage(juce::ValueTree v) : tree{v} {
-    tree.addListener(this);
+anyMidi::DebugPage::DebugPage(const juce::ValueTree &v) : tree_{v} {
+    tree_.addListener(this);
 
     // Output box, used for debugging.
-    addAndMakeVisible(outputBox);
-    outputBox.setMultiLine(true);
-    outputBox.setReturnKeyStartsNewLine(true);
-    outputBox.setReadOnly(true);
-    outputBox.setScrollbarsShown(true);
-    outputBox.setCaretVisible(false);
-    outputBox.setPopupMenuEnabled(true);
+    addAndMakeVisible(outputBox_);
+    outputBox_.setMultiLine(true);
+    outputBox_.setReturnKeyStartsNewLine(true);
+    outputBox_.setReadOnly(true);
+    outputBox_.setScrollbarsShown(true);
+    outputBox_.setCaretVisible(false);
+    outputBox_.setPopupMenuEnabled(true);
     // outputBox.setComponentID("output");
-    auto existingLog = tree.getParent()
+    auto existingLog = tree_.getParent()
                            .getChildWithName(anyMidi::GUI_ID)
                            .getProperty(anyMidi::LOG_ID)
                            .toString();
     if (!existingLog.isEmpty()) {
-        outputBox.moveCaretToEnd();
-        outputBox.insertTextAtCaret(existingLog + juce::newLine);
+        outputBox_.moveCaretToEnd();
+        outputBox_.insertTextAtCaret(existingLog + juce::newLine);
     }
 
-    addAndMakeVisible(outputBoxLabel);
-    outputBoxLabel.setText("Output log:", juce::dontSendNotification);
-    outputBoxLabel.attachToComponent(&outputBox, false);
+    addAndMakeVisible(outputBoxLabel_);
+    outputBoxLabel_.setText("Output log:", juce::dontSendNotification);
+    outputBoxLabel_.attachToComponent(&outputBox_, false);
 
-    addAndMakeVisible(clearOutput);
-    clearOutput.setButtonText("Clear output");
-    clearOutput.onClick = [this] { outputBox.clear(); };
+    addAndMakeVisible(clearOutput_);
+    clearOutput_.setButtonText("Clear output");
+    clearOutput_.onClick = [this] { outputBox_.clear(); };
 
-    addAndMakeVisible(writeToXml);
-    writeToXml.setButtonText("Write state to file");
-    writeToXml.onClick = [this] {
+    addAndMakeVisible(writeToXml_);
+    writeToXml_.setButtonText("Write state to file");
+    writeToXml_.onClick = [this] {
         // Reference Counted Objects can't be serialized into XML.
         // Device manager is stored and the node it lies in is replaced with a
         // string while XML is generated. After, the device manager is added
         // back into the tree as a RCO.
         auto audioProcNode =
-            tree.getParent().getChildWithName(anyMidi::AUDIO_PROC_ID);
-        auto deviceManager = dynamic_cast<anyMidi::AudioDeviceManagerRCO *>(
+            tree_.getParent().getChildWithName(anyMidi::AUDIO_PROC_ID);
+        auto *deviceManager = dynamic_cast<anyMidi::AudioDeviceManagerRCO *>(
             audioProcNode.getProperty(anyMidi::DEVICE_MANAGER_ID).getObject());
 
         if (deviceManager != nullptr) {
@@ -320,23 +356,31 @@ anyMidi::DebugPage::DebugPage(juce::ValueTree v) : tree{v} {
                                       nullptr);
         }
 
-        auto xml = tree.getRoot().toXmlString();
+        auto xml = tree_.getRoot().toXmlString();
 
         // This holy mess to get a simple timestamp.
-        std::chrono::time_point time_point(std::chrono::system_clock::now());
-        auto day_point = std::chrono::floor<std::chrono::days>(time_point);
-        std::chrono::year_month_day ymd(day_point);
+        const std::chrono::time_point timePoint(
+            std::chrono::system_clock::now());
+        auto dayPoint = std::chrono::floor<std::chrono::days>(timePoint);
+        std::chrono::year_month_day ymd(dayPoint);
         std::chrono::hh_mm_ss hms(std::chrono::floor<std::chrono::milliseconds>(
-            time_point - day_point));
+            timePoint - dayPoint));
 
         std::stringstream timestamp;
         timestamp << std::format("{:%Y-%m-%d}", ymd) << "_"
                   << std::format("{:%H-%M-%OS}", hms);
+        auto filename = "anyMidi_state_" + timestamp.str() + ".xml";
 
         // Save state as xml file to local dir.
-        juce::File::getCurrentWorkingDirectory()
-            .getChildFile("anyMidi_state_" + timestamp.str() + ".xml")
-            .replaceWithText(xml);
+        const auto file =
+            juce::File::getCurrentWorkingDirectory().getChildFile(filename);
+        if (file.replaceWithText(xml)) {
+            anyMidi::log(tree_,
+                         std::format("State successfully written to {}",
+                                     file.getFullPathName().toStdString()));
+        } else {
+            anyMidi::log(tree_, "Failed to write state to file.");
+        }
 
         // Reset the altered nodes.
         audioProcNode.setProperty(anyMidi::DEVICE_MANAGER_ID, deviceManager,
@@ -347,14 +391,15 @@ anyMidi::DebugPage::DebugPage(juce::ValueTree v) : tree{v} {
 void anyMidi::DebugPage::resized() {
     const int outputWidth = getWidth() - 2 * xPad;
     const int outputHeight = (getHeight() / 3) * 2;
+    constexpr float yPadScale{1.5};
 
-    outputBox.setBounds(xPad, yPad, outputWidth, outputHeight);
-    clearOutput.setBounds(xPad + (outputWidth / 2 - elementWidth) / 2,
-                          (int)(1.5 * yPad) + outputHeight, buttonWidth,
-                          buttonHeight);
-    writeToXml.setBounds(
+    outputBox_.setBounds(xPad, yPad, outputWidth, outputHeight);
+    clearOutput_.setBounds(xPad + (outputWidth / 2 - elementWidth) / 2,
+                           (int)(yPadScale * yPad) + outputHeight, buttonWidth,
+                           buttonHeight);
+    writeToXml_.setBounds(
         xPad + outputWidth / 2 + (outputWidth / 2 - elementWidth) / 2,
-        (int)(1.5 * yPad) + outputHeight, buttonWidth, buttonHeight);
+        (int)(yPadScale * yPad) + outputHeight, buttonWidth, buttonHeight);
 }
 
 void anyMidi::DebugPage::valueTreePropertyChanged(
@@ -362,29 +407,33 @@ void anyMidi::DebugPage::valueTreePropertyChanged(
     const juce::Identifier &property) {
     if (property == anyMidi::LOG_ID) {
         // TODO: Color is not applied here, default color is used.
-        outputBox.applyColourToAllText(
+        outputBox_.applyColourToAllText(
             getLookAndFeel().findColour(juce::TextEditor::textColourId), true);
 
-        juce::String message =
+        const juce::String message =
             treeWhosePropertyHasChanged.getProperty(property).toString();
-        outputBox.moveCaretToEnd();
-        outputBox.insertTextAtCaret(message + juce::newLine);
+        outputBox_.moveCaretToEnd();
+        outputBox_.insertTextAtCaret(message + juce::newLine);
     }
 }
 
 anyMidi::TrayIcon::TrayIcon(juce::DocumentWindow *mainWindow)
     : mainWindow{mainWindow} {
-    juce::Image icon = juce::ImageCache::getFromMemory(
+    const juce::Image icon = juce::ImageCache::getFromMemory(
         BinaryData::anyMidiLogo_png, BinaryData::anyMidiLogo_pngSize);
-    juce::Graphics g{icon};
-    g.drawImage(icon, juce::Rectangle<float>(8, 8));
+    const juce::Graphics g{icon};
+
+    constexpr float trayIconWidth{8.0};
+    constexpr float trayIconHeight{8.0};
+    g.drawImage(icon, juce::Rectangle<float>(trayIconWidth, trayIconHeight));
 
     setIconImage(icon, icon);
 
     setIconTooltip("anyMidi");
 }
 
-void anyMidi::TrayIcon::mouseDown(const juce::MouseEvent &) {
+void anyMidi::TrayIcon::mouseDown(
+    [[maybe_unused]] const juce::MouseEvent &mouseEvent) {
     juce::PopupMenu menu;
 
     menu.setLookAndFeel(&(mainWindow->getLookAndFeel()));
