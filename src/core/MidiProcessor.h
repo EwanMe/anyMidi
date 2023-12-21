@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include <juce_audio_devices/juce_audio_devices.h>
 
 namespace anyMidi {
 
@@ -87,8 +87,11 @@ private:
     /// Previous amplitude of note, used to determine retrigger or ring out.
     double lastAmp_{0.0};
 
-    double attackThreshold_{0.1};
-    double releaseThreshold_{0.001};
+    static constexpr double defaultAttackThreshold{0.1};
+    static constexpr double defaultReleaseThreshold{0.001};
+
+    double attackThreshold_{defaultAttackThreshold};
+    double releaseThreshold_{defaultReleaseThreshold};
 
     /// Audio app start time. Used to determine Midi message timestamp.
     const double startTime_;

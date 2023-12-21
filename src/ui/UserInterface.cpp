@@ -213,31 +213,32 @@ anyMidi::AppSettingsPage::AppSettingsPage(const juce::ValueTree &v) : tree_{v} {
         const double newValue =
             std::stod(hiCutFreq_.getTextValue().toString().toStdString());
 
-         std::stringstream ss;
-         ss << std::fixed << std::setprecision(1);
-         if (newValue >= filterSlider_.getMinValue()) {
-             filterSlider_.setMaxValue(newValue);
+        std::stringstream ss;
+        ss << std::fixed << std::setprecision(1);
+        if (newValue >= filterSlider_.getMinValue()) {
+            filterSlider_.setMaxValue(newValue);
 
-             ss << newValue << " Hz";
-             hiCutFreq_.setText(ss.str());
-         } else {
-             ss << filterSlider_.getMaxValue() << " Hz";
-             hiCutFreq_.setText(ss.str());
-         }
+            ss << newValue << " Hz";
+            hiCutFreq_.setText(ss.str());
+        } else {
+            ss << filterSlider_.getMaxValue() << " Hz";
+            hiCutFreq_.setText(ss.str());
+        }
     };
 
     // Windowing methods
     addAndMakeVisible(winMethodList_);
     auto winNode = tree_.getChildWithName(anyMidi::ALL_WIN_ID);
     for (int i = 0; i < winNode.getNumChildren(); ++i) {
-        const auto &method = winNode.getChild(i).getProperty(anyMidi::WIN_NAME_ID);
+        const auto &method =
+            winNode.getChild(i).getProperty(anyMidi::WIN_NAME_ID);
 
         if (!method.toString().isEmpty()) {
             winMethodList_.addItem(method, i + 1);
         }
     }
-    winMethodList_.setSelectedId((int)tree_.getProperty(anyMidi::CURRENT_WIN_ID) +
-                                 1);
+    winMethodList_.setSelectedId(
+        (int)tree_.getProperty(anyMidi::CURRENT_WIN_ID) + 1);
 
     winMethodList_.onChange = [this] {
         tree_.setProperty(anyMidi::CURRENT_WIN_ID,
@@ -363,8 +364,9 @@ anyMidi::DebugPage::DebugPage(const juce::ValueTree &v) : tree_{v} {
             std::chrono::system_clock::now());
         auto dayPoint = std::chrono::floor<std::chrono::days>(timePoint);
         std::chrono::year_month_day ymd(dayPoint);
-        std::chrono::hh_mm_ss hms(std::chrono::floor<std::chrono::milliseconds>(
-            timePoint - dayPoint));
+        const std::chrono::hh_mm_ss hms(
+            std::chrono::floor<std::chrono::milliseconds>(timePoint -
+                                                          dayPoint));
 
         std::stringstream timestamp;
         timestamp << std::format("{:%Y-%m-%d}", ymd) << "_"

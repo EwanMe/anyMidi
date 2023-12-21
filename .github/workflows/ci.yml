@@ -1,0 +1,97 @@
+name: CI
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+env:
+  BUILD_TYPE: Release
+  JUCE_URL_LINUX: https://github.com/juce-framework/JUCE/archive/refs/tags/7.0.9.tar.gz
+  JUCE_URL_WIN: https://github.com/juce-framework/JUCE/archive/refs/tags/7.0.9.zip
+
+jobs:
+  format-checking:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: RafikFarhad/clang-format-github-action@v3
+        with:
+          sources: 'src/**/*.h,src/**/*.cpp,src/*.cpp'
+
+  linux-build-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install packages
+        run: |
+          sudo apt update
+          sudo apt install -y \
+          curl \
+          clang-tidy-15 \
+          g++-13 \
+          ninja-build \
+          libasound2-dev \
+          libjack-jackd2-dev \
+          ladspa-sdk \
+          libcurl4-openssl-dev \
+          libfreetype6-dev \
+          libx11-dev \
+          libxcomposite-dev \
+          libxcursor-dev \
+          libxext-dev \
+          libxinerama-dev \
+          libxrandr-dev \
+          libxrender-dev \
+          libwebkit2gtk-4.0-dev
+        shell: bash
+
+      - name: Install JUCE
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/juce
+          curl -s -L $JUCE_URL_LINUX | tar xzvf - -C $GITHUB_WORKSPACE/juce
+        shell: bash
+
+      - name: Configure CMake
+        run: |
+          export CXX=/usr/bin/g++-13
+          cmake -S $GITHUB_WORKSPACE -B ./build -G "Ninja" \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=on \
+            -DJUCE_PATH=$GITHUB_WORKSPACE/juce/JUCE-7.0.9 \
+            -DCMAKE_CXX_COMPILER=/usr/bin/g++-13
+        shell: bash
+
+      - name: Build
+        run: cmake --build ./build
+        shell: bash
+
+  windows-build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install packages
+        run: choco install -y ninja
+        shell: pwsh
+
+      - name: Install JUCE
+        run: |
+          Invoke-WebRequest -Uri $env:JUCE_URL_WIN -OutFile juce.zip
+          Expand-Archive -Path juce.zip -DestinationPath $env:GITHUB_WORKSPACE/juce -Force
+          Remove-Item juce.zip
+        shell: pwsh
+
+      - name: setup devcmd
+        uses: ilammy/msvc-dev-cmd@v1.13.0
+
+      - name: Configure CMake
+        run: |
+          cmake -S %GITHUB_WORKSPACE% -B ./build -G "Ninja" ^
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ^
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=on ^
+            -DJUCE_PATH=%GITHUB_WORKSPACE%/juce/JUCE-7.0.9
+        shell: cmd
+
+      - name: Build
+        run: cmake --build ./build
+        shell: cmd

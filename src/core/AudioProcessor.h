@@ -10,7 +10,10 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include <juce_audio_basics/juce_audio_basics.h>
+#include <juce_audio_devices/juce_audio_devices.h>
+#include <juce_core/juce_core.h>
+#include <juce_data_structures/juce_data_structures.h>
 
 #include "ForwardFFT.h"
 #include "MidiProcessor.h"
@@ -81,7 +84,10 @@ private:
     static constexpr unsigned int numInputChannels{1};
     static constexpr unsigned int numOutputChannels{0};
 
-    int numPartials_{6};
+    /// Optimized number of partials for the BSc project
+    static constexpr int defaultNumPartials{6};
+
+    int numPartials_{defaultNumPartials};
     std::vector<double> noteFrequencies_; /// Lookup array to determine Midi
                                           /// notes from frequencies.
 

@@ -12,8 +12,8 @@
       "ctestCommandArgs": "",
       "variables": [
         {
-          "name": "CMAKE_PREFIX_PATH",
-          "value": "C:\\lib\\JUCEbuild",
+          "name": "JUCE_PATH",
+          "value": "C:\\lib\\JUCE-7.0.9",
           "type": "FILEPATH"
         },
         {

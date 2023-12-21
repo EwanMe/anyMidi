@@ -10,7 +10,9 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include <juce_data_structures/juce_data_structures.h>
+#include <juce_graphics/juce_graphics.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 
 #include "CustomLookAndFeel.h"
 #include "UserInterface.h"

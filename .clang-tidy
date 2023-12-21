@@ -67,3 +67,7 @@ CheckOptions:
       value: 1,
     }
   - { key: readability-function-cognitive-complexity.IgnoreMacros, value: 1 }
+  - {
+      key: readability-identifier-naming.TypeTemplateParameterIgnoredRegexp,
+      value: expr-type,
+    }

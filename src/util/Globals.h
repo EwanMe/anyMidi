@@ -10,10 +10,11 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include <juce_core/juce_core.h>
+#include <juce_data_structures/juce_data_structures.h>
 
 namespace anyMidi {
-static const char* AUDIO_SETTINGS_FILENAME = "audio_device_settings.xml";
+static const char *AUDIO_SETTINGS_FILENAME = "audio_device_settings.xml";
 
 static const juce::Identifier ROOT_ID{"App"};
 
@@ -42,7 +43,7 @@ constexpr double defaultSampleRate{48000};
  *                   to pass messages to.
  *  @param message - The message to log. Cannot be a juce object.
  */
-inline void log(juce::ValueTree tree, juce::var message) {
+inline void log(const juce::ValueTree &tree, juce::var message) {
     if (message.isObject()) {
         message = "Error: Cannot log objects.";
     }
@@ -59,7 +60,8 @@ inline void log(juce::ValueTree tree, juce::var message) {
  *                    to pass messages to.
  *  @param  message - The message to log.
  */
-template <typename T> inline void log(juce::ValueTree tree, const T &message) {
+template <typename T>
+inline void log(const juce::ValueTree &tree, const T &message) {
     std::stringstream ss;
     ss << message;
     juce::var msgVar = juce::String(ss.str());

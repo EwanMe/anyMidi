@@ -17,8 +17,7 @@ anyMidi::ForwardFFT::ForwardFFT(
     : forwardFFT_{fftOrder}, sampleRate_{sampleRate},
       // When initialising the windowing function, consider using fftSize + 1,
       // ref. https://artandlogic.com/2019/11/making-spectrograms-in-juce/amp/
-      window_{fftSize + 1, windowingMethod}, winMethod_{windowingMethod},
-      fftData_{}, fifo_{} {
+      window_{fftSize + 1, windowingMethod}, winMethod_{windowingMethod} {
     windowCompensation_ = windowCompensations_.at(windowingMethod);
 }
 
@@ -188,7 +187,7 @@ void anyMidi::ForwardFFT::cleanUpBins(std::array<float, fftSize * 2> &data) {
 
 std::vector<double> anyMidi::ForwardFFT::mapBinsToNotes(
     const std::vector<double> &noteFreq,
-    const std::array<float, fftSize * 2ULL> &data) const {
+    const std::array<float, fftSize * 2UL> &data) const {
     // Determines closest note to all bins in FFT and maps bins to their correct
     // frequencies. The amplitudes of each bin is added onto the notes
     // amplitude.
@@ -247,7 +246,7 @@ anyMidi::ForwardFFT::determineHarmonics(const unsigned int &numPartials,
 }
 
 int anyMidi::findNearestNote(const double &target,
-                                const std::vector<double> &noteFrequencies) {
+                             const std::vector<double> &noteFrequencies) {
     int begin{0};
     auto end = static_cast<int>(noteFrequencies.size());
 
