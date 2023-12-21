@@ -8,21 +8,32 @@
  *
  */
 
-#include <JuceHeader.h>
+#include <BinaryData.h>
+#include <juce_core/juce_core.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 
 #include "./core/AudioProcessor.h"
 #include "./ui/CustomLookAndFeel.h"
 #include "./ui/MainComponent.h"
 #include "./util/Globals.h"
 
+// NOLINTBEGIN(readability-identifier-naming)
+namespace ProjectInfo {
+const char *const projectName = "anyMidiStandalone";
+const char *const companyName = "Hallvard Jensen";
+const char *const versionString = "1.0.0";
+const int versionNumber = 0x10000;
+} // namespace ProjectInfo
+// NOLINTEND(readability-identifier-naming)
+
 class AnyMidiStandaloneApplication : public juce::JUCEApplication {
 public:
     AnyMidiStandaloneApplication() = default;
 
-    const juce::String getApplicationName() override {
+    const juce::String getApplicationName() override { // NOLINT
         return ProjectInfo::projectName;
     }
-    const juce::String getApplicationVersion() override {
+    const juce::String getApplicationVersion() override { // NOLINT
         return ProjectInfo::versionString;
     }
 
@@ -67,10 +78,10 @@ public:
                       DocumentWindow::closeButton) {
             setUsingNativeTitleBar(false);
             setTitleBarTextCentred(false);
-            
+
             // JUCE handles pointer safety
             setContentOwned(new anyMidi::MainComponent(v), true); // NOLINT
-            
+
             setResizable(false, false);
             centreWithSize(getWidth(), getHeight());
             setLookAndFeel(layout);

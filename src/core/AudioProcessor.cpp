@@ -7,10 +7,8 @@
  *
  */
 
-#include <JuceHeader.h>
-
-#include "../util/Globals.h"
 #include "AudioProcessor.h"
+#include "../util/Globals.h"
 
 namespace {
 double midiToFrequency(const int &note) {

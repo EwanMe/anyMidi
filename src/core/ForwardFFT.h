@@ -10,7 +10,8 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include <juce_core/juce_core.h>
+#include <juce_dsp/juce_dsp.h>
 
 namespace anyMidi {
 
@@ -19,7 +20,7 @@ private:
     /// Used as exponent of base 2 in FFT size.
     static constexpr size_t fftOrder{10};
     /// 2 to the power of FFT order.
-    static constexpr size_t fftSize = 1ULL << fftOrder;
+    static constexpr size_t fftSize = 1UL << fftOrder;
 
     /// Signals whether the FIFO has been copied into the FFT array.
     bool nextFFTBlockReady_ = false;
@@ -112,9 +113,9 @@ public:
         const unsigned int &numPartials, std::vector<double> &amps);
 
 private:
-    std::array<float, fftSize * 2ULL> fftData_;
-    std::array<float, fftSize> fifo_; /// Next block to be loaded into FFT.
-    int fifoIndex_ = 0;               /// Iterator for FIFO.
+    std::array<float, fftSize * 2UL> fftData_{0};
+    std::array<float, fftSize> fifo_{0}; /// Next block to be loaded into FFT.
+    int fifoIndex_ = 0;                  /// Iterator for FIFO.
 
     const double sampleRate_;
 
