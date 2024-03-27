@@ -37,6 +37,15 @@ static const juce::Identifier WIN_NAME_ID{"WindowName"};
 constexpr double msToSec{0.001};
 constexpr double defaultSampleRate{48000};
 
+#ifdef NDEBUG
+static const juce::File CONFIG_DIR =
+    juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory);
+#else
+static const juce::File CONFIG_DIR =
+    juce::File::getSpecialLocation(juce::File::currentExecutableFile)
+        .getParentDirectory();
+#endif
+
 /**
  *  @brief Logs any non-object juce::var to output on the debug tab.
  *  @param tree    - A value tree which contains a child with the log-property

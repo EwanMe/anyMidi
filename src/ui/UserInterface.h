@@ -43,7 +43,6 @@ constexpr int labelPad = xPad;
 class AudioSetupPage : public juce::Component {
 public:
     explicit AudioSetupPage(const juce::ValueTree &v);
-    ~AudioSetupPage() override;
 
     void resized() override;
 

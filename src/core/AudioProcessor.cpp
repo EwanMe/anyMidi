@@ -42,8 +42,7 @@ anyMidi::AudioProcessor::AudioProcessor(double sampleRate,
             });
     } else {
         const juce::File deviceSettingsFile =
-            juce::File::getCurrentWorkingDirectory().getChildFile(
-                anyMidi::AUDIO_SETTINGS_FILENAME);
+            anyMidi::CONFIG_DIR.getChildFile(anyMidi::AUDIO_SETTINGS_FILENAME);
 
         if (deviceSettingsFile.existsAsFile()) {
             // Loads settings from file if it exists.
@@ -97,6 +96,16 @@ anyMidi::AudioProcessor::AudioProcessor(double sampleRate,
 
 anyMidi::AudioProcessor::~AudioProcessor() {
     audioSourcePlayer_.setSource(nullptr);
+
+    auto audioDeviceSettings = deviceManager_->createStateXml();
+
+    if (audioDeviceSettings != nullptr) {
+        // Writes user settings to XML file for storage.
+        const juce::File settingsFileName =
+            anyMidi::CONFIG_DIR.getChildFile(anyMidi::AUDIO_SETTINGS_FILENAME);
+        settingsFileName.replaceWithText(audioDeviceSettings->toString());
+    }
+
     deviceManager_->removeAudioCallback(&audioSourcePlayer_);
     deviceManager_ = nullptr;
 }

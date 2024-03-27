@@ -55,18 +55,6 @@ anyMidi::AudioSetupPage::AudioSetupPage(const juce::ValueTree &v) : tree_{v} {
     addAndMakeVisible(*audioSetupComp_);
 }
 
-anyMidi::AudioSetupPage::~AudioSetupPage() {
-    auto audioDeviceSettings = audioSetupComp_->deviceManager.createStateXml();
-
-    if (audioDeviceSettings != nullptr) {
-        // Writes user settings to XML file for storage.
-        const juce::File settingsFileName =
-            juce::File::getCurrentWorkingDirectory().getChildFile(
-                anyMidi::AUDIO_SETTINGS_FILENAME);
-        settingsFileName.replaceWithText(audioDeviceSettings->toString());
-    }
-}
-
 void anyMidi::AudioSetupPage::resized() {
     audioSetupComp_->setBounds(getLocalBounds().withWidth(getWidth()));
 }
@@ -374,8 +362,7 @@ anyMidi::DebugPage::DebugPage(const juce::ValueTree &v) : tree_{v} {
         auto filename = "anyMidi_state_" + timestamp.str() + ".xml";
 
         // Save state as xml file to local dir.
-        const auto file =
-            juce::File::getCurrentWorkingDirectory().getChildFile(filename);
+        const auto file = anyMidi::CONFIG_DIR.getChildFile(filename);
         if (file.replaceWithText(xml)) {
             anyMidi::log(tree_,
                          std::format("State successfully written to {}",
