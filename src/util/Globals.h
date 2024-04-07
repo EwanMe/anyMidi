@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <chrono>
+
 #include <juce_core/juce_core.h>
 #include <juce_data_structures/juce_data_structures.h>
 
@@ -45,6 +47,28 @@ static const juce::File CONFIG_DIR =
     juce::File::getSpecialLocation(juce::File::currentExecutableFile)
         .getParentDirectory();
 #endif
+
+static const juce::File AUDIO_SETTINGS_FILE =
+    CONFIG_DIR.getChildFile(AUDIO_SETTINGS_FILENAME);
+
+inline juce::File getTimestampedAppSettingsFile() {
+    const std::chrono::time_point timePoint(std::chrono::system_clock::now());
+    auto dayPoint = std::chrono::floor<std::chrono::days>(timePoint);
+    std::chrono::year_month_day ymd(dayPoint);
+    const std::chrono::hh_mm_ss hms(
+        std::chrono::floor<std::chrono::milliseconds>(timePoint - dayPoint));
+
+    std::stringstream timestamp;
+    timestamp << std::format("{:%Y-%m-%d}", ymd) << "_"
+              << std::format("{:%H-%M-%OS}", hms);
+    auto filename = "anyMidi_state_" + timestamp.str() + ".xml";
+
+    return anyMidi::CONFIG_DIR.getChildFile(filename);
+}
+
+inline juce::File getAppSettingsFile() {
+    return anyMidi::CONFIG_DIR.getChildFile("anyMidi_config.xml");
+}
 
 /**
  *  @brief Logs any non-object juce::var to output on the debug tab.

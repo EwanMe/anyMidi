@@ -84,7 +84,7 @@ private:
     static constexpr unsigned int numInputChannels{1};
     static constexpr unsigned int numOutputChannels{0};
 
-    /// Optimized number of partials for the BSc project
+    /// Optimized number of partials for the bachelor's project
     static constexpr int defaultNumPartials{6};
 
     int numPartials_{defaultNumPartials};

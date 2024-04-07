@@ -63,7 +63,7 @@ private:
 class AppSettingsPage : public juce::Component {
 public:
     explicit AppSettingsPage(const juce::ValueTree &v);
-    ~AppSettingsPage() override = default;
+    ~AppSettingsPage() override;
 
     void resized() override;
 

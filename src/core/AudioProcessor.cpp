@@ -20,6 +20,18 @@ double midiToFrequency(const int &note) {
     // Based on MIDI tuning standard
     return std::pow(2, (note - a4) / octave) * tuning;
 }
+
+void initNode(juce::ValueTree &tree, const juce::Identifier &name,
+              const juce::var &defaultValue) {
+    if (!tree.hasProperty(name) || tree.getProperty(name).isUndefined()) {
+        anyMidi::log(tree, std::string("Did not find ") +
+                               name.toString().toStdString());
+        tree.setProperty(name, defaultValue, nullptr);
+    } else {
+        anyMidi::log(tree,
+                     "Already initialized " + name.toString().toStdString());
+    }
+}
 } // namespace
 
 anyMidi::AudioProcessor::AudioProcessor(double sampleRate,
@@ -41,12 +53,9 @@ anyMidi::AudioProcessor::AudioProcessor(double sampleRate,
                                  numOutputChannels);
             });
     } else {
-        const juce::File deviceSettingsFile =
-            anyMidi::CONFIG_DIR.getChildFile(anyMidi::AUDIO_SETTINGS_FILENAME);
-
-        if (deviceSettingsFile.existsAsFile()) {
+        if (AUDIO_SETTINGS_FILE.existsAsFile()) {
             // Loads settings from file if it exists.
-            const auto storedSettings = juce::parseXML(deviceSettingsFile);
+            const auto storedSettings = juce::parseXML(AUDIO_SETTINGS_FILE);
             setAudioChannels(numInputChannels, numOutputChannels,
                              storedSettings.get());
         } else {
@@ -68,16 +77,14 @@ anyMidi::AudioProcessor::AudioProcessor(double sampleRate,
                      nullptr);
 
     auto guiNode = tree_.getChildWithName(anyMidi::GUI_ID);
-    guiNode.setProperty(anyMidi::ATTACK_THRESH_ID,
-                        midiProc_.getAttackThreshold(), nullptr);
-    guiNode.setProperty(anyMidi::RELEASE_THRESH_ID,
-                        midiProc_.getReleaseThreshold(), nullptr);
-    guiNode.setProperty(anyMidi::PARTIALS_ID, numPartials_, nullptr);
-    guiNode.setProperty(anyMidi::LO_CUT_ID, lowFilterFreq, nullptr);
-    guiNode.setProperty(anyMidi::HI_CUT_ID, highFilterFreq, nullptr);
-
-    guiNode.setProperty(anyMidi::CURRENT_WIN_ID, fft_.getWindowingFunction(),
-                        nullptr);
+    initNode(guiNode, anyMidi::ATTACK_THRESH_ID,
+             midiProc_.getAttackThreshold());
+    initNode(guiNode, anyMidi::RELEASE_THRESH_ID,
+             midiProc_.getReleaseThreshold());
+    initNode(guiNode, anyMidi::PARTIALS_ID, numPartials_);
+    initNode(guiNode, anyMidi::LO_CUT_ID, lowFilterFreq);
+    initNode(guiNode, anyMidi::HI_CUT_ID, highFilterFreq);
+    initNode(guiNode, anyMidi::CURRENT_WIN_ID, fft_.getWindowingFunction());
 
     juce::ValueTree winNode{anyMidi::ALL_WIN_ID};
     guiNode.addChild(winNode, -1, nullptr);
@@ -101,9 +108,7 @@ anyMidi::AudioProcessor::~AudioProcessor() {
 
     if (audioDeviceSettings != nullptr) {
         // Writes user settings to XML file for storage.
-        const juce::File settingsFileName =
-            anyMidi::CONFIG_DIR.getChildFile(anyMidi::AUDIO_SETTINGS_FILENAME);
-        settingsFileName.replaceWithText(audioDeviceSettings->toString());
+        AUDIO_SETTINGS_FILE.replaceWithText(audioDeviceSettings->toString());
     }
 
     deviceManager_->removeAudioCallback(&audioSourcePlayer_);
