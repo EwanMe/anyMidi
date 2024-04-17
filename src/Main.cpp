@@ -15,7 +15,7 @@
 #include "./core/AudioProcessor.h"
 #include "./ui/CustomLookAndFeel.h"
 #include "./ui/MainComponent.h"
-#include "./util/Globals.h"
+#include "./util/Constants.h"
 
 // NOLINTBEGIN(readability-identifier-naming)
 namespace ProjectInfo {

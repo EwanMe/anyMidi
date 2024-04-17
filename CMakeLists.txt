@@ -49,7 +49,8 @@ file(GLOB_RECURSE SRC_FILES
 	"src/ui/CustomLookAndFeel.cpp"
 	"src/ui/MainComponent.cpp"
 	"src/ui/UserInterface.cpp"
-	"src/Main.cpp"	
+	"src/util/Util.cpp"
+	"src/Main.cpp"
 )
 
 target_sources(anyMidi PRIVATE ${SRC_FILES})

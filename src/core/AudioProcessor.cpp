@@ -8,7 +8,7 @@
  */
 
 #include "AudioProcessor.h"
-#include "../util/Globals.h"
+#include "../util/Util.h"
 
 namespace {
 double midiToFrequency(const int &note) {
@@ -53,9 +53,9 @@ anyMidi::AudioProcessor::AudioProcessor(double sampleRate,
                                  numOutputChannels);
             });
     } else {
-        if (AUDIO_SETTINGS_FILE.existsAsFile()) {
+        if (anyMidi::getAudioSettingsFile().existsAsFile()) {
             // Loads settings from file if it exists.
-            const auto storedSettings = juce::parseXML(AUDIO_SETTINGS_FILE);
+            const auto storedSettings = juce::parseXML(getAudioSettingsFile());
             setAudioChannels(numInputChannels, numOutputChannels,
                              storedSettings.get());
         } else {
@@ -108,7 +108,8 @@ anyMidi::AudioProcessor::~AudioProcessor() {
 
     if (audioDeviceSettings != nullptr) {
         // Writes user settings to XML file for storage.
-        AUDIO_SETTINGS_FILE.replaceWithText(audioDeviceSettings->toString());
+        anyMidi::getAudioSettingsFile().replaceWithText(
+            audioDeviceSettings->toString());
     }
 
     deviceManager_->removeAudioCallback(&audioSourcePlayer_);

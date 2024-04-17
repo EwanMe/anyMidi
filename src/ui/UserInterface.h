@@ -16,7 +16,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_gui_extra/juce_gui_extra.h>
 
-#include "../util/Globals.h"
+#include "../util/Util.h"
 #include "CustomLookAndFeel.h"
 
 namespace anyMidi {
