@@ -2,8 +2,7 @@
   "cmake.generator": "Ninja",
   "cmake.exportCompileCommandsFile": true,
   "cmake.configureSettings": {
-    "CMAKE_BUILD_TYPE": "Debug",
     "JUCE_PATH": "${env:HOME}/dev/JUCE/",
-    "RUN_CLANG_TIDY": false
+    "RUN_CLANG_TIDY": "${if(eq(config:cmake.buildType, 'Release'), 'ON', 'OFF')}"
   }
 }
