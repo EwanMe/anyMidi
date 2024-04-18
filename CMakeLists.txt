@@ -125,7 +125,8 @@ if(UNIX)
 endif()
 
 target_include_directories(anyMidi SYSTEM PRIVATE
-	"${CMAKE_PREFIX_PATH}/include/JUCE-${JUCE_VERSION}/modules/")
+	"${CMAKE_PREFIX_PATH}/include/JUCE-${JUCE_VERSION}/modules/"
+	${ASIO_SDK_PATH})
 
 target_link_libraries(anyMidi
 	PRIVATE
