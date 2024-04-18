@@ -9,7 +9,7 @@
 
 #include "../ui/MainComponent.h"
 #include "../core/AudioProcessor.h"
-#include "../util/Globals.h"
+#include "../util/Util.h"
 #include "UserInterface.h"
 
 anyMidi::MainComponent::MainComponent(const juce::ValueTree &v)

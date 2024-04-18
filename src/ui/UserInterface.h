@@ -16,7 +16,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_gui_extra/juce_gui_extra.h>
 
-#include "../util/Globals.h"
+#include "../util/Util.h"
 #include "CustomLookAndFeel.h"
 
 namespace anyMidi {
@@ -43,7 +43,6 @@ constexpr int labelPad = xPad;
 class AudioSetupPage : public juce::Component {
 public:
     explicit AudioSetupPage(const juce::ValueTree &v);
-    ~AudioSetupPage() override;
 
     void resized() override;
 
@@ -64,7 +63,7 @@ private:
 class AppSettingsPage : public juce::Component {
 public:
     explicit AppSettingsPage(const juce::ValueTree &v);
-    ~AppSettingsPage() override = default;
+    ~AppSettingsPage() override;
 
     void resized() override;
 

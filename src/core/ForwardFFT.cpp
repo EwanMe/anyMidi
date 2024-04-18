@@ -9,7 +9,7 @@
 
 #include "ForwardFFT.h"
 
-#include "../util/Globals.h"
+#include "../util/Util.h"
 
 anyMidi::ForwardFFT::ForwardFFT(
     const double sampleRate,

@@ -5,8 +5,8 @@
       "generator": "Ninja",
       "configurationType": "Debug",
       "inheritEnvironments": [ "msvc_x64_x64" ],
-      "buildRoot": "${projectDir}\\Builds\\ninja\\build\\${name}",
-      "installRoot": "${projectDir}\\Builds\\ninja\\install\\${name}",
+      "buildRoot": "${projectDir}\\build\\${generator}\\build\\${name}",
+      "installRoot": "${projectDir}\\build\\${generator}\\install\\${name}",
       "cmakeCommandArgs": "",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
@@ -18,8 +18,41 @@
         },
         {
           "name": "CMAKE_EXPORT_COMPILE_COMMANDS",
-          "value": "on",
+          "value": "TRUE",
           "type": "BOOL"
+        },
+        {
+          "name": "ASIO_SDK_PATH",
+          "value": "C:\\lib\\asiosdk_2.3.3_2019-06-14\\common",
+          "type": "FILEPATH"
+        }
+      ]
+    },
+    {
+      "name": "x64-Release",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "buildRoot": "${projectDir}\\build\\${generator}\\build\\${name}",
+      "installRoot": "${projectDir}\\build\\${generator}\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "variables": [
+        {
+          "name": "JUCE_PATH",
+          "value": "C:\\lib\\JUCE-7.0.9",
+          "type": "FILEPATH"
+        },
+        {
+          "name": "CMAKE_EXPORT_COMPILE_COMMANDS",
+          "value": "FALSE",
+          "type": "BOOL"
+        },
+        {
+          "name": "ASIO_SDK_PATH",
+          "value": "C:\\lib\\asiosdk_2.3.3_2019-06-14\\common",
+          "type": "FILEPATH"
         }
       ]
     }

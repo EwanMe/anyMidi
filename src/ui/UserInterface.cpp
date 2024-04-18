@@ -8,11 +8,10 @@
  */
 
 #include <BinaryData.h>
-#include <chrono>
 #include <format>
 
 #include "../core/AudioProcessor.h"
-#include "../util/Globals.h"
+#include "../util/Util.h"
 #include "UserInterface.h"
 
 anyMidi::TabbedComp::TabbedComp(const juce::ValueTree &v)
@@ -53,18 +52,6 @@ anyMidi::AudioSetupPage::AudioSetupPage(const juce::ValueTree &v) : tree_{v} {
     );
 
     addAndMakeVisible(*audioSetupComp_);
-}
-
-anyMidi::AudioSetupPage::~AudioSetupPage() {
-    auto audioDeviceSettings = audioSetupComp_->deviceManager.createStateXml();
-
-    if (audioDeviceSettings != nullptr) {
-        // Writes user settings to XML file for storage.
-        const juce::File settingsFileName =
-            juce::File::getCurrentWorkingDirectory().getChildFile(
-                anyMidi::AUDIO_SETTINGS_FILENAME);
-        settingsFileName.replaceWithText(audioDeviceSettings->toString());
-    }
 }
 
 void anyMidi::AudioSetupPage::resized() {
@@ -266,6 +253,11 @@ anyMidi::AppSettingsPage::AppSettingsPage(const juce::ValueTree &v) : tree_{v} {
     winMethodLabel_.setText("Window", juce::dontSendNotification);
 }
 
+anyMidi::AppSettingsPage::~AppSettingsPage() {
+    auto root = tree_.getRoot();
+    storeSettings(root);
+}
+
 void anyMidi::AppSettingsPage::resized() {
     const int valPad = getWidth() / 3;
 
@@ -336,58 +328,7 @@ anyMidi::DebugPage::DebugPage(const juce::ValueTree &v) : tree_{v} {
 
     addAndMakeVisible(writeToXml_);
     writeToXml_.setButtonText("Write state to file");
-    writeToXml_.onClick = [this] {
-        // Reference Counted Objects can't be serialized into XML.
-        // Device manager is stored and the node it lies in is replaced with a
-        // string while XML is generated. After, the device manager is added
-        // back into the tree as a RCO.
-        auto audioProcNode =
-            tree_.getParent().getChildWithName(anyMidi::AUDIO_PROC_ID);
-        auto *deviceManager = dynamic_cast<anyMidi::AudioDeviceManagerRCO *>(
-            audioProcNode.getProperty(anyMidi::DEVICE_MANAGER_ID).getObject());
-
-        if (deviceManager != nullptr) {
-            audioProcNode.setProperty(
-                anyMidi::DEVICE_MANAGER_ID,
-                "Audio device manager exists, settings in separate file.",
-                nullptr);
-        } else {
-            audioProcNode.setProperty(anyMidi::DEVICE_MANAGER_ID,
-                                      "No audio device manager found.",
-                                      nullptr);
-        }
-
-        auto xml = tree_.getRoot().toXmlString();
-
-        // This holy mess to get a simple timestamp.
-        const std::chrono::time_point timePoint(
-            std::chrono::system_clock::now());
-        auto dayPoint = std::chrono::floor<std::chrono::days>(timePoint);
-        std::chrono::year_month_day ymd(dayPoint);
-        const std::chrono::hh_mm_ss hms(
-            std::chrono::floor<std::chrono::milliseconds>(timePoint -
-                                                          dayPoint));
-
-        std::stringstream timestamp;
-        timestamp << std::format("{:%Y-%m-%d}", ymd) << "_"
-                  << std::format("{:%H-%M-%OS}", hms);
-        auto filename = "anyMidi_state_" + timestamp.str() + ".xml";
-
-        // Save state as xml file to local dir.
-        const auto file =
-            juce::File::getCurrentWorkingDirectory().getChildFile(filename);
-        if (file.replaceWithText(xml)) {
-            anyMidi::log(tree_,
-                         std::format("State successfully written to {}",
-                                     file.getFullPathName().toStdString()));
-        } else {
-            anyMidi::log(tree_, "Failed to write state to file.");
-        }
-
-        // Reset the altered nodes.
-        audioProcNode.setProperty(anyMidi::DEVICE_MANAGER_ID, deviceManager,
-                                  nullptr);
-    };
+    writeToXml_.onClick = [this] { storeDebugSettings(tree_); };
 }
 
 void anyMidi::DebugPage::resized() {

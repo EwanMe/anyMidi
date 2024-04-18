@@ -38,7 +38,7 @@ private:
     anyMidi::TabbedComp gui_;
 
     static constexpr unsigned int width = 400;
-    static constexpr unsigned int height = 290;
+    static constexpr unsigned int height = 320;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

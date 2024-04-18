@@ -15,7 +15,7 @@
 #include "./core/AudioProcessor.h"
 #include "./ui/CustomLookAndFeel.h"
 #include "./ui/MainComponent.h"
-#include "./util/Globals.h"
+#include "./util/Constants.h"
 
 // NOLINTBEGIN(readability-identifier-naming)
 namespace ProjectInfo {
@@ -41,10 +41,17 @@ public:
 
     void initialise([[maybe_unused]] const juce::String &commandLine) override {
         const juce::ValueTree audioProcNode(anyMidi::AUDIO_PROC_ID);
-        tree_.addChild(audioProcNode, -1, nullptr);
+        juce::ValueTree guiNode{anyMidi::GUI_ID};
 
-        const juce::ValueTree guiNode{anyMidi::GUI_ID};
-        tree_.addChild(guiNode, -1, nullptr);
+        if (anyMidi::getAppSettingsFile().existsAsFile() &&
+            anyMidi::getAppSettingsFile().getSize() > 0) {
+            auto xml = juce::XmlDocument::parse(anyMidi::getAppSettingsFile());
+            guiNode = juce::ValueTree::fromXml(*xml);
+            tree_.addChild(guiNode, -1, nullptr);
+        } else {
+            tree_.addChild(guiNode, -1, nullptr);
+        }
+        tree_.addChild(audioProcNode, -1, nullptr);
 
         audioProcessor_ = std::make_unique<anyMidi::AudioProcessor>(
             anyMidi::defaultSampleRate, tree_);

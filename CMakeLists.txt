@@ -49,7 +49,8 @@ file(GLOB_RECURSE SRC_FILES
 	"src/ui/CustomLookAndFeel.cpp"
 	"src/ui/MainComponent.cpp"
 	"src/ui/UserInterface.cpp"
-	"src/Main.cpp"	
+	"src/util/Util.cpp"
+	"src/Main.cpp"
 )
 
 target_sources(anyMidi PRIVATE ${SRC_FILES})
@@ -124,7 +125,8 @@ if(UNIX)
 endif()
 
 target_include_directories(anyMidi SYSTEM PRIVATE
-	"${CMAKE_PREFIX_PATH}/include/JUCE-${JUCE_VERSION}/modules/")
+	"${CMAKE_PREFIX_PATH}/include/JUCE-${JUCE_VERSION}/modules/"
+	${ASIO_SDK_PATH})
 
 target_link_libraries(anyMidi
 	PRIVATE
