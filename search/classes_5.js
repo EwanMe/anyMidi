@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['tabbedcomp_74',['TabbedComp',['../classany_midi_1_1_tabbed_comp.html',1,'anyMidi']]],
-  ['trayicon_75',['TrayIcon',['../classany_midi_1_1_tray_icon.html',1,'anyMidi']]]
+  ['tabbedcomp_0',['TabbedComp',['../classany_midi_1_1_tabbed_comp.html',1,'anyMidi']]],
+  ['trayicon_1',['TrayIcon',['../classany_midi_1_1_tray_icon.html',1,'anyMidi']]]
 ];

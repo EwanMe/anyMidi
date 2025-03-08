@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['determineharmonics_95',['determineHarmonics',['../classany_midi_1_1_forward_f_f_t.html#af59b633be95dc8cd7ccd163a59041a23',1,'anyMidi::ForwardFFT']]],
-  ['determinenotevalue_96',['determineNoteValue',['../classany_midi_1_1_midi_processor.html#afe6ad1b8258261dd6541193a2da19247',1,'anyMidi::MidiProcessor']]]
+  ['determineharmonics_0',['determineHarmonics',['../classany_midi_1_1_forward_f_f_t.html#af59b633be95dc8cd7ccd163a59041a23',1,'anyMidi::ForwardFFT']]],
+  ['determinenotevalue_1',['determineNoteValue',['../classany_midi_1_1_midi_processor.html#a2e9f88a455373892b14c57e56084e0d6',1,'anyMidi::MidiProcessor']]]
 ];
