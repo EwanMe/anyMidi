@@ -1,0 +1,26 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_CXX_COMPILER": "/usr/bin/g++-13",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": false,
+                "JUCE_PATH": "/juce/JUCE-7.0.9",
+                "RUN_CLANG_TIDY": true
+            },
+            "environment": {
+                "CXX": "/usr/bin/g++-13"
+            },
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/release"
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "release",
+            "configurePreset": "release"
+        }
+    ]
+}

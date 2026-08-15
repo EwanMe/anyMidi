@@ -57,7 +57,7 @@ target_sources(anyMidi PRIVATE ${SRC_FILES})
 
 if (UNIX AND RUN_CLANG_TIDY)
 	# Run clang-tidy only on linux
-	foreach(version RANGE 15 17)
+	foreach(version RANGE 15 30)
 		list(APPEND CLANG_TIDY_VERSIONS "clang-tidy-${version}")	
 	endforeach()
 

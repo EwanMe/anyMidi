@@ -1,0 +1,6 @@
+services:
+  builder:
+    build: .
+    volumes:
+      - .:/src:rw
+    command:

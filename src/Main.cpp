@@ -8,6 +8,8 @@
  *
  */
 
+#include <memory>
+
 #include <BinaryData.h>
 #include <juce_core/juce_core.h>
 #include <juce_gui_basics/juce_gui_basics.h>
@@ -15,7 +17,9 @@
 #include "./core/AudioProcessor.h"
 #include "./ui/CustomLookAndFeel.h"
 #include "./ui/MainComponent.h"
+#include "./ui/UserInterface.h"
 #include "./util/Constants.h"
+#include "./util/Util.h"
 
 // NOLINTBEGIN(readability-identifier-naming)
 namespace ProjectInfo {
@@ -153,4 +157,4 @@ private:
 };
 
 // This macro generates the main() routine that launches the app.
-START_JUCE_APPLICATION(AnyMidiStandaloneApplication)
+static START_JUCE_APPLICATION(AnyMidiStandaloneApplication)
